@@ -1,9 +1,9 @@
 package it.scalachess.client
 
-import it.scalachess.core.{Game}
+import it.scalachess.core.{ChessGame}
 
 
 object Client extends App {
-  val game = Game("test")
-  println(game.identifier)
+  val game = ChessGame()
+  println(game.turn)
 }

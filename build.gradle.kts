@@ -7,6 +7,11 @@
  */
 import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 
+//import "com.github.jengelman.gradle.plugins.shadow.ShadowExtension"
+//import "com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar"
+
+val scalaVersion = "2.12"
+
 plugins {
     // Apply the scala plugin to add support for Scala
     scala
@@ -23,19 +28,12 @@ allprojects {
 }
 
 subprojects {
-    val scalaVersion = "2.12"
     apply(plugin = "scala")
     group = "scalachess"
     version = "0.1"
 
     dependencies {
-        if(project.name != "core") {
-            implementation(":core")
-        }
-
-        // Use Scala 2.12 in our library project
         implementation("org.scala-lang:scala-library:$scalaVersion.8")
-
         // Use Scalatest for testing our library
         testImplementation("junit:junit:4.12")
         testImplementation("org.scalatest:scalatest_2.12:3.0.8")
@@ -49,6 +47,25 @@ subprojects {
             from("configuration.runtime")
             into("build/dependencies")
         }
+    }
+}
+
+project("core") {
+    dependencies {
+//        "implementation"("org.scala-lang:scala-library:$scalaVersion.8")
+    }
+}
+
+project("client") {
+
+    apply(plugin = "application")
+
+    dependencies {
+        "implementation"(project(":core"))
+    }
+
+    configure<ApplicationPluginConvention> {
+        mainClassName = "it.scalachess.client.Client"
     }
 }
 
