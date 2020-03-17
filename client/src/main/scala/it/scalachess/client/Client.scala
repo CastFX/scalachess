@@ -4,6 +4,6 @@ import it.scalachess.core.{ChessGame}
 
 
 object Client extends App {
-  val game = ChessGame()
+  val game = ChessGame.standard()
   println(game.turn)
 }

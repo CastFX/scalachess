@@ -35,14 +35,14 @@ object Board {
 
   private def initialPieceTypeAtPosition(pos: Position): PieceType = {
     pos.y match {
-      case 1 | Board.height => pos.x match {
+      case 1 | 8 => pos.x match {
         case 1 | 8 => Rook
         case 2 | 7 => Knight
         case 3 | 6 => Bishop
         case 4 => King
         case 5 => Queen
       }
-      case 2 | Board.height - 1 => Pawn
+      case 2 | 7 => Pawn
     }
   }
 

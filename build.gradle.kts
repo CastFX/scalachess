@@ -15,6 +15,8 @@ val scalaVersion = "2.12"
 plugins {
     // Apply the scala plugin to add support for Scala
     scala
+    id("com.github.maiflai.scalatest") version "0.26"
+    
 }
 
 allprojects {
@@ -36,7 +38,8 @@ subprojects {
         implementation("org.scala-lang:scala-library:$scalaVersion.8")
         // Use Scalatest for testing our library
         testImplementation("junit:junit:4.12")
-        testImplementation("org.scalatest:scalatest_2.12:3.0.8")
+        testCompile("org.scalatest:scalatest_2.11:3.0.1")
+        testRuntime("org.pegdown:pegdown:1.4.2")
 
         // Need scala-xml at test runtime
         testRuntimeOnly("org.scala-lang.modules:scala-xml_2.12:1.2.0")
@@ -69,4 +72,4 @@ project("client") {
     }
 }
 
-defaultTasks("clean", "build")
+defaultTasks("clean", "build", "test")
