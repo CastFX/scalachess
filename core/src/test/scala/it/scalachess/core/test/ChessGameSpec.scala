@@ -1,10 +1,10 @@
 package it.scalachess.core.test
 
-import org.scalatest.FlatSpec
 import it.scalachess.core.ChessGame
 import it.scalachess.core.colors.White
+import org.scalatest.FlatSpec
 
-class ChessGameTest extends FlatSpec {
+class ChessGameSpec extends FlatSpec {
   val game = ChessGame.standard()
 
   "A standard ChessGame" should "have a non-empty board" in {

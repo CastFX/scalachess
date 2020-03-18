@@ -1,6 +1,6 @@
 package it.scalachess.core.pieces
 
-import it.scalachess.core.colors.{Black, Color, White}
+import it.scalachess.core.colors.{ Black, Color, White }
 
 sealed trait PieceType {
   val name: String

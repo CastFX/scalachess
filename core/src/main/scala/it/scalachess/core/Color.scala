@@ -6,11 +6,11 @@ sealed trait Color {
 }
 
 case object Black extends Color {
-  val name = "Black"
+  val name         = "Black"
   val other: Color = White
 }
 
 case object White extends Color {
-  val name = "White"
+  val name         = "White"
   val other: Color = Black
 }
