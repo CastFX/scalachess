@@ -54,7 +54,7 @@ class BoardSpec extends FlatSpec with Matchers with Inspectors {
 
   it should "have only pawns in row 2 and 7" in {
     val pieceTypesInRow2_7 = initialBoard.pieces
-      .filter { case (pos, _) => pawnRowsNumbers.contains(pos.y) }
+      .filter { case (pos, _) => pawnRowsNumbers.contains(pos.row) }
       .values
       .map { _.pieceType }
 
@@ -66,9 +66,9 @@ class BoardSpec extends FlatSpec with Matchers with Inspectors {
     val correctRow = Seq(Rook, Knight, Bishop, King, Queen, Bishop, Knight, Rook)
 
     val rows_1_8 = initialBoard.pieces.toSeq
-      .filter { case (pos, _) => majorRowsNumbers.contains(pos.y) }
-      .sortBy(_._1.x)
-      .partition { case (pos, _) => pos.y == 1 }
+      .filter { case (pos, _) => majorRowsNumbers.contains(pos.row) }
+      .sortBy(_._1.col)
+      .partition { case (pos, _) => pos.row == 1 }
 
     val pieceTypesInRow1 = rows_1_8._1.map(_._2.pieceType)
     val pieceTypesInRow8 = rows_1_8._2.map(_._2.pieceType)
@@ -78,33 +78,33 @@ class BoardSpec extends FlatSpec with Matchers with Inspectors {
   }
 
   it should "have all white pieces in row 1-2 and black pieces in row 7-8" in {
-    val whiteAndBlackPieces = initialBoard.pieces.partition { case (_, piece) => piece === White }
+    val whiteAndBlackPieces = initialBoard.pieces.partition { case (_, piece) => piece.color === White }
     val whitePieces         = whiteAndBlackPieces._1.toSeq
     val blackPieces         = whiteAndBlackPieces._2.toSeq
 
     forAll(whitePieces) {
       case (pos, piece) =>
-        whiteRowsNumbers should contain(pos.y)
+        whiteRowsNumbers should contain(pos.row)
         piece.color should be(White)
     }
 
     forAll(blackPieces) {
       case (pos, piece) =>
-        blackRowsNumbers should contain(pos.y)
+        blackRowsNumbers should contain(pos.row)
         piece.color should be(Black)
     }
   }
 
   it should "have all initial positions in range [1,8]" in {
     forAll(initialBoard.pieces.keys) { pos =>
-      pos.x should (be >= 1 and be <= 8)
-      pos.y should (be >= 1 and be <= 8)
+      pos.row should (be >= 1 and be <= 8)
+      pos.row should (be >= 1 and be <= 8)
     }
   }
 
   it should "have pieces in rows 1,2,7,8" in {
     forAll(initialBoard.pieces.keys) { pos =>
-      pieceRowsNumbers should contain(pos.y)
+      pieceRowsNumbers should contain(pos.row)
     }
   }
 }
