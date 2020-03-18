@@ -4,10 +4,11 @@ import scala.math.abs
 
 /**
  * Immutable representation of a Position on the board, represented by its row and column
- * @param row row number of the
- * @param col
+ * @param row number of row
+ * @param col number of the column
  */
-case class Position(row: Int, col: Int) {
+@SuppressWarnings(Array("org.wartremover.warts.Equals"))
+final case class Position(row: Int, col: Int) {
 
   lazy val left: Option[Position]  = Position.of(row)(col - 1)
   lazy val right: Option[Position] = Position.of(row)(col + 1)
@@ -18,27 +19,6 @@ case class Position(row: Int, col: Int) {
   lazy val downRight: Option[Position] = Position.of(row - 1)(col + 1)
   lazy val upLeft: Option[Position]    = Position.of(row + 1)(col - 1)
   lazy val upRight: Option[Position]   = Position.of(row + 1)(col + 1)
-
-  /**
-   * Checks if a certain position touches this position
-   * @param pos the other position
-   * @return true if the positions are adjacent
-   */
-  def isAdjacentTo(pos: Position): Boolean = xDistanceTo(pos) == 1 || xDistanceTo(pos) == 1
-
-  /**
-   * Checks if there is a diagonal path between this and the other position
-   * @param pos the other position
-   * @return true if the positions are in a diagonal path
-   */
-  def isDiagonalTo(pos: Position): Boolean = xDistanceTo(pos) == yDistanceTo(pos)
-
-  /**
-   * Checks if there is a straight path between this and the other position
-   * @param pos the other position
-   * @return true if the positions are in a straight path
-   */
-  def isStraightTo(pos: Position): Boolean = xDistanceTo(pos) == 0 || yDistanceTo(pos) == 0
 
   /**
    * Computes the absolute value of the difference between the row values
@@ -53,6 +33,32 @@ case class Position(row: Int, col: Int) {
    * @return A positive Int representing the distance between the columns
    */
   def yDistanceTo(pos: Position): Int = abs(col - pos.col)
+
+  def distanceTo(pos: Position): (Int, Int) = (xDistanceTo(pos), yDistanceTo(pos))
+
+  /**
+   * Checks if a certain position touches this position
+   * @param pos the other position
+   * @return true if the positions are adjacent
+   */
+  def isAdjacentTo(pos: Position): Boolean = {
+    val (dx: Int, dy: Int) = distanceTo(pos)
+    dx == 1 || dy == 1
+  }
+
+  /**
+   * Checks if there is a diagonal path between this and the other position
+   * @param pos the other position
+   * @return true if the positions are in a diagonal path
+   */
+  def isDiagonalTo(pos: Position): Boolean = (xDistanceTo(pos)) == (yDistanceTo(pos))
+
+  /**
+   * Checks if there is a straight path between this and the other position
+   * @param pos the other position
+   * @return true if the positions are in a straight path
+   */
+  def isStraightTo(pos: Position): Boolean = xDistanceTo(pos) == 0 || yDistanceTo(pos) == 0
 }
 
 object Position {
@@ -73,7 +79,7 @@ object Position {
    * @param col column of the new position
    * @return Option of the new Position if it's inside the board, None otherwise
    */
-  def of(row: Char)(col: Int): Option[Position] = {
+  def ofNotation(row: Char)(col: Int): Option[Position] = {
     val rowAsInt = row.toLower.toInt - 96
     Position.of(rowAsInt)(col)
   }

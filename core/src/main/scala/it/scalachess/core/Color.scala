@@ -5,12 +5,12 @@ sealed trait Color {
   val other: Color
 }
 
-case object Black extends Color {
+final case object Black extends Color {
   val name         = "Black"
   val other: Color = White
 }
 
-case object White extends Color {
+final case object White extends Color {
   val name         = "White"
   val other: Color = Black
 }

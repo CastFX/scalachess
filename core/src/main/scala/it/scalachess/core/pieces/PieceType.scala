@@ -7,7 +7,7 @@ sealed trait PieceType {
   def symbol(of: Color): String
 }
 
-case object King extends PieceType {
+final case object King extends PieceType {
   val name = "King"
   def symbol(of: Color): String = of match {
     case White => "♔"
@@ -15,7 +15,7 @@ case object King extends PieceType {
   }
 }
 
-case object Queen extends PieceType {
+final case object Queen extends PieceType {
   val name = "Queen"
   def symbol(of: Color): String = of match {
     case White => "♕"
@@ -23,7 +23,7 @@ case object Queen extends PieceType {
   }
 }
 
-case object Rook extends PieceType {
+final case object Rook extends PieceType {
   val name = "Rook"
   def symbol(of: Color): String = of match {
     case White => "♖"
@@ -31,14 +31,14 @@ case object Rook extends PieceType {
   }
 }
 
-case object Bishop extends PieceType {
+final case object Bishop extends PieceType {
   val name = "Bishop"
   def symbol(of: Color): String = of match {
     case White => "♗"
     case Black => "♝"
   }
 }
-case object Knight extends PieceType {
+final case object Knight extends PieceType {
   val name = "Knight"
   def symbol(of: Color): String = of match {
     case White => "♘"
@@ -46,7 +46,7 @@ case object Knight extends PieceType {
   }
 }
 
-case object Pawn extends PieceType {
+final case object Pawn extends PieceType {
   val name = "Pawn"
   def symbol(of: Color): String = of match {
     case White => "♙"

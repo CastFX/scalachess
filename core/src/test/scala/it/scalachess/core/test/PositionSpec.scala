@@ -6,8 +6,8 @@ import org.scalatest.{ FlatSpec, Inspectors, Matchers, OptionValues }
 import scala.collection.mutable
 
 class PositionSpec extends FlatSpec with Matchers with OptionValues with Inspectors {
-  val a1: Position               = Position.of('a')(1).get
-  val c5: Position               = Position.of('c')(5).get
+  val a1: Position               = Position.ofNotation('a')(1).get
+  val c5: Position               = Position.ofNotation('c')(5).get
   val rowLetters: Map[Char, Int] = Map('a' -> 1, 'b' -> 2, 'c' -> 3, 'd' -> 4, 'e' -> 5, 'f' -> 6, 'g' -> 7, 'h' -> 8)
 
   val allPositions: Seq[Position] = {

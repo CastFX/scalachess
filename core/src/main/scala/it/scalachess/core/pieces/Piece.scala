@@ -3,11 +3,11 @@ package it.scalachess.core.pieces
 import it.scalachess.core.board.Position
 import it.scalachess.core.colors.Color
 
-case class Piece(color: Color, pieceType: PieceType) {
+final case class Piece(color: Color, pieceType: PieceType) {
 
   def canAttack(start: Position, end: Position): Boolean = {
-    val dx = start xDistanceTo end
-    val dy = start yDistanceTo end
+    val dx: Int = start xDistanceTo end
+    val dy: Int = start yDistanceTo end
     pieceType match {
       case King   => start isAdjacentTo end
       case Queen  => (start isAdjacentTo end) || (start isStraightTo end)

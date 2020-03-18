@@ -1,14 +1,13 @@
 package it.scalachess.core.board
 
 import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, Piece, PieceType, Queen, Rook }
-
-import it.scalachess.core.colors.{ Black, White }
+import it.scalachess.core.colors.{ Black, Color, White }
 
 /**
  * Functional chess board representation
  * @param pieces a map Position -> Piece.
  */
-case class Board(
+final case class Board(
     pieces: Map[Position, Piece]
 ) {
 
@@ -17,7 +16,7 @@ case class Board(
    * @param pos A position on the Board
    * @return an Option[Piece] with the respective Piece on that Position, None if it's empty
    */
-  def pieceAt(pos: Position): Option[Piece] = pieces get pos
+  def pieceAtPosition(pos: Position): Option[Piece] = pieces get pos
 
   /**
    * Curried function of pieceAt, to get the Piece at the passed coordinates
@@ -25,7 +24,7 @@ case class Board(
    * @param col column number
    * @return an Option[Piece] with the respective Piece at that coordinates, None if it's empty
    */
-  def pieceAt(row: Int)(col: Int): Option[Piece] = Position.of(row)(col) flatMap { pieces get }
+  def pieceAtCoordinates(row: Int)(col: Int): Option[Piece] = Position.of(row)(col) flatMap { pieces get }
 
   /**
    * Curried function of pieceAt, to get the Piece at the passed coordinates
@@ -33,7 +32,7 @@ case class Board(
    * @param col column number
    * @return an Option[Piece] with the respective Piece at that coordinates, None if it's empty
    */
-  def pieceAt(row: Char)(col: Int): Option[Piece] = Position.of(row)(col) flatMap { pieces get }
+  def pieceAt(row: Char)(col: Int): Option[Piece] = Position.ofNotation(row)(col) flatMap { pieces get }
 
 }
 
@@ -53,6 +52,7 @@ object Board {
   /**
    * @return the standard 8x8 chess Board with pieces placed in the starting position
    */
+  @SuppressWarnings(Array("org.wartremover.warts.Option2Iterable"))
   def defaultBoard(): Board = {
     val pieceMap = {
       for (i <- Seq(1, 2, height - 1, height);
@@ -60,8 +60,8 @@ object Board {
         Position
           .of(i)(j)
           .map({ pos =>
-            val color = if (i <= 2) White else Black
-            val piece = Piece(color, initialPieceTypeAtPosition(pos))
+            val color: Color = if (i <= 2) White else Black
+            val piece        = Piece(color, initialPieceTypeAtPosition(pos))
             (pos, piece)
           })
       }
