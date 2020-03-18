@@ -10,16 +10,14 @@ import scala.math.abs
 case class Position(row: Int, col: Int) {
 
   lazy val left: Option[Position]  = Position.of(row)(col - 1)
-  lazy val right: Option[Position]    = Position.of(row)(col + 1)
+  lazy val right: Option[Position] = Position.of(row)(col + 1)
   lazy val down: Option[Position]  = Position.of(row - 1)(col)
-  lazy val up: Option[Position] = Position.of(row + 1)(col)
+  lazy val up: Option[Position]    = Position.of(row + 1)(col)
 
   lazy val downLeft: Option[Position]  = Position.of(row - 1)(col - 1)
-  lazy val downRight: Option[Position]  = Position.of(row - 1)(col + 1)
+  lazy val downRight: Option[Position] = Position.of(row - 1)(col + 1)
   lazy val upLeft: Option[Position]    = Position.of(row + 1)(col - 1)
-  lazy val upRight: Option[Position]    = Position.of(row + 1)(col + 1)
-
-
+  lazy val upRight: Option[Position]   = Position.of(row + 1)(col + 1)
 
   /**
    * Checks if a certain position touches this position
@@ -34,7 +32,6 @@ case class Position(row: Int, col: Int) {
    * @return true if the positions are in a diagonal path
    */
   def isDiagonalTo(pos: Position): Boolean = xDistanceTo(pos) == yDistanceTo(pos)
-
 
   /**
    * Checks if there is a straight path between this and the other position
@@ -66,10 +63,9 @@ object Position {
    * @param col column of the new position
    * @return Option of the new Position if it's inside the board, None otherwise
    */
-  def of(row: Int) (col: Int): Option[Position] = {
-    if (Board.isInside(row,col)) Option(Position(row,col))
+  def of(row: Int)(col: Int): Option[Position] =
+    if (Board.isInside(row, col)) Option(Position(row, col))
     else None
-  }
 
   /**
    * Creates a valid position, only if both row and column are inside the board
@@ -77,7 +73,7 @@ object Position {
    * @param col column of the new position
    * @return Option of the new Position if it's inside the board, None otherwise
    */
-  def of(row: Char) (col: Int): Option[Position] = {
+  def of(row: Char)(col: Int): Option[Position] = {
     val rowAsInt = row.toLower.toInt - 96
     Position.of(rowAsInt)(col)
   }

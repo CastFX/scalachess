@@ -1,7 +1,13 @@
 language: scala
+scala:
+  - 2.12.10
+jdk: oraclejdk11
 
 notifications:
   email: false
+
+script:
+  - sbt test
 
 after_success:
   - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh

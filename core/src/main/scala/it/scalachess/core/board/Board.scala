@@ -25,7 +25,7 @@ case class Board(
    * @param col column number
    * @return an Option[Piece] with the respective Piece at that coordinates, None if it's empty
    */
-  def pieceAt(row: Int) (col: Int): Option[Piece] = Position.of(row)(col) flatMap { pieces get }
+  def pieceAt(row: Int)(col: Int): Option[Piece] = Position.of(row)(col) flatMap { pieces get }
 
   /**
    * Curried function of pieceAt, to get the Piece at the passed coordinates
@@ -33,7 +33,7 @@ case class Board(
    * @param col column number
    * @return an Option[Piece] with the respective Piece at that coordinates, None if it's empty
    */
-  def pieceAt(row: Char) (col: Int): Option[Piece] = Position.of(row)(col) flatMap { pieces get }
+  def pieceAt(row: Char)(col: Int): Option[Piece] = Position.of(row)(col) flatMap { pieces get }
 
 }
 
@@ -57,7 +57,8 @@ object Board {
     val pieceMap = {
       for (i <- Seq(1, 2, height - 1, height);
            j <- 1 to 8) yield {
-        Position.of(i)(j)
+        Position
+          .of(i)(j)
           .map({ pos =>
             val color = if (i <= 2) White else Black
             val piece = Piece(color, initialPieceTypeAtPosition(pos))
