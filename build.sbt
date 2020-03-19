@@ -98,7 +98,7 @@ lazy val commonSettings = Seq(
 )
 
 lazy val wartremoverSettings = Seq(
-  wartremoverWarnings in (Compile, compile) ++= Warts.allBut(Wart.Throw)
+  wartremoverWarnings in (Compile, compile) ++= Warts.unsafe
 )
 
 lazy val scalafmtSettings =

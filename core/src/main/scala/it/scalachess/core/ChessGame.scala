@@ -16,6 +16,7 @@ final case class ChessGame(
 ) {
 
   def move(from: Position, to: Position): ChessGame =
+    //TODO implementation
     ChessGame(board, player.other, turn + 1)
 }
 
