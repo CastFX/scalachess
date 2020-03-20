@@ -11,13 +11,13 @@ trait View {
 
   /**
    * Shows the game board
-   * @param board
+   * @param board a game board
    */
   def showBoard(board: Board)
 
   /**
    * Returns a representation in String of the board
-   * @param board
+   * @param board a game board
    * @return the representation of the board in a string
    */
   def getStringFromBoard(board: Board): String
