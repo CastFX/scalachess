@@ -27,7 +27,7 @@ final case object Rook extends PieceType {
   val name = "Rook"
   def symbol(of: Color): String = of match {
     case White => "♖"
-    case Black => "♛"
+    case Black => "♜"
   }
 }
 
