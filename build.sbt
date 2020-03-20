@@ -44,6 +44,7 @@ lazy val dependencies =
     val akkaV           = "2.5.6"
     val scalatestV      = "3.0.4"
     val scalacheckV     = "1.13.5"
+    val scalazV         = "7.2.30"
 
     val logback        = "ch.qos.logback"             % "logback-classic"          % logbackV
     val logstash       = "net.logstash.logback"       % "logstash-logback-encoder" % logstashV
@@ -56,6 +57,7 @@ lazy val dependencies =
     val pureconfig     = "com.github.pureconfig"      %% "pureconfig"              % pureconfigV
     val scalatest      = "org.scalatest"              %% "scalatest"               % scalatestV
     val scalacheck     = "org.scalacheck"             %% "scalacheck"              % scalacheckV
+    val scalaz         = "org.scalaz"                 %% "scalaz-core"             % scalazV
   }
 
 lazy val commonDependencies = Seq(
@@ -66,7 +68,8 @@ lazy val commonDependencies = Seq(
   dependencies.typesafeConfig,
   dependencies.akka,
   dependencies.scalatest  % "test",
-  dependencies.scalacheck % "test"
+  dependencies.scalacheck % "test",
+  dependencies.scalaz
 )
 
 // SETTINGS
