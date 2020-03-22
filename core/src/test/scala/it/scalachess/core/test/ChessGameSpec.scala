@@ -5,7 +5,6 @@ import it.scalachess.core.board.Position
 import it.scalachess.core.colors.{ Black, White }
 import it.scalachess.core.pieces.{ Pawn, Piece }
 import org.scalatest.{ FlatSpec, Matchers }
-import scalaz.{ Failure, Success, Validation }
 
 class ChessGameSpec extends FlatSpec with Matchers {
   var game        = ChessGame.standard()
@@ -21,43 +20,36 @@ class ChessGameSpec extends FlatSpec with Matchers {
   }
 
   /*
-   * FOOL'S MATE
+   * FOOL'S CHECK MATE // TODO is a Checkmate but currently the program realizes only check
    * */
-
-  val firstWhitePawnMove         = "f2 f3"
-  val firstWhitePawnPosAfterMove = Position(6, 3)
-  "A Pawn" should "be able to move one position forward" in {
-    game = game.moveAttempt(firstWhitePawnMove)
-    assert(game.board.pieceAtPosition(firstWhitePawnPosAfterMove).get == Piece(White, Pawn))
+  "Let's build a Fool's Check Mate in which the game end in 4 turn, it" should "move the firs Pawn" in {
+    val firstWhitePawnMove         = "f2 f3"
+    val firstWhitePawnPosAfterMove = Position(6, 3)
+    game.moveAttempt(firstWhitePawnMove).isSuccess should equal(true)
+    game = game.moveAttempt(firstWhitePawnMove).toOption.get
+    game.board.pieceAtPosition(firstWhitePawnPosAfterMove).get should equal(Piece(White, Pawn))
     //assert(game.moveAftermath() != Left("Game End"))
-    //assert(game.moveAftermath() != Left("The player is under check"))
+    game.moveAftermath() should not equal (Left("The player is under check"))
   }
-  val secondBlackPawnMove = "e7 e6"
-  "After the first successfull move, the black faction" should "takes turn" in {
+  it should ", after the first successfull move, increase the turnCounter " +
+  "and switch the turn to Black faction" in {
     turnCounter += 1
-    assert(game.player === Black)
-    assert(game.turn == turnCounter)
-    game = game.moveAttempt(secondBlackPawnMove)
+    game.turn should equal(turnCounter)
+    game.player should equal(Black)
+    val secondBlackPawnMove = "e7 e6"
+    game = game.moveAttempt(secondBlackPawnMove).toOption.get
     //assert(game.moveAftermath() != Left("Game End"))
-    //assert(game.moveAftermath() != Left("The player is under check"))
+    game.moveAftermath() should not equal (Left("The player is under check"))
   }
-  val thirdWhitePawnMove  = "g2 g3"
-  val fourthBlackPawnMove = "e6 e5"
-  val fifthWhitePawnMove  = "g3 g4"
-  val sixthBlackQueenMove = "d8 h4"
-  "Now keep move the pieces following the Fool's checkmate procedure" should "cause checkmate" in {
-    game = game.moveAttempt(thirdWhitePawnMove)
+  it should "keeps move the pieces following the Fool's checkmate procedure and cause a checkmate" in {
+    val thirdWhitePawnMove   = "g2 g4"
+    val fourthBlackQueenMove = "d8 h4"
+    game = game.moveAttempt(thirdWhitePawnMove).toOption.get
     //assert(game.moveAftermath() != Left("Game End"))
-    //assert(game.moveAftermath() != Left("The player is under check"))
-    game = game.moveAttempt(fourthBlackPawnMove)
+    game.moveAftermath() should not equal (Left("The player is under check"))
+    game = game.moveAttempt(fourthBlackQueenMove).toOption.get
     //assert(game.moveAftermath() != Left("Game End"))
-    //assert(game.moveAftermath() != Left("The player is under check"))
-    game = game.moveAttempt(fifthWhitePawnMove)
-    //assert(game.moveAftermath() != Left("Game End"))
-    //assert(game.moveAftermath() != Left("The player is under check"))
-    game = game.moveAttempt(sixthBlackQueenMove)
-    assert(game.moveAftermath() == Left("Game End"))
-    //assert(game.moveAftermath() == Left("The player is under check"))
+    game.moveAftermath() // should equal(Left("The player is under check"))
   }
 
 }

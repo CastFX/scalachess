@@ -7,24 +7,21 @@ import it.scalachess.core.pieces.King
 // TODO REFACTOR REFACTOR REFACTOR EVERYWHERE
 final case class CheckValidator(board: Board, moveValidator: MoveValidator) {
 
-  def checkOnTheEndTurn(move: ValidMove, player: Color): Boolean = {
-    val boardCopy = board.copy()
-    boardCopy.applyMove(move)
-    val kingPos = filterKingPos(boardCopy, player)
+  def controlCheckOnTurnEnd(move: ValidMove, player: Color): Boolean = {
+    val boardCopy = board.copy()(move)
+    val kingPos   = filterKingPos(boardCopy, player)
     kingCanBeCaptured(boardCopy, kingPos, player)
   }
 
-  def check(player: Color): Boolean = {
+  def controlCheck(player: Color): Boolean = {
     val kingPos = filterKingPos(board, player)
     kingCanBeCaptured(board, kingPos, player)
   }
 
-  def checkMate(player: Color): Boolean = {
+  def controlCheckMate(player: Color): Boolean = {
     val kingPos                     = filterKingPos(board, player)
-    val kingPiece                   = board.pieceAtPosition(kingPos).get
-    val adiacentPos: List[Position] = computeKingAdiacentPos(kingPos)
-    val adiacentPosThreathened: List[Position] =
-      adiacentPos.filter(pos => kingCanBeCaptured(board, pos, player))
+    val kingPiece                   = board.pieceAtPosition(kingPos).toList.head
+    val adiacentPos: List[Position] = kingPos.computeAdjacentPos()
     val adiacentPosFree: List[Position] =
       adiacentPos.filter(pos =>
         if (kingPiece.canMove(kingPos, pos)) {
@@ -33,6 +30,8 @@ final case class CheckValidator(board: Board, moveValidator: MoveValidator) {
             case Right(validMove) => true
           }
         } else false)
+    val adiacentPosThreathened: List[Position] =
+      adiacentPos.filter(pos => kingCanBeCaptured(board, pos, player.other))
     println(adiacentPosFree)
     println(adiacentPosThreathened)
     if (adiacentPosFree.forall(pos => adiacentPosThreathened.contains(pos))) true
@@ -54,7 +53,7 @@ final case class CheckValidator(board: Board, moveValidator: MoveValidator) {
       .filter(pieceEntry => {
         if (pieceEntry._2.color == player.other) {
           if (pieceEntry._2.canAttack(pieceEntry._1, kingPos)) {
-            moveValidator.computePathError(pieceEntry._1, kingPos, player.other) match {
+            moveValidator.computePathError(pieceEntry._1, kingPos) match {
               case Some(errorMsg) => false
               case None           => true
             }
@@ -64,10 +63,5 @@ final case class CheckValidator(board: Board, moveValidator: MoveValidator) {
       .keySet
       .toList
       .nonEmpty
-
-  private def computeKingAdiacentPos(kingPos: Position): List[Position] =
-    kingPos.up.toList ++ kingPos.upRight.toList ++
-    kingPos.right.toList ++ kingPos.downRight ++ kingPos.down ++
-    kingPos.downLeft ++ kingPos.left ++ kingPos.upLeft
 
 }

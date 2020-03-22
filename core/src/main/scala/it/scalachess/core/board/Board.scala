@@ -9,7 +9,7 @@ import it.scalachess.core.logic.ValidMove
  * @param pieces a map Position -> Piece.
  */
 final case class Board(
-    var pieces: Map[Position, Piece]
+    val pieces: Map[Position, Piece]
 ) {
 
   /**
@@ -37,10 +37,8 @@ final case class Board(
   /**
    * Apply a correct move to the board.
    */
-  def applyMove(validMove: ValidMove): Unit =
-    // Board(pieces + (validMove.to -> validMove.piece) - validMove.from
-    this.pieces = pieces + (validMove.to -> validMove.piece) - validMove.from
-
+  def apply(validMove: ValidMove): Board =
+    Board(pieces + (validMove.to -> validMove.piece) - validMove.from)
 }
 
 object Board {
