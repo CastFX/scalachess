@@ -2,6 +2,7 @@ package it.scalachess.core
 
 import it.scalachess.core.board.{ Board, Position }
 import it.scalachess.core.colors.{ Color, White }
+import it.scalachess.core.logic.{ CheckValidator, MoveValidator }
 
 /**
  * Functional Representation of a game of Chess
@@ -15,9 +16,34 @@ final case class ChessGame(
     turn: Int
 ) {
 
-  def move(from: Position, to: Position): ChessGame =
-    //TODO implementation
-    ChessGame(board, player.other, turn + 1)
+  private val moveValidator  = MoveValidator(board)
+  private val checkValidator = CheckValidator(board, moveValidator)
+
+  def moveAttempt(move: String): ChessGame = // Validation[String, ChessGame] =
+    moveValidator.computeMoveErrors(move, player) match {
+      case Right(move) =>
+        if (checkValidator.checkOnTheEndTurn(move, player))
+          ChessGame(board, player, turn)
+        // Failure("This move makes king under check!")
+        else {
+          board.applyMove(move)
+          ChessGame(board, player.other, turn + 1)
+          // Success(ChessGame(board, player.other, turn + 1))
+        }
+      // case Left(string) => Failure(string)
+    }
+
+  def moveAftermath(): Either[String, ChessGame] =
+    if (checkValidator.checkMate(player))
+      Left("Game End")
+    else {
+      if (checkValidator.check(player))
+        Left("The player is under check")
+      else {
+        Right(ChessGame(board, player, turn))
+      }
+    }
+
 }
 
 object ChessGame {

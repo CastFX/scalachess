@@ -27,11 +27,25 @@ final case class Position(col: Int, row: Int) {
   def rowDistance(pos: Position): Int = abs(row - pos.row)
 
   /**
+   * Computes the effective value of the difference between the row values
+   * @param pos the other position
+   * @return An Int representing the substraction between the two rows
+   * */
+  def effectiveRowDistance(pos: Position): Int = row - pos.row
+
+  /**
    * Computes the absolute value of the difference between the column values
    * @param pos the other position
    * @return A positive Int representing the distance between the columns
    */
   def colDistance(pos: Position): Int = abs(col - pos.col)
+
+  /**
+   * Computes the effective value of the difference between the column values
+   * @param pos the other position
+   * @return An Int representing the substraction between the two columns
+   * */
+  def effectiveColDistance(pos: Position): Int = col - pos.col
 
   /**
    * Checks if a certain position touches this position
