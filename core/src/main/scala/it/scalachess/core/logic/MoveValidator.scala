@@ -3,22 +3,22 @@ package it.scalachess.core.logic
 import it.scalachess.core.board.{ Board, Position }
 import it.scalachess.core.colors.Color
 import it.scalachess.core.pieces.{ Bishop, Piece, Queen, Rook }
+import scalaz.{ Failure, Success, Validation }
 
 final case class MoveValidator(board: Board) {
 
-  // TODO perhaps change Either[String, ValidMove] to Validation[String, ValidMove]
-  def computeMoveErrors(move: String, player: Color): Either[String, ValidMove] =
+  def validate(move: String, player: Color): Validation[String, ValidMove] =
     computeMoveFormat(move) match {
-      case Left(errorMsg) => Left(errorMsg)
-      case Right(positionsTuple) =>
-        computeShiftError(positionsTuple._1, positionsTuple._2, player) match {
-          case Left(errorMsg) => Left(errorMsg)
-          case Right(piece) =>
-            computePathError(positionsTuple._1, positionsTuple._2) match {
-              case Some(errorMsg) => Left(errorMsg)
-              case None           => Right(ValidMove(positionsTuple._1, positionsTuple._2, piece))
+      case Success(positions) =>
+        validateShift(positions._1, positions._2, player) match {
+          case Success(piece) =>
+            computePathError(positions._1, positions._2) match {
+              case Some(errorMsg) => Failure(errorMsg)
+              case None           => Success(ValidMove(positions._1, positions._2, piece))
             }
+          case Failure(errorMsg) => Failure(errorMsg)
         }
+      case Failure(errorMsg) => Failure(errorMsg)
     }
 
   /**
@@ -28,11 +28,10 @@ final case class MoveValidator(board: Board) {
    *         is Left(String) when format is wrong,
    *         otherwise is Right[Position, Position] (representing a move)
    */
-  // TODO change Either to Validation
-  private def computeMoveFormat(move: String): Either[String, (Position, Position)] =
+  private def computeMoveFormat(move: String): Validation[String, (Position, Position)] =
     (Position.ofNotation(move.substring(0, 2)), Position.ofNotation(move.substring(3, 5))) match {
-      case (Some(from), Some(to)) => Right(from, to)
-      case _                      => Left("Move format not legal")
+      case (Some(from), Some(to)) => Success(from, to)
+      case _                      => Failure("Move format not legal")
     }
 
   /**
@@ -43,24 +42,24 @@ final case class MoveValidator(board: Board) {
    * @return Either[String, Piece]
    *         is Left(String) when an error occur, otherwise is the Right[Piece] to move
    */
-  def computeShiftError(from: Position, to: Position, player: Color): Either[String, Piece] =
+  def validateShift(from: Position, to: Position, player: Color): Validation[String, Piece] =
     board.pieceAtPosition(from) match {
-      case None => Left("The first position inserted is empty")
       case Some(playerPiece) =>
-        if (playerPiece.color == player.other) Left("Can't move an enemy piece")
+        if (playerPiece.color.name == player.other) Failure("Can't move an enemy piece")
         else {
           board.pieceAtPosition(to) match {
             case None =>
-              if (playerPiece.canMove(from, to)) Right(playerPiece)
-              else Left("The piece selected can't move there")
+              if (playerPiece.canMove(from, to)) Success(playerPiece)
+              else Failure("The piece selected can't move there")
             case Some(color) =>
-              if (color == player) Left("Can't capture an ally piece")
+              if (color == player) Failure("Can't capture an ally piece")
               else {
-                if (playerPiece.canAttack(from, to)) Right(playerPiece)
-                else Left("The piece can't attacks there")
+                if (playerPiece.canAttack(from, to)) Success(playerPiece)
+                else Failure("The piece can't attacks there")
               }
           }
         }
+      case _ => Failure("The first position inserted is empty")
     }
 
   /**

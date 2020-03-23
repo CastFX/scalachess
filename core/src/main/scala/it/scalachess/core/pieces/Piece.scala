@@ -6,20 +6,20 @@ import it.scalachess.core.colors.{ Black, Color, White }
 final case class Piece(color: Color, pieceType: PieceType) {
 
   def canAttack(start: Position, end: Position): Boolean = {
-    val colDistanceInt = start colDistanceAbs end
+    val colDistance = start colDistanceAbs end
     pieceType match {
       case King   => start isAdjacentTo end
       case Queen  => (start isDiagonalTo end) || (start isStraightTo end)
       case Rook   => start isStraightTo end
       case Bishop => start isDiagonalTo end
       case Knight =>
-        val rowDistanceInt = start rowDistanceAbs end
-        (rowDistanceInt == 2 && colDistanceInt == 1
-        || rowDistanceInt == 1 && colDistanceInt == 2)
+        val rowDistance = start rowDistanceAbs end
+        (rowDistance == 2 && colDistance == 1
+        || rowDistance == 1 && colDistance == 2)
       case Pawn =>
-        val rowDistanceInt = end rowDistanceInt start
-        (color == White && rowDistanceInt == 1 && colDistanceInt == 1
-        || color == Black && rowDistanceInt == -1 && colDistanceInt == 1)
+        val rowDistance = end rowDistanceInt start
+        (color == White && rowDistance == 1 && colDistance == 1
+        || color == Black && rowDistance == -1 && colDistance == 1)
     }
   }
 

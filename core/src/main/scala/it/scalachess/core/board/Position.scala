@@ -20,6 +20,9 @@ final case class Position(col: Int, row: Int) {
   lazy val upLeft: Option[Position]    = Position.of(col - 1)(row + 1)
   lazy val upRight: Option[Position]   = Position.of(col + 1)(row + 1)
 
+  lazy val adjacentPositions: Set[Option[Position]] =
+    Set(left, right, down, up, downLeft, downRight, upLeft, upRight)
+
   /**
    * Computes the absolute value of the difference between the row values
    *
@@ -58,10 +61,7 @@ final case class Position(col: Int, row: Int) {
    * @param pos the other position
    * @return true if the positions are adjacent
    */
-  def isAdjacentTo(pos: Position): Boolean =
-    if (pos == up || pos == upRight || pos == right || pos == downRight ||
-        pos == down || pos == downLeft || pos == left || pos == upLeft) true
-    else false
+  def isAdjacentTo(pos: Position): Boolean = adjacentPositions.exists(_.contains(pos))
 
   /**
    * Checks if there is a diagonal path between this and the other position
@@ -142,10 +142,6 @@ final case class Position(col: Int, row: Int) {
       computeDiagonalPosBetween(posApproachingFromFar, path.::(posApproachingFromFar))
     }
   }
-
-  def computeAdjacentPos(): List[Position] =
-    up.toList ++ upRight.toList ++ right.toList ++
-    downRight ++ down ++ downLeft ++ left ++ upLeft
 
   override def toString: String = s"${col.toChar}$row"
 }

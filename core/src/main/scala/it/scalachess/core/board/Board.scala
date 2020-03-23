@@ -9,8 +9,19 @@ import it.scalachess.core.logic.ValidMove
  * @param pieces a map Position -> Piece.
  */
 final case class Board(
-    val pieces: Map[Position, Piece]
+    pieces: Map[Position, Piece]
 ) {
+
+  lazy val kingPositions: Map[Color, Position] = pieces collect {
+    case (pos, Piece(color, King)) => (color -> pos)
+  }
+
+  /**
+   * Creates a valid king position, only if the king having the color specified is present
+   * @param color of the king to get
+   * @return position of the king
+   */
+  def kingPositionOf(color: Color): Option[Position] = kingPositions get color
 
   /**
    * Returns an Option type of the Piece at a certain Position, if present
