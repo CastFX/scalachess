@@ -2,7 +2,7 @@ package it.scalachess.core
 
 import it.scalachess.core.board.Board
 import it.scalachess.core.colors.{ Color, White }
-import it.scalachess.core.gamestatus.{ GameStatus, Ongoing }
+import it.scalachess.core.gamestatus.{ GameStatus, Ongoing, Win }
 import it.scalachess.core.logic.{ CheckValidator, MoveValidator }
 import scalaz.{ Failure, Success, Validation }
 

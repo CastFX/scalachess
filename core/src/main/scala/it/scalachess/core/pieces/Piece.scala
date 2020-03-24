@@ -1,6 +1,6 @@
 package it.scalachess.core.pieces
 
-import it.scalachess.core.board.Position
+import it.scalachess.core.board.{ Position }
 import it.scalachess.core.colors.{ Black, Color, White }
 
 final case class Piece(color: Color, pieceType: PieceType) {
@@ -17,7 +17,7 @@ final case class Piece(color: Color, pieceType: PieceType) {
         (rowDistance == 2 && colDistance == 1
         || rowDistance == 1 && colDistance == 2)
       case Pawn =>
-        val rowDistance = end rowDistanceInt start
+        val rowDistance = end rowDistance start
         (color == White && rowDistance == 1 && colDistance == 1
         || color == Black && rowDistance == -1 && colDistance == 1)
     }
@@ -26,7 +26,7 @@ final case class Piece(color: Color, pieceType: PieceType) {
   def canMove(start: Position, end: Position): Boolean =
     pieceType match {
       case Pawn =>
-        val rowDistanceInt = end rowDistanceInt start
+        val rowDistanceInt = end rowDistance start
         val colDistanceAbs = start colDistanceAbs end
         (color == White && rowDistanceInt == 1 && colDistanceAbs == 0
         || color == Black && rowDistanceInt == -1 && colDistanceAbs == 0
@@ -35,5 +35,34 @@ final case class Piece(color: Color, pieceType: PieceType) {
       case _ => canAttack(start, end)
     }
 
-  lazy val symbol: String = pieceType.symbol(color)
+  /*
+  // TODO working on CheckMate ....
+  def computeAllPossibleMoves(from: Position, moveValidator: MoveValidator): Set[ValidMove] = {
+    def extractValidMove(validMove: Validation[String, ValidMove]): Option[ValidMove] =
+      validMove match {
+        case Success(move) => Some(move)
+        case _             => None
+      }
+    def computeRookValidMoves: Set[ValidMove] = {
+      val colRightEndPoint = Position(Board.width, from.row)
+      val colLeftEndPoint  = Position(1, from.row)
+      val rowUpEndPoint    = Position(from.col, Board.height)
+      val rowDownEndPoint  = Position(from.col, 1)
+      val allPossiblePos: Set[Position] = Set() ++
+      from.computePosBetweenCol(colRightEndPoint, allPossiblePos) + colRightEndPoint ++
+      from.computePosBetweenCol(colLeftEndPoint, allPossiblePos) + colLeftEndPoint ++
+      from.computePosBetweenRow(rowUpEndPoint, allPossiblePos) + rowUpEndPoint ++
+      from.computePosBetweenRow(rowDownEndPoint, allPossiblePos) + rowDownEndPoint
+      allPossiblePos.flatMap(pos => extractValidMove(moveValidator.validate(from, pos, color)))
+    }
+    pieceType match {
+      case Knight => ???
+      case Pawn   => ???
+      case King   => ???
+      case Queen  => ???
+      case Rook   => computeRookValidMoves
+      case Bishop => ???
+    }
+  }
+ */
 }

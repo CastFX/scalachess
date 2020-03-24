@@ -20,8 +20,8 @@ final case class Position(col: Int, row: Int) {
   lazy val upLeft: Option[Position]    = Position.of(col - 1)(row + 1)
   lazy val upRight: Option[Position]   = Position.of(col + 1)(row + 1)
 
-  lazy val adjacentPositions: Set[Option[Position]] =
-    Set(left, right, down, up, downLeft, downRight, upLeft, upRight)
+  lazy val adjacentPositions =
+    Set(left, right, down, up, downLeft, downRight, upLeft, upRight).flatten
 
   /**
    * Computes the absolute value of the difference between the row values
@@ -37,7 +37,7 @@ final case class Position(col: Int, row: Int) {
    * @param pos the other position
    * @return An Int representing the substraction between the two rows
    **/
-  def rowDistanceInt(pos: Position): Int = row - pos.row
+  def rowDistance(pos: Position): Int = row - pos.row
 
   /**
    * Computes the absolute value of the difference between the column values
@@ -53,7 +53,7 @@ final case class Position(col: Int, row: Int) {
    * @param pos the other position
    * @return An Int representing the substraction between the two columns
    **/
-  def colDistanceInt(pos: Position): Int = col - pos.col
+  def colDistance(pos: Position): Int = col - pos.col
 
   /**
    * Checks if a certain position touches this position
@@ -61,7 +61,7 @@ final case class Position(col: Int, row: Int) {
    * @param pos the other position
    * @return true if the positions are adjacent
    */
-  def isAdjacentTo(pos: Position): Boolean = adjacentPositions.exists(_.contains(pos))
+  def isAdjacentTo(pos: Position): Boolean = adjacentPositions contains pos
 
   /**
    * Checks if there is a diagonal path between this and the other position
@@ -83,65 +83,58 @@ final case class Position(col: Int, row: Int) {
    * Computes and get the col positions between the two position.
    * The two end point are not include in the computation.
    * @param pos the other position
-   * @param path the List in which put the positions
-   * @return List[Position]
+   * @param path the Set in which put the positions
+   * @return Set[Position]
    */
   @tailrec
-  def computeColPosBetween(pos: Position, path: List[Position]): List[Position] = {
-    val colDist = this colDistanceInt pos
-    if (colDist == 1 || colDist == -1) path
-    else {
-      var colMod = 0
-      if (colDist > 0) colMod = 1
-      else if (colDist < 0) colMod = -1
-      val posApproachingFromFar = Position(col + colMod, row)
-      computeColPosBetween(posApproachingFromFar, path.::(posApproachingFromFar))
+  def computePosBetweenCol(pos: Position, path: Set[Position]): Set[Position] =
+    pos colDistance this match {
+      case adjacentDist if adjacentDist == 1 || adjacentDist == -1 || adjacentDist == 0 => path
+      case colDist =>
+        val approachingToThisPos = Position(pos.col + computePathModifier(colDist), pos.row)
+        computePosBetweenCol(approachingToThisPos, path + (approachingToThisPos))
     }
-  }
 
   /**
    * Computes and get the row positions between the two position.
    * The two end point are not include in the computation.
    * @param pos the other position
-   * @param path the List in which put the positions
-   * @return List[Position]
+   * @param path the Set in which put the positions
+   * @return Set[Position]
    */
   @tailrec
-  def computeRowPosBetween(pos: Position, path: List[Position]): List[Position] = {
-    val rowDist = this rowDistanceInt pos
-    if (rowDist == 1 || rowDist == -1) path
-    else {
-      var rowMod = 0
-      if (rowDist > 0) rowMod = 1
-      else if (rowDist < 0) rowMod = -1
-      val posApproachingFromFar = Position(col, row + rowMod)
-      computeRowPosBetween(posApproachingFromFar, path.::(posApproachingFromFar))
+  def computePosBetweenRow(pos: Position, path: Set[Position]): Set[Position] =
+    pos rowDistance this match {
+      case adjacentDist if adjacentDist == 1 || adjacentDist == -1 || adjacentDist == 0 => path
+      case rowDist =>
+        val approachingToThisPos = Position(pos.col, pos.row + computePathModifier(rowDist))
+        computePosBetweenRow(approachingToThisPos, path + (approachingToThisPos))
     }
-  }
 
   /**
    * Computes and get the diagonal positions between the two position.
    * The two end point are not include in the computation.
    * @param pos the other position
-   * @param path the List in which put the positions
-   * @return List[Position]
+   * @param path the Set in which put the positions
+   * @return Set[Position]
    */
   @tailrec
-  def computeDiagonalPosBetween(pos: Position, path: List[Position]): List[Position] = {
-    val rowDist = this rowDistanceInt pos
-    val colDist = this colDistanceInt pos
-    if (!(rowDist == 1 || colDist == 1 || rowDist == -1 || colDist == -1)) path
-    else {
-      var colMod = 0
-      var rowMod = 0
-      if (colDist > 0) colMod = 1
-      else if (colDist < 0) colMod = -1
-      if (rowDist > 0) rowMod = -1
-      else if (rowDist < 0) rowMod = 1
-      val posApproachingFromFar = Position(col + colMod, row + rowMod)
-      computeDiagonalPosBetween(posApproachingFromFar, path.::(posApproachingFromFar))
+  def computePosBetweenDiagonal(pos: Position, path: Set[Position]): Set[Position] =
+    (pos colDistance this, pos rowDistance this) match {
+      case adjacentDist
+          if adjacentDist._1 == 1 || adjacentDist._1 == -1 || adjacentDist._1 == 0 ||
+          adjacentDist._2 == 1 || adjacentDist._2 == -1 || adjacentDist._2 == 0 =>
+        path
+      case distances =>
+        val approachingToThisPos =
+          Position(pos.col + computePathModifier(distances._1), pos.row + computePathModifier(distances._2))
+        computePosBetweenDiagonal(approachingToThisPos, path + (approachingToThisPos))
     }
-  }
+
+  private def computePathModifier(distance: Int): Int =
+    if (distance > 0) -1
+    else if (distance < 0) 1
+    else 0
 
   override def toString: String = s"${col.toChar}$row"
 }

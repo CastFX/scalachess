@@ -8,15 +8,18 @@ import scalaz.{ Failure, Success, Validation }
 final case class MoveValidator(board: Board) {
 
   def validate(move: String, player: Color): Validation[String, ValidMove] =
-    computeMoveFormat(move) match {
+    validateMoveFormat(move) match {
       case Success(positions) =>
-        validateShift(positions._1, positions._2, player) match {
-          case Success(piece) =>
-            computePathError(positions._1, positions._2) match {
-              case Some(errorMsg) => Failure(errorMsg)
-              case None           => Success(ValidMove(positions._1, positions._2, piece))
-            }
-          case Failure(errorMsg) => Failure(errorMsg)
+        validate(positions._1, positions._2, player)
+      case Failure(errorMsg) => Failure(errorMsg)
+    }
+
+  def validate(from: Position, to: Position, player: Color): Validation[String, ValidMove] =
+    validateShift(from, to, player) match {
+      case Success(piece) =>
+        computePathError(from, to) match {
+          case Some(errorMsg) => Failure(errorMsg)
+          case None           => Success(ValidMove(from, to, piece))
         }
       case Failure(errorMsg) => Failure(errorMsg)
     }
@@ -28,7 +31,7 @@ final case class MoveValidator(board: Board) {
    *         is Left(String) when format is wrong,
    *         otherwise is Right[Position, Position] (representing a move)
    */
-  private def computeMoveFormat(move: String): Validation[String, (Position, Position)] =
+  private def validateMoveFormat(move: String): Validation[String, (Position, Position)] =
     (Position.ofNotation(move.substring(0, 2)), Position.ofNotation(move.substring(3, 5))) match {
       case (Some(from), Some(to)) => Success(from, to)
       case _                      => Failure("Move format not legal")
@@ -45,19 +48,25 @@ final case class MoveValidator(board: Board) {
   def validateShift(from: Position, to: Position, player: Color): Validation[String, Piece] =
     board.pieceAtPosition(from) match {
       case Some(playerPiece) =>
-        if (playerPiece.color.name == player.other) Failure("Can't move an enemy piece")
-        else {
-          board.pieceAtPosition(to) match {
-            case None =>
-              if (playerPiece.canMove(from, to)) Success(playerPiece)
-              else Failure("The piece selected can't move there")
-            case Some(color) =>
-              if (color == player) Failure("Can't capture an ally piece")
-              else {
-                if (playerPiece.canAttack(from, to)) Success(playerPiece)
-                else Failure("The piece can't attacks there")
-              }
-          }
+        playerPiece.color match {
+          case player =>
+            board.pieceAtPosition(to) match {
+              case None =>
+                if (playerPiece.canMove(from, to)) {
+                  if (from == to)
+                    Failure("The piece is already in that position")
+                  else
+                    Success(playerPiece)
+                } else Failure("The piece selected can't move there")
+              case Some(color) =>
+                color match {
+                  case player => Failure("Can't capture an ally piece")
+                  case _ =>
+                    if (playerPiece.canAttack(from, to)) Success(playerPiece)
+                    else Failure("The piece can't attacks there")
+                }
+            }
+          case _ => Failure("Can't move an enemy piece")
         }
       case _ => Failure("The first position inserted is empty")
     }
@@ -71,26 +80,25 @@ final case class MoveValidator(board: Board) {
    * @return
    */
   def computePathError(from: Position, to: Position): Option[String] = {
-    def computeErrorPieceInPath(path: List[Position]) =
-      if (path
-            .filter(position => board.pieceAtPosition(position).getOrElse(false) == Piece)
-            .isEmpty) None
+    def computeErrorPieceInPath(path: Set[Position]) =
+      if (path.forall(p => board.pieceAtPosition(p).isEmpty))
+        None
       else Some("The piece can't move throught other pieces")
     def rookControl(from: Position, to: Position) =
       if (from.colDistanceAbs(to) == 0)
-        computeErrorPieceInPath(from.computeRowPosBetween(to, List()))
+        computeErrorPieceInPath(from.computePosBetweenRow(to, Set()))
       else // if(from.rowDistanceAbs(to) == 0)
-        computeErrorPieceInPath(from.computeColPosBetween(to, List()))
+        computeErrorPieceInPath(from.computePosBetweenCol(to, Set()))
     def bishopControl(from: Position, to: Position) =
-      computeErrorPieceInPath(from.computeDiagonalPosBetween(to, List()))
+      computeErrorPieceInPath(from.computePosBetweenDiagonal(to, Set()))
     board.pieceAtPosition(from) map (piece => piece.pieceType) getOrElse (None) match {
       case Bishop => bishopControl(from, to)
       case Rook   => rookControl(from, to)
       case Queen =>
         if (from.colDistanceAbs(to) == 0)
-          computeErrorPieceInPath(from.computeRowPosBetween(to, List()))
+          computeErrorPieceInPath(from.computePosBetweenRow(to, Set()))
         else if (from.rowDistanceAbs(to) == 0)
-          computeErrorPieceInPath(from.computeColPosBetween(to, List()))
+          computeErrorPieceInPath(from.computePosBetweenCol(to, Set()))
         else
           bishopControl(from, to)
       case _ => None
