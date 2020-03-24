@@ -42,8 +42,8 @@ final case class MoveValidator(board: Board) {
    * @param from position where is located the (active) player's piece
    * @param to position where the piece should move
    * @param player the active player
-   * @return Either[String, Piece]
-   *         is Left(String) when an error occur, otherwise is the Right[Piece] to move
+   * @return Validation[String, Piece]
+   *         is Failure(String) when an error occur, otherwise is the Success[Piece] to move
    */
   def validateShift(from: Position, to: Position, player: Color): Validation[String, Piece] =
     board.pieceAtPosition(from) match {
