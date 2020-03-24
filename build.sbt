@@ -30,6 +30,16 @@ lazy val client = project
     core
   )
 
+lazy val server = project
+  .settings(
+    name := "server",
+    settings,
+    assemblySettings,
+    libraryDependencies ++= commonDependencies
+  )
+  .dependsOn(
+    core
+  )
 // DEPENDENCIES
 
 lazy val dependencies =
