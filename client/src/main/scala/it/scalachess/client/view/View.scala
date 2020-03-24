@@ -45,7 +45,7 @@ class CliView extends View {
           lettersRange.map { column =>
             board.pieceAt(s"$column$row") match {
               case None        => cell.format(emptyCell)
-              case Some(piece) => cell.format(piece.symbol)
+              case Some(piece) => cell.format(piece.pieceType.symbol(piece.color))
             }
           }.mkString
         }
