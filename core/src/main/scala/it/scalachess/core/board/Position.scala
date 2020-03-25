@@ -80,46 +80,46 @@ final case class Position(col: Int, row: Int) {
   def isStraightTo(pos: Position): Boolean = rowDistanceAbs(pos) == 0 || colDistanceAbs(pos) == 0
 
   /**
-   * Computes and get the col positions between the two position.
-   * The two end point are not include in the computation.
+   * Generates the set of the straight path between columns of this and the other position.
+   * The two position located at the end points are not include in the path.
    * @param pos the other position
    * @param path the Set in which put the positions
-   * @return Set[Position]
+   * @return path
    */
   @tailrec
-  def computePosBetweenCol(pos: Position, path: Set[Position]): Set[Position] =
+  def generatePosBetweenCol(pos: Position, path: Set[Position]): Set[Position] =
     pos colDistance this match {
       case adjacentDist if adjacentDist == 1 || adjacentDist == -1 || adjacentDist == 0 => path
       case colDist =>
         val approachingToThisPos = Position(pos.col + computePathModifier(colDist), pos.row)
-        computePosBetweenCol(approachingToThisPos, path + (approachingToThisPos))
+        generatePosBetweenCol(approachingToThisPos, path + (approachingToThisPos))
     }
 
   /**
-   * Computes and get the row positions between the two position.
-   * The two end point are not include in the computation.
+   * Generates the set of the straight path between rows of this and the other position.
+   * The two position located at the end points are not include in the path.
    * @param pos the other position
    * @param path the Set in which put the positions
-   * @return Set[Position]
+   * @return path
    */
   @tailrec
-  def computePosBetweenRow(pos: Position, path: Set[Position]): Set[Position] =
+  def generatePosBetweenRow(pos: Position, path: Set[Position]): Set[Position] =
     pos rowDistance this match {
       case adjacentDist if adjacentDist == 1 || adjacentDist == -1 || adjacentDist == 0 => path
       case rowDist =>
         val approachingToThisPos = Position(pos.col, pos.row + computePathModifier(rowDist))
-        computePosBetweenRow(approachingToThisPos, path + (approachingToThisPos))
+        generatePosBetweenRow(approachingToThisPos, path + (approachingToThisPos))
     }
 
   /**
-   * Computes and get the diagonal positions between the two position.
-   * The two end point are not include in the computation.
+   * Generates the set of the diagonal path between this and the other position.
+   * The two position located at the end points are not include in the path.
    * @param pos the other position
    * @param path the Set in which put the positions
-   * @return Set[Position]
+   * @return path
    */
   @tailrec
-  def computePosBetweenDiagonal(pos: Position, path: Set[Position]): Set[Position] =
+  def generatePosBetweenDiagonal(pos: Position, path: Set[Position]): Set[Position] =
     (pos colDistance this, pos rowDistance this) match {
       case adjacentDist
           if adjacentDist._1 == 1 || adjacentDist._1 == -1 || adjacentDist._1 == 0 ||
@@ -128,15 +128,20 @@ final case class Position(col: Int, row: Int) {
       case distances =>
         val approachingToThisPos =
           Position(pos.col + computePathModifier(distances._1), pos.row + computePathModifier(distances._2))
-        computePosBetweenDiagonal(approachingToThisPos, path + (approachingToThisPos))
+        generatePosBetweenDiagonal(approachingToThisPos, path + (approachingToThisPos))
     }
 
+  /**
+   * Calculates the modifier in the methods: generatePosBetweenCol, generatePosBetweenRow, computePosBetweenDiagonal
+   * @param distance the distance between the this and the position to reach
+   * @return the modifier
+   */
   private def computePathModifier(distance: Int): Int =
     if (distance > 0) -1
     else if (distance < 0) 1
     else 0
 
-  override def toString: String = s"${col.toChar}$row"
+  override def toString: String = s"${(col + 96).toChar}$row"
 }
 
 object Position {

@@ -1,7 +1,10 @@
 package it.scalachess.core.pieces
 
-import it.scalachess.core.board.{ Position }
+import it.scalachess.core.board.{ Board, Position }
 import it.scalachess.core.colors.{ Black, Color, White }
+import it.scalachess.core.logic.{ MoveValidator, ValidMove }
+
+import scala.annotation.tailrec
 
 final case class Piece(color: Color, pieceType: PieceType) {
 
@@ -35,34 +38,62 @@ final case class Piece(color: Color, pieceType: PieceType) {
       case _ => canAttack(start, end)
     }
 
-  /*
-  // TODO working on CheckMate ....
-  def computeAllPossibleMoves(from: Position, moveValidator: MoveValidator): Set[ValidMove] = {
-    def extractValidMove(validMove: Validation[String, ValidMove]): Option[ValidMove] =
-      validMove match {
-        case Success(move) => Some(move)
-        case _             => None
-      }
-    def computeRookValidMoves: Set[ValidMove] = {
-      val colRightEndPoint = Position(Board.width, from.row)
-      val colLeftEndPoint  = Position(1, from.row)
-      val rowUpEndPoint    = Position(from.col, Board.height)
-      val rowDownEndPoint  = Position(from.col, 1)
-      val allPossiblePos: Set[Position] = Set() ++
-      from.computePosBetweenCol(colRightEndPoint, allPossiblePos) + colRightEndPoint ++
-      from.computePosBetweenCol(colLeftEndPoint, allPossiblePos) + colLeftEndPoint ++
-      from.computePosBetweenRow(rowUpEndPoint, allPossiblePos) + rowUpEndPoint ++
-      from.computePosBetweenRow(rowDownEndPoint, allPossiblePos) + rowDownEndPoint
-      allPossiblePos.flatMap(pos => extractValidMove(moveValidator.validate(from, pos, color)))
+  def allPossibleValidMove(start: Position, moveValidator: MoveValidator): Set[ValidMove] = {
+
+    def allRookValidMoves: Set[ValidMove] = {
+      val colRightEndPoint              = Position(Board.width, start.row)
+      val colLeftEndPoint               = Position(1, start.row)
+      val rowUpEndPoint                 = Position(start.col, Board.height)
+      val rowDownEndPoint               = Position(start.col, 1)
+      val allPossiblePos: Set[Position] = Set()
+      start.generatePosBetweenCol(colRightEndPoint, allPossiblePos) + colRightEndPoint ++
+      start.generatePosBetweenCol(colLeftEndPoint, allPossiblePos) + colLeftEndPoint ++
+      start.generatePosBetweenRow(rowUpEndPoint, allPossiblePos) + rowUpEndPoint ++
+      start.generatePosBetweenRow(rowDownEndPoint, allPossiblePos) + rowDownEndPoint
+      allPossiblePos.flatMap(pos => moveValidator.validateMove(start, pos, color))
     }
+
+    def allBishopValidMoves(pos: Position, positions: Set[Position]): Set[ValidMove] = {
+      @tailrec
+      def bishopWalkablePosInOneDirection(pos: Position,
+                                          positions: Set[Position],
+                                          rowMod: Int,
+                                          colMod: Int): Set[Position] =
+        if (pos.row > Board.height || pos.col > Board.width || pos.row < 1 || pos.col < 1)
+          positions
+        else
+          bishopWalkablePosInOneDirection(Position(pos.col + colMod, pos.row + rowMod), positions + pos, rowMod, colMod)
+
+      (bishopWalkablePosInOneDirection(start, positions, 1, 1) ++
+      bishopWalkablePosInOneDirection(start, positions, -1, -1) ++
+      bishopWalkablePosInOneDirection(start, positions, 1, -1) ++
+      bishopWalkablePosInOneDirection(start, positions, -1, 1))
+        .flatMap(pos => moveValidator.validateMove(start, pos, color))
+    }
+
     pieceType match {
-      case Knight => ???
-      case Pawn   => ???
-      case King   => ???
-      case Queen  => ???
-      case Rook   => computeRookValidMoves
-      case Bishop => ???
+      case Knight =>
+        (Set() + Position(start.col + 1, start.row + 2) + Position(start.col - 1, start.row + 2) +
+        Position(start.col + 1, start.row - 2) + Position(start.col - 1, start.row - 2) +
+        Position(start.col + 2, start.row + 1) + Position(start.col + 2, start.row - 1) +
+        Position(start.col - 2, start.row + 1) + Position(start.col - 2, start.row - 1))
+          .flatMap(pos => moveValidator.validateMove(start, pos, color))
+      case Pawn =>
+        color match {
+          case White =>
+            (Set() + Position(start.col, start.row + 1) + Position(start.col, start.row + 2) +
+            Position(start.col + 1, start.row + 1) + Position(start.col - 1, start.row + 1))
+              .flatMap(pos => moveValidator.validateMove(start, pos, color))
+          case Black =>
+            (Set() + Position(start.col, start.row - 1) + Position(start.col, start.row - 2) +
+            Position(start.col + 1, start.row - 1) + Position(start.col - 1, start.row - 1))
+              .flatMap(pos => moveValidator.validateMove(start, pos, color))
+        }
+      case King   => start.adjacentPositions.flatMap(pos => moveValidator.validateMove(start, pos, color))
+      case Rook   => allRookValidMoves
+      case Bishop => allBishopValidMoves(start, Set())
+      case Queen  => allRookValidMoves ++ allBishopValidMoves(start, Set())
     }
   }
- */
+
 }

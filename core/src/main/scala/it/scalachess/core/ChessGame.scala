@@ -20,27 +20,24 @@ final case class ChessGame(
     isKingInCheck: Boolean
 ) {
 
-  private val moveValidator = MoveValidator(board)
+  private val moveValidator  = MoveValidator(board)
+  private val checkValidator = CheckValidator()
 
   def apply(move: String): Validation[String, ChessGame] =
-    moveValidator.validate(move, player) match {
+    moveValidator.validateMove(move, player) match {
       case Success(move) =>
-        val checkValidator = CheckValidator(moveValidator, board.apply(move))
-        checkValidator.validateMoveFromAllyKingCheck(player) match {
-          case Success(isAllyKingInCheck) =>
-            if (isAllyKingInCheck)
-              Failure("This move makes king under check!")
-            else {
-              // TODO checkmate
-              checkValidator.isOppositeKingInCheck(player) match {
-                case Success(result) =>
-                  Success(ChessGame(board(move), player.other, turn + 1, Ongoing, result))
-                case Failure(errorMsg) => Failure(errorMsg)
-              }
-            }
-          case Failure(errorMsg) => Failure(errorMsg)
+        val nextBoard = board(move)
+        if (checkValidator.isKingInCheckmate(player, nextBoard, MoveValidator(nextBoard)))
+          Success(ChessGame(nextBoard, player.other, turn + 1, Win(player), true))
+        else {
+          checkValidator.isKingInCheck(player, nextBoard, MoveValidator(nextBoard)) match {
+            case Success(result) =>
+              Success(ChessGame(nextBoard, player.other, turn + 1, Ongoing, result))
+            case Failure(errorMsg) =>
+              Failure(errorMsg)
+          }
         }
-      case Failure(errorMSg) => Failure(errorMSg)
+      case Failure(errorMsg) => Failure(errorMsg)
     }
 
 }
