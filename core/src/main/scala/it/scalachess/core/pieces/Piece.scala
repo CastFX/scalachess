@@ -8,6 +8,8 @@ import scala.annotation.tailrec
 
 final case class Piece(color: Color, pieceType: PieceType) {
 
+  lazy val symbol: String = pieceType.symbol(color)
+
   def canAttack(start: Position, end: Position): Boolean = {
     val colDistance = start colDistanceAbs end
     pieceType match {
