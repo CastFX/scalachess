@@ -3,7 +3,7 @@ package it.scalachess.client.view
 import com.typesafe.scalalogging.Logger
 import it.scalachess.core.White
 import it.scalachess.core.board.Board
-import it.scalachess.core.pieces.{ Bishop, King, Knight, Piece, PieceType, Queen, Rook }
+import it.scalachess.core.pieces.{ Bishop, King, Knight, Piece, Queen, Rook }
 
 import scala.collection.immutable.NumericRange
 
