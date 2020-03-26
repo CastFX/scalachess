@@ -1,6 +1,6 @@
 package it.scalachess.core.gamestatus
 
-import it.scalachess.core.colors.Color
+import it.scalachess.core.Color
 
 sealed trait GameStatus
 case object Ongoing           extends GameStatus
