@@ -62,8 +62,8 @@ class BoardSpec extends FlatSpec with Matchers with Inspectors {
 
   }
 
-  it should "have row 1 and 8 as Rook, Knight, Bishop, King, Queen, Bishop, Knight, Rook" in {
-    val correctRow = Seq(Rook, Knight, Bishop, King, Queen, Bishop, Knight, Rook)
+  it should "have row 1 and 8 as Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook" in {
+    val correctRow = Seq(Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook)
 
     val rows_1_8 = initialBoard.pieces.toSeq
       .filter { case (pos, _) => majorRowsNumbers.contains(pos.row) }

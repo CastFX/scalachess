@@ -84,7 +84,7 @@ class PositionSpec extends FlatSpec with Matchers with OptionValues with Inspect
         row_1.size should equal(row_2.size)
         forAll(row_1 zip row_2) {
           case (pos1: Position, pos2: Position) =>
-            pos1.rowDistance(pos2) should be(math.abs(rowN1 - rowN2))
+            pos1.rowDistanceAbs(pos2) should be(math.abs(rowN1 - rowN2))
         }
     }
   }
@@ -109,7 +109,7 @@ class PositionSpec extends FlatSpec with Matchers with OptionValues with Inspect
 
         forAll(col_1 zip col_2) {
           case (pos1: Position, pos2: Position) =>
-            pos1.colDistance(pos2) should be(math.abs(colN1 - colN2))
+            pos1.colDistanceAbs(pos2) should be(math.abs(colN1 - colN2))
         }
     }
   }
@@ -128,7 +128,7 @@ class PositionSpec extends FlatSpec with Matchers with OptionValues with Inspect
   it should "be diagonal to all the positions on the relative diagonals" in {
     forAll(allPositions) { pos: Position =>
       val straightPositions = allPositions.filter { p =>
-        pos.rowDistance(p) === pos.colDistance(p)
+        pos.rowDistanceAbs(p) === pos.colDistanceAbs(p)
       }
       forAll(straightPositions) { pos2 =>
         assert(pos.isDiagonalTo(pos2))
