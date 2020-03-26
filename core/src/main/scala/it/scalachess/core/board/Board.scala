@@ -1,7 +1,7 @@
 package it.scalachess.core.board
 
+import it.scalachess.core.{ Black, Color, White }
 import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, Piece, PieceType, Queen, Rook }
-import it.scalachess.core.colors.{ Black, Color, White }
 import it.scalachess.core.logic.ValidMove
 
 /**
@@ -13,7 +13,7 @@ final case class Board(
 ) {
 
   lazy val kingPositions: Map[Color, Position] = pieces collect {
-    case (pos, Piece(color, King)) => (color -> pos)
+    case (pos, Piece(color, King)) => color -> pos
   }
 
   /**
@@ -53,8 +53,10 @@ final case class Board(
 }
 
 object Board {
-  val width: Int  = 8
-  val height: Int = 8
+  val whitePawnsStartingRow = 2
+  val blackPawnStartingRow  = 7
+  val width: Int            = 8
+  val height: Int           = 8
 
   /**
    * Function to check if a certain position expressed with row and column is inside this board

@@ -7,16 +7,16 @@ import scalaz.{ Failure, Validation }
 trait ChessGameFailureMatcher {
 
   class ChessGameEndInFailureMatcher() extends Matcher[Validation[String, ChessGame]] {
-    def apply(game: Validation[String, ChessGame]) =
+    def apply(game: Validation[String, ChessGame]): MatchResult =
       game match {
         case Failure(errorMsg) =>
-          MatchResult(true, "something goes wrong...", s"game has generate the Failure($errorMsg)")
+          MatchResult(matches = true, "something goes wrong...", s"game has generate the Failure($errorMsg)")
         case _ =>
-          MatchResult(false, "This game has generate Success instead of Failure", "something goes wrong...")
+          MatchResult(matches = false, "This game has generate Success instead of Failure", "something goes wrong...")
       }
   }
 
-  def generateFailure = new ChessGameEndInFailureMatcher()
+  def generateFailure: ChessGameEndInFailureMatcher = new ChessGameEndInFailureMatcher()
 }
 
 object ChessGameFailureMatcher extends ChessGameFailureMatcher

@@ -1,8 +1,6 @@
 package it.scalachess.core
 
 import it.scalachess.core.board.Board
-import it.scalachess.core.colors.{ Color, White }
-import it.scalachess.core.gamestatus.{ GameStatus, Ongoing, Win }
 import it.scalachess.core.logic.{ CheckValidator, MoveValidator }
 import scalaz.{ Failure, Success, Validation }
 
@@ -27,10 +25,10 @@ final case class ChessGame(
     moveValidator.validateMove(move, player) match {
       case Success(move) =>
         val nextBoard = board(move)
-        if (checkValidator.isKingInCheckmate(player, nextBoard, MoveValidator(nextBoard)))
-          Success(ChessGame(nextBoard, player.other, turn + 1, Win(player), true))
+        if (checkValidator.isKingInCheckmate(player, MoveValidator(nextBoard)))
+          Success(ChessGame(nextBoard, player.other, turn + 1, Win(player), isKingInCheck = true))
         else {
-          checkValidator.isKingInCheck(player, nextBoard, MoveValidator(nextBoard)) match {
+          checkValidator.isKingInCheck(player, MoveValidator(nextBoard)) match {
             case Success(result) =>
               Success(ChessGame(nextBoard, player.other, turn + 1, Ongoing, result))
             case Failure(errorMsg) =>
@@ -49,5 +47,5 @@ object ChessGame {
    * @return An initialized ChessGame instance
    */
   def standard(): ChessGame =
-    ChessGame(Board.defaultBoard(), White, 0, Ongoing, false)
+    ChessGame(Board.defaultBoard(), White, 0, Ongoing, isKingInCheck = false)
 }

@@ -1,13 +1,13 @@
 package it.scalachess.core.test
 
+import it.scalachess.core.{ Black, White }
 import it.scalachess.core.board.Board
-import it.scalachess.core.colors.{ Black, White }
 import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, Queen, Rook }
 import org.scalatest.{ FlatSpec, Inspectors, Matchers }
 
 class BoardSpec extends FlatSpec with Matchers with Inspectors {
 
-  val initialBoard = Board.defaultBoard()
+  val initialBoard: Board = Board.defaultBoard()
   val piecesPerType = Map(
     Pawn   -> 16,
     Rook   -> 4,
@@ -20,7 +20,7 @@ class BoardSpec extends FlatSpec with Matchers with Inspectors {
   val majorRowsNumbers = Seq(1, 8)
   val whiteRowsNumbers = Seq(1, 2)
   val blackRowsNumbers = Seq(7, 8)
-  val pieceRowsNumbers = whiteRowsNumbers union blackRowsNumbers
+  val pieceRowsNumbers: Seq[Int] = whiteRowsNumbers union blackRowsNumbers
 
   "A standard board" should
   s"have ${piecesPerType(Pawn)} pawns, " +

@@ -3,8 +3,6 @@ package it.scalachess.core.test
 import it.scalachess.core.board.{ Board, Position }
 import org.scalatest.{ FlatSpec, Inspectors, Matchers, OptionValues }
 
-import scala.collection.mutable
-
 class PositionSpec extends FlatSpec with Matchers with OptionValues with Inspectors {
   val columnLetters: Map[String, Int] =
     Map("a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4, "e" -> 5, "f" -> 6, "g" -> 7, "h" -> 8)
@@ -62,7 +60,7 @@ class PositionSpec extends FlatSpec with Matchers with OptionValues with Inspect
 
     val outerPositions = outerDownRow ++ outerUpRow ++ outerLeftColumn ++ outerRightColumn
     outerPositions should not be empty
-    all(outerPositions) should not be ('defined)
+    all(outerPositions) should not be 'defined
   }
 
   "rowDistance between positions on different rows" should "be equal to the difference in row value" in {

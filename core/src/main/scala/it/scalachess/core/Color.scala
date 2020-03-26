@@ -1,4 +1,4 @@
-package it.scalachess.core.color
+package it.scalachess.core
 
 sealed trait Color {
   val name: String

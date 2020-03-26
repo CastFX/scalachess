@@ -1,19 +1,17 @@
 package it.scalachess.core.test
 
-import it.scalachess.core.ChessGame
+import it.scalachess.core.{ Black, ChessGame, Ongoing, White, Win }
 import it.scalachess.core.board.Position
-import it.scalachess.core.colors.{ Black, White }
-import it.scalachess.core.gamestatus.{ Ongoing, Win }
 import it.scalachess.core.pieces.{ Pawn, Piece }
 import org.scalatest.{ FlatSpec, Matchers, OptionValues }
 import it.scalachess.core.test.ChessGameFailureMatcher.generateFailure
 
 class ChessGameSpec extends FlatSpec with Matchers with OptionValues {
-  var simpleGame              = ChessGame.standard()
-  var testKingConstraintsGame = ChessGame.standard()
-  var foolMateGame            = ChessGame.standard()
-  var scholarMateGame         = ChessGame.standard()
-  var simpleGameTurnCounter   = 0
+  var simpleGame: ChessGame              = ChessGame.standard()
+  var testKingConstraintsGame: ChessGame = ChessGame.standard()
+  var foolMateGame: ChessGame            = ChessGame.standard()
+  var scholarMateGame: ChessGame         = ChessGame.standard()
+  var simpleGameTurnCounter              = 0
 
   "A standard ChessGame" should "have a non-empty board" in {
     assert(simpleGame.board.pieces.nonEmpty)
@@ -25,8 +23,10 @@ class ChessGameSpec extends FlatSpec with Matchers with OptionValues {
   }
 
   it should "not accept a move with an illegal format" in {
-    val illegalFormatMove = "aa2 a3"
+    val illegalFormatMove        = "aa2 a3"
+    val anotherIllegalFormatMove = "a2"
     simpleGame(illegalFormatMove) should generateFailure
+    simpleGame(anotherIllegalFormatMove) should generateFailure
   }
 
   it should "not allows players to execute an illegal move" in {
@@ -135,7 +135,6 @@ class ChessGameSpec extends FlatSpec with Matchers with OptionValues {
     scholarMateGame = scholarMateGame(seventhMoveWhiteQueen).toOption.value
     scholarMateGame.gameStatus should equal(Win(White))
     scholarMateGame.isKingInCheck should be(true)
-    println(scholarMateGame.board.pieces)
   }
 
 }
