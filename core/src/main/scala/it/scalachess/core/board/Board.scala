@@ -2,6 +2,7 @@ package it.scalachess.core.board
 
 import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, Piece, PieceType, Queen, Rook }
 import it.scalachess.core.colors.{ Black, Color, White }
+import it.scalachess.core.logic.ValidMove
 
 /**
  * Functional chess board representation
@@ -10,6 +11,17 @@ import it.scalachess.core.colors.{ Black, Color, White }
 final case class Board(
     pieces: Map[Position, Piece]
 ) {
+
+  lazy val kingPositions: Map[Color, Position] = pieces collect {
+    case (pos, Piece(color, King)) => (color -> pos)
+  }
+
+  /**
+   * Creates a valid king position, only if the king having the color specified is present
+   * @param color of the king to get
+   * @return position of the king
+   */
+  def kingPositionOf(color: Color): Option[Position] = kingPositions get color
 
   /**
    * Returns an Option type of the Piece at a certain Position, if present
@@ -33,6 +45,11 @@ final case class Board(
    */
   def pieceAt(notation: String): Option[Piece] = Position.ofNotation(notation) flatMap { pieces get }
 
+  /**
+   * Apply a correct move to the board.
+   */
+  def apply(validMove: ValidMove): Board =
+    Board(pieces + (validMove.to -> validMove.piece) - validMove.from)
 }
 
 object Board {
@@ -75,8 +92,8 @@ object Board {
           case 1 | 8 => Rook //(a1,a8,h1,h8)
           case 2 | 7 => Knight //(b1,b8,g1,g8)
           case 3 | 6 => Bishop //(c1,c8,f1,f8)
-          case 4     => King //(d1,d8)
-          case 5     => Queen //(e1,e8)
+          case 5     => King //(d1,d8)
+          case 4     => Queen //(e1,e8)
         }
       case 2 | 7 => Pawn // (a2-h2, a7-h7)
     }
