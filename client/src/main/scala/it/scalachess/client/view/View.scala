@@ -26,7 +26,7 @@ trait View {
 /**
  * An implementation of a CLI view
  */
-class CliView extends View {
+object CliView extends View {
   val logger: Logger  = Logger("ViewLogger")
   val newLine: String = "\n"
 
@@ -41,7 +41,7 @@ class CliView extends View {
     val boardString = {
       (Board.height to 1 by -1)
         .map { row =>
-          row + " " +
+          s"$row " +
           lettersRange.map { column =>
             board.pieceAt(s"$column$row") match {
               case None        => cell.format(emptyCell)

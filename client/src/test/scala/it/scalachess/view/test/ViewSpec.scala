@@ -37,7 +37,7 @@ class ViewSpec extends FlatSpec with Matchers with Inspectors {
   )
 
   "A basic view" should "be an instance of BasicView" in {
-    basicView.isInstanceOf[CliView] shouldEqual true
+    basicView equals CliView shouldEqual true
   }
 
   it should

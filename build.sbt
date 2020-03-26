@@ -22,6 +22,7 @@ lazy val core = project
 lazy val client = project
   .settings(
     name := "client",
+    mainClass in (Compile, packageBin) := Some("it.scalachess.client.Client"),
     settings,
     assemblySettings,
     libraryDependencies ++= commonDependencies
