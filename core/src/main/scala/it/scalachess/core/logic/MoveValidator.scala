@@ -1,8 +1,8 @@
 package it.scalachess.core.logic
 
+import it.scalachess.core.Color
 import it.scalachess.core.board.{ Board, Position }
-import it.scalachess.core.colors.Color
-import it.scalachess.core.pieces.{ Bishop, Piece, Queen, Rook }
+import it.scalachess.core.pieces.{ Bishop, Pawn, Piece, Queen, Rook }
 import scalaz.{ Failure, Success, Validation }
 
 final case class MoveValidator(board: Board) {
@@ -18,7 +18,7 @@ final case class MoveValidator(board: Board) {
   def validateMove(move: String, player: Color): Validation[String, ValidMove] =
     validateMoveFormat(move) match {
       case Success(positions) =>
-        validateMoveWithError(positions._1, positions._2, player)
+        validateMove(positions._1, positions._2, player)
       case Failure(errorMsg) => Failure(errorMsg)
     }
 
@@ -29,14 +29,13 @@ final case class MoveValidator(board: Board) {
    * @param player the color of the active player
    * @return Success containing the ValidMove, otherwise a Failure with the error message
    */
-  def validateMoveWithError(from: Position, to: Position, player: Color): Validation[String, ValidMove] =
-    if (isPositionInBound(from) && isPositionInBound(to))
+  def validateMove(from: Position, to: Position, player: Color): Validation[String, ValidMove] =
+    if (Position.of(from).nonEmpty && Position.of(to).nonEmpty)
       validateShift(from, to, player) match {
         case Success(piece) =>
           generatePathError(from, to) match {
             case None =>
-              val nextBoard = board(ValidMove(from, to, piece))
-              checkValidator.isKingInCheck(player.other, nextBoard, MoveValidator(nextBoard)) match {
+              checkValidator.isKingInCheck(player.other, MoveValidator(board(ValidMove(from, to, piece)))) match {
                 case Success(isAllyKingInCheck) =>
                   if (isAllyKingInCheck)
                     Failure("This move makes king under check!")
@@ -48,33 +47,6 @@ final case class MoveValidator(board: Board) {
           }
         case Failure(errorMsg) => Failure(errorMsg)
       } else Failure("Position inserted is out of bound!")
-
-  /**
-   * Create a ValidMove from two positions
-   * @param from the starting position
-   * @param to the final position
-   * @param player the color of the active player
-   * @return Option containing the ValidMove
-   */
-  def validateMove(from: Position, to: Position, player: Color): Option[ValidMove] =
-    if (isPositionInBound(from) && isPositionInBound(to))
-      validateShift(from, to, player) match {
-        case Success(piece) =>
-          generatePathError(from, to) match {
-            case None =>
-              val nextBoard = board(ValidMove(from, to, piece))
-              checkValidator.isKingInCheck(player.other, nextBoard, MoveValidator(nextBoard)) match {
-                case Success(isAllyKingInCheck) =>
-                  if (isAllyKingInCheck)
-                    None
-                  else
-                    Some(ValidMove(from, to, piece))
-                case Failure(errorMsg) => None
-              }
-            case _ => None
-          }
-        case _ => None
-      } else None
 
   /**
    * Checks if only the two end point positions represent a correct move
@@ -118,25 +90,27 @@ final case class MoveValidator(board: Board) {
       if (path.forall(p => board.pieceAtPosition(p).isEmpty)) None
       else Some("The piece can't move throught other pieces")
 
-    def generateRookError(from: Position, to: Position) =
+    def generateErrorInStraightPath(from: Position, to: Position) =
       if (from.colDistanceAbs(to) == 0)
         generateErrorPieceInPath(from.generatePosBetweenRow(to, Set()))
       else
         generateErrorPieceInPath(from.generatePosBetweenCol(to, Set()))
 
-    def generateBishopError(from: Position, to: Position) =
+    def generateErrorInDiagonalPath(from: Position, to: Position) =
       generateErrorPieceInPath(from.generatePosBetweenDiagonal(to, Set()))
 
-    board.pieceAtPosition(from) map (piece => piece.pieceType) getOrElse (None) match {
-      case Bishop => generateBishopError(from, to)
-      case Rook   => generateRookError(from, to)
+    board.pieceAtPosition(from) map (piece => piece.pieceType) getOrElse None match {
+      case Rook   => generateErrorInStraightPath(from, to)
+      case Bishop => generateErrorInDiagonalPath(from, to)
       case Queen =>
-        if (from.colDistanceAbs(to) == 0)
-          generateErrorPieceInPath(from.generatePosBetweenRow(to, Set()))
-        else if (from.rowDistanceAbs(to) == 0)
-          generateErrorPieceInPath(from.generatePosBetweenCol(to, Set()))
+        if (from.colDistanceAbs(to) == 0 || from.rowDistanceAbs(to) == 0)
+          generateErrorInStraightPath(from, to)
         else
-          generateBishopError(from, to)
+          generateErrorInDiagonalPath(from, to)
+      case Pawn =>
+        if (from.colDistance(to) == 1)
+          generateErrorInStraightPath(from, to)
+        else None
       case _ => None
     }
   }
@@ -147,19 +121,13 @@ final case class MoveValidator(board: Board) {
    * @return Success containing a tuple defining a move, otherwise a Failure with the error message
    */
   private def validateMoveFormat(move: String): Validation[String, (Position, Position)] =
-    (Position.ofNotation(move.substring(0, 2)), Position.ofNotation(move.substring(3, 5))) match {
-      case (Some(from), Some(to)) => Success(from, to)
-      case _                      => Failure("Move format not legal")
+    if (move.length == 5) {
+      (Position.ofNotation(move.substring(0, 2)), Position.ofNotation(move.substring(3, 5))) match {
+        case (Some(from), Some(to)) => Success(from, to)
+      }
+    } else {
+      Failure("Move format not legal")
     }
-
-  /**
-   * Checks if the position inserted exists in the board
-   * @param pos the position to check
-   * @return true if it's in the board
-   */
-  private def isPositionInBound(pos: Position): Boolean =
-    if (pos.col > Board.width || pos.col < 1 || pos.row > Board.height || pos.row < 1) false
-    else true
 
 }
 
