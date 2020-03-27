@@ -2,6 +2,7 @@ package it.scalachess.core.logic
 
 import it.scalachess.core.Color
 import it.scalachess.core.board.Position
+import it.scalachess.core.pieces.{ King, Piece }
 import scalaz.{ Failure, Success, Validation }
 
 final case class CheckValidator() {
@@ -12,10 +13,14 @@ final case class CheckValidator() {
    * @param testMoveValidator that will assure if the king is on check
    * @return String if an error occur, otherwise the boolean that means the king check result
    */
-  def isKingInCheck(attackingPlayer: Color, testMoveValidator: MoveValidator): Validation[String, Boolean] =
-    testMoveValidator.board.kingPositionOf(attackingPlayer.other) match {
-      case Some(kingPosToCapture) =>
-        Success(kingCanBeCaptured(kingPosToCapture, attackingPlayer, testMoveValidator))
+  def isKingInCheck(attackingPlayer: Color, testMoveValidator: ValidateMove): Validation[String, Boolean] =
+    testMoveValidator.board.pieces
+      .find {
+        case (_, Piece(color, king)) => color == attackingPlayer.other && king == King
+      }
+      .flatMap(kingEntry => Some(kingEntry._1)) match {
+      case Some(kingPos) =>
+        Success(kingCanBeCaptured(kingPos, attackingPlayer, testMoveValidator))
       case _ => Failure("ERROR: the king doesn't exist!")
     }
 
@@ -28,7 +33,7 @@ final case class CheckValidator() {
    */
   private def kingCanBeCaptured(kingPosToCapture: Position,
                                 attackingPlayer: Color,
-                                testMoveValidator: MoveValidator): Boolean =
+                                testMoveValidator: ValidateMove): Boolean =
     testMoveValidator.board.pieces
       .exists(pieceEntry => {
         if (pieceEntry._2.color == attackingPlayer) {
@@ -48,13 +53,14 @@ final case class CheckValidator() {
    * @param testMoveValidator that will assure if the king is on check
    * @return true if the king is on checkmate
    */
-  def isKingInCheckmate(attackingPlayer: Color, testMoveValidator: MoveValidator): Boolean =
+  def isKingInCheckmate(attackingPlayer: Color, testMoveValidator: ValidateMove): Boolean =
     testMoveValidator.board.pieces
       .filter(pieceEntry => pieceEntry._2.color == attackingPlayer.other)
-      .flatMap(pieceEntry => pieceEntry._2.allPossibleValidMove(pieceEntry._1, testMoveValidator))
+      .flatMap(pieceEntry => pieceEntry._2.allPossibleSimpleValidMove(pieceEntry._1, testMoveValidator))
       .forall(validMove => {
-        isKingInCheck(attackingPlayer, MoveValidator(testMoveValidator.board(validMove))) match {
+        isKingInCheck(attackingPlayer, ValidateMove(testMoveValidator.board(validMove))) match {
           case Success(result) => result
+          case _               => false
         }
       })
 

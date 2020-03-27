@@ -2,12 +2,17 @@ package it.scalachess.core.logic
 
 import it.scalachess.core.Color
 import it.scalachess.core.board.{ Board, Position }
-import it.scalachess.core.pieces.{ Bishop, Pawn, Piece, Queen, Rook }
+import it.scalachess.core.pieces.{ Bishop, Pawn, Piece, PieceType, Queen, Rook }
 import scalaz.{ Failure, Success, Validation }
 
 final case class MoveValidator(board: Board) {
 
   private val checkValidator = CheckValidator()
+  private val movesGenerator = MovesGenerator
+
+  def validateMove() = {
+
+  }
 
   /**
    * Create a ValidMove from a String representing a move
@@ -15,32 +20,32 @@ final case class MoveValidator(board: Board) {
    * @param player the color of the active player
    * @return Success containing the ValidMove, otherwise a Failure with the error message
    */
-  def validateMove(move: String, player: Color): Validation[String, ValidMove] =
+  def validateSimpleMove(move: String, player: Color): Validation[String, simpleMove] =
     validateMoveFormat(move) match {
       case Success(positions) =>
-        validateMove(positions._1, positions._2, player)
+        validateSimpleMove(positions._1, positions._2, player)
       case Failure(errorMsg) => Failure(errorMsg)
     }
 
   /**
    * Create a ValidMove from two positions
-   * @param from the starting position
+   * @param from starting position
    * @param to the final position
    * @param player the color of the active player
    * @return Success containing the ValidMove, otherwise a Failure with the error message
    */
-  def validateMove(from: Position, to: Position, player: Color): Validation[String, ValidMove] =
+  def validateSimpleMove(from: Position, to: Position, player: Color): Validation[String, simpleMove] =
     if (Position.of(from).nonEmpty && Position.of(to).nonEmpty)
       validateShift(from, to, player) match {
         case Success(piece) =>
           generatePathError(from, to) match {
             case None =>
-              checkValidator.isKingInCheck(player.other, MoveValidator(board(ValidMove(from, to, piece)))) match {
+              checkValidator.isKingInCheck(player.other, MoveValidator(board(simpleMove(from, to, piece)))) match {
                 case Success(isAllyKingInCheck) =>
                   if (isAllyKingInCheck)
                     Failure("This move makes king under check!")
                   else
-                    Success(ValidMove(from, to, piece))
+                    Success(simpleMove(from, to, piece))
                 case Failure(errorMsg) => Failure(errorMsg)
               }
             case Some(errorMsg) => Failure(errorMsg)
@@ -124,6 +129,7 @@ final case class MoveValidator(board: Board) {
     if (move.length == 5) {
       (Position.ofNotation(move.substring(0, 2)), Position.ofNotation(move.substring(3, 5))) match {
         case (Some(from), Some(to)) => Success(from, to)
+        case _ => Failure("Move format not legal")
       }
     } else {
       Failure("Move format not legal")
@@ -131,4 +137,4 @@ final case class MoveValidator(board: Board) {
 
 }
 
-case class ValidMove(from: Position, to: Position, piece: Piece)
+case class simpleMove(from: Position, to: Position, piece: Piece)

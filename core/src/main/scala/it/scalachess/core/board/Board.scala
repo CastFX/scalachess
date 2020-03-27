@@ -2,26 +2,27 @@ package it.scalachess.core.board
 
 import it.scalachess.core.{ Black, Color, White }
 import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, Piece, PieceType, Queen, Rook }
-import it.scalachess.core.logic.ValidMove
+import it.scalachess.core.logic.{
+  simpleMove,
+  Castling,
+  EnPassant,
+  Move,
+  ParsedMove,
+  Promotion,
+  ValidMove,
+  ValidPromotion,
+  ValidSimpleMove
+}
+import scalaz.{ Failure, Success, Validation }
 
 /**
  * Functional chess board representation
  * @param pieces a map Position -> Piece.
  */
 final case class Board(
-    pieces: Map[Position, Piece]
+    pieces: Map[Position, Piece],
+    capturedPieces: List[Piece]
 ) {
-
-  lazy val kingPositions: Map[Color, Position] = pieces collect {
-    case (pos, Piece(color, King)) => color -> pos
-  }
-
-  /**
-   * Creates a valid king position, only if the king having the color specified is present
-   * @param color of the king to get
-   * @return position of the king
-   */
-  def kingPositionOf(color: Color): Option[Position] = kingPositions get color
 
   /**
    * Returns an Option type of the Piece at a certain Position, if present
@@ -48,8 +49,43 @@ final case class Board(
   /**
    * Apply a correct move to the board.
    */
-  def apply(validMove: ValidMove): Board =
-    Board(pieces + (validMove.to -> validMove.piece) - validMove.from)
+  def apply(validMove: simpleMove): Board =
+    Board(pieces + (validMove.to -> validMove.piece) - validMove.from, capturedPieces)
+
+  def apply(validMove: ValidMove): Validation[String, Board] =
+    validMove match {
+      case ValidPromotion(to, pieceToRestore) =>
+        pieces.get(to) match {
+          case Some(pieceToPromote) =>
+            capturedPieces.find(piece => piece == pieceToRestore) match {
+              case Some(pieceThatWillBeRestored) =>
+                Success(Board(pieces + (to -> pieceToRestore), removePromotedPiece(pieceToRestore, capturedPieces)))
+              case None =>
+                Failure(
+                  "Among capture pieces there is no piece having color and type compatible with the ones inserted")
+            }
+          case None => Failure("There's no piece at position received")
+        }
+      /*      case Castling(_) => ??? //Board(pieces)
+      case EnPassant(capture) =>
+        val capturedPiece = pieces.get(capture)
+        Board(pieces - capture, capturedPieces.::(capturedPiece))
+       */
+      case ValidSimpleMove(_, _, _, _, _, _, _, _) => Failure("NO")
+      case _                                       => Failure("board has received a non move")
+    }
+
+  private def removePromotedPiece(piece: Piece, capturedPieces: List[Piece]): List[Piece] = {
+    val capturedPiecesOfThatType = capturedPieces.filter(piece => piece == piece)
+    if (capturedPiecesOfThatType.size == 1) {
+      capturedPieces.filterNot(piece => piece == piece)
+    } else if (capturedPiecesOfThatType.size == 2) {
+      capturedPieces.filterNot(piece => piece == piece).::(piece)
+    } else {
+      capturedPieces
+    }
+  }
+
 }
 
 object Board {
@@ -84,7 +120,7 @@ object Board {
       }
     }.flatten.toMap
 
-    Board(pieceMap)
+    Board(pieceMap, List())
   }
 
   private def initialPieceTypeAtPosition(pos: Position): PieceType =
