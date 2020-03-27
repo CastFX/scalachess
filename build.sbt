@@ -9,7 +9,9 @@ lazy val global = project
   .settings(settings)
   .aggregate(
     core,
-    client
+    client,
+    server,
+    util
   )
 
 lazy val core = project
@@ -22,12 +24,14 @@ lazy val core = project
 lazy val client = project
   .settings(
     name := "client",
+    mainClass := Some("it.scalachess.client.Client"),
     settings,
     assemblySettings,
-    libraryDependencies ++= commonDependencies
+    libraryDependencies ++= (commonDependencies ++ akkaDependencies)
   )
   .dependsOn(
-    core
+    core,
+    util
   )
 
 lazy val server = project
@@ -35,12 +39,23 @@ lazy val server = project
     name := "server",
     settings,
     assemblySettings,
-    libraryDependencies ++= commonDependencies
+    libraryDependencies ++= (commonDependencies ++ akkaDependencies)
+  )
+  .dependsOn(
+    core,
+    util
+  )
+// DEPENDENCIES
+
+lazy val util = project
+  .settings(
+    name := "util",
+    settings,
+    libraryDependencies += dependencies.akkaTyped
   )
   .dependsOn(
     core
   )
-// DEPENDENCIES
 
 lazy val dependencies =
   new {
@@ -61,7 +76,10 @@ lazy val dependencies =
     val scalaLogging   = "com.typesafe.scala-logging" %% "scala-logging"           % scalaLoggingV
     val slf4j          = "org.slf4j"                  % "jcl-over-slf4j"           % slf4jV
     val typesafeConfig = "com.typesafe"               % "config"                   % typesafeConfigV
-    val akka           = "com.typesafe.akka"          %% "akka-cluster-typed"      % akkaV
+    val akkaTyped      = "com.typesafe.akka"          %% "akka-actor-typed"        % akkaV
+    val akkaRemote     = "com.typesafe.akka"          %% "akka-remote"             % akkaV
+    val akkaCluster    = "com.typesafe.akka"          %% "akka-cluster-typed"      % akkaV
+    val akkaStream     = "com.typesafe.akka"          %% "akka-stream-typed"       % akkaV
     val monocleCore    = "com.github.julien-truffaut" %% "monocle-core"            % monocleV
     val monocleMacro   = "com.github.julien-truffaut" %% "monocle-macro"           % monocleV
     val pureconfig     = "com.github.pureconfig"      %% "pureconfig"              % pureconfigV
@@ -76,10 +94,16 @@ lazy val commonDependencies = Seq(
   dependencies.scalaLogging,
   dependencies.slf4j,
   dependencies.typesafeConfig,
-  dependencies.akka,
   dependencies.scalatest  % "test",
   dependencies.scalacheck % "test",
   dependencies.scalaz
+)
+
+lazy val akkaDependencies = Seq(
+  dependencies.akkaTyped,
+  dependencies.akkaCluster,
+  dependencies.akkaStream,
+  dependencies.akkaRemote
 )
 
 // SETTINGS

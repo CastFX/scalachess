@@ -2,42 +2,36 @@ package it.scalachess.server
 
 import akka.actor.typed.{ ActorRef, Behavior }
 import akka.actor.typed.scaladsl.{ ActorContext, Behaviors }
-import it.scalachess.core.ChessGame
-import it.scalachess.core.board.Position
+import it.scalachess.core.{ ChessGame, Ongoing, Result, WinByForfeit }
 import it.scalachess.core.colors.{ Black, Color, White }
-import it.scalachess.core.pieces.{ King, Piece }
-import it.scalachess.server.GameManager.PlayerRequest
+import it.scalachess.server.LobbyManager.Lobby
+import it.scalachess.util.NetworkMessages.{
+  ClientMessage,
+  FailedMove,
+  ForfeitGame,
+  GameAction,
+  GameEnded,
+  GameStarted,
+  LobbyMessage,
+  Move,
+  RequestMove
+}
+import scalaz.{ Failure, Success }
+import it.scalachess.util.ActorExtensions.OptionActor
 
 import scala.util.Random
 
 object GameManager {
 
-  sealed trait PlayerRequest
-  final case class AskMove(game: ChessGame)       extends PlayerRequest
-  final case class TellStatus(status: GameStatus) extends PlayerRequest
-  final case class SendGame(game: ChessGame)      extends PlayerRequest
-
-  sealed trait GameCommand
-  final case object Start                                       extends GameCommand
-  final case class Move(move: String)                           extends GameCommand
-  final case class RequestGame(sender: ActorRef[PlayerRequest]) extends GameCommand
-
-  //TODO placeholder
-  sealed trait GameStatus
-  final case object Ongoing              extends GameStatus
-  sealed trait Result                    extends GameStatus
-  final case class Winner(player: Color) extends Result
-  final case object Draw                 extends Result
-
-  final case class End(result: Result)
-
-  def apply(lobby: Lobby, parent: ActorRef[LobbyManager.LobbyCommand]): Behavior[GameCommand] =
-    Behaviors.setup { _ =>
+  def apply(lobby: Lobby, parent: ActorRef[LobbyMessage]): Behavior[GameAction] =
+    Behaviors.setup { context =>
       val players = randomizeRoles(lobby)
-      new GameManager(players, parent).waitForStart(lobby.game)
+      val game    = ChessGame.standard()
+      players foreach { case (color, p) => p ! GameStarted(color, game, context.self) }
+      new GameManager(players, lobby.gameId, context, parent).ongoingGame(game)
     }
 
-  private def randomizeRoles(lobby: Lobby): Map[Color, ActorRef[PlayerRequest]] = {
+  private def randomizeRoles(lobby: Lobby): Map[Color, ActorRef[ClientMessage]] = {
     val p1Starts = Random.nextInt > 0.5
     (lobby.players.headOption, lobby.players.drop(1).headOption) match {
       case (Some(p1), Some(p2)) =>
@@ -45,56 +39,55 @@ object GameManager {
         else Map(White          -> p2, Black -> p1)
     }
   }
-
-  //TODO placeholder
-  private def gameStatus(game: ChessGame): GameStatus =
-    if (game.board.pieces.values.toList contains Piece(White, King)) Ongoing
-    else Winner(Black)
-
-  private def tryApplyMove(move: String, game: ChessGame): Option[ChessGame] =
-    Some(game.move(Position.ofNotation(move).get, Position.ofNotation(move).get))
 }
 
-class GameManager private (players: Map[Color, ActorRef[PlayerRequest]], parent: ActorRef[LobbyManager.LobbyCommand]) {
+class GameManager private (players: Map[Color, ActorRef[ClientMessage]],
+                           gameId: String,
+                           context: ActorContext[GameAction],
+                           server: ActorRef[LobbyMessage]) {
 
-  import GameManager._
-
-  private def waitForStart(game: ChessGame): Behavior[GameCommand] =
-    Behaviors.receive { (_, message) =>
-      message match {
-        case Start => {
-          askToMove(game)
-          ongoingGame(game)
-        }
-      }
+  private def ongoingGame(game: ChessGame): Behavior[GameAction] =
+    Behaviors.receiveMessage {
+      case Move(move, player) if playerCanMove(game, player) => ongoingGame(tryMove(move, game))
+      case ForfeitGame(player) if colorOf(player).isDefined  => forfeits(player); Behaviors.same
+      case _                                                 => failedMove("Client cant move", game); Behaviors.same
     }
 
-  private def ongoingGame(game: ChessGame): Behavior[GameCommand] =
-    Behaviors.receive { (_, message) =>
-      message match {
-        case Move(move) => {
-          tryApplyMove(move, game) match {
-            case Some(updated) => {
-              askToMove(updated)
-              gameStatus(updated) match {
-                case Ongoing   => ongoingGame(updated)
-                case r: Result => communicateResults(r); Behaviors.same
-              }
-            }
-            case None => askToMove(game); Behaviors.same
-          }
+  private def tryMove(move: String, game: ChessGame): ChessGame =
+    game(move) match {
+      case Success(updated) => {
+        askToMove(updated)
+        updated.gameStatus match {
+          case Ongoing   => updated
+          case r: Result => communicateResultsAndStop(r); updated
         }
-        case RequestGame(sender) => sender ! SendGame(game); Behaviors.same
       }
+      case Failure(err) => failedMove(err, game); game
+    }
+
+  private def failedMove(error: String, game: ChessGame): Unit = {
+    val player = (players get game.player)
+    player ! FailedMove(error)
+    player ! RequestMove(game.player, game, context.self)
+  }
+
+  private def forfeits(player: ActorRef[ClientMessage]): Unit =
+    colorOf(player) match {
+      case Some(color) => communicateResultsAndStop(WinByForfeit(color))
     }
 
   private def askToMove(game: ChessGame): Unit =
-    players get game.player match {
-      case Some(p1: ActorRef[PlayerRequest]) => p1 ! AskMove(game)
-    }
+    (players get game.player) ! RequestMove(game.player, game, context.self)
 
-  private def communicateResults(result: Result): Unit = {
-    players.values.foreach { _ ! TellStatus(result) }
-    parent ! LobbyManager.GameEnded
+  private def communicateResultsAndStop(result: Result): Unit = {
+    players.values.foreach { _ ! GameEnded(result) }
+    server ! LobbyManager.TerminateGame(gameId, result, context.self, players.values.head)
   }
+
+  private def playerCanMove(game: ChessGame, player: ActorRef[ClientMessage]): Boolean =
+    colorOf(player).fold(false)(game.player == _)
+
+  private def colorOf(client: ActorRef[ClientMessage]): Option[Color] = //Todo test actorRef equality
+    (players filter { case (_, player) => player == client }).keys.headOption
+
 }

@@ -2,6 +2,7 @@ package it.scalachess.server
 
 import akka.actor.typed.ActorSystem
 import com.typesafe.config.ConfigFactory
+import it.scalachess.util.NetworkMessages.LobbyMessage
 
 object Server extends App {
 
@@ -11,5 +12,5 @@ object Server extends App {
       akka.remote.artery.canonical.port=$port
       """).withFallback(ConfigFactory.load())
 
-  val system: ActorSystem[LobbyManager.LobbyCommand] = ActorSystem(LobbyManager(), "", config)
+  val system: ActorSystem[LobbyMessage] = ActorSystem(LobbyManager(), "lobbyManager", config)
 }

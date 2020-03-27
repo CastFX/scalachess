@@ -1,49 +1,62 @@
 package it.scalachess.server
 
-import akka.actor.typed.{ ActorRef, Behavior }
-import akka.actor.typed.scaladsl.{ ActorContext, Behaviors }
-import it.scalachess.core.ChessGame
-import it.scalachess.server.GameManager.{ GameCommand, PlayerRequest }
+import akka.actor.typed.receptionist.Receptionist
+import akka.actor.typed.{ActorRef, Behavior}
+import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
+import it.scalachess.core.Result
+import it.scalachess.util.NetworkMessages
+import it.scalachess.util.NetworkMessages.{ClientMessage, CreateGame, GameAction, JoinGame, LobbyMessage}
 
 object LobbyManager {
 
-  sealed trait LobbyCommand
-  final case class Initialize(p1: ActorRef[PlayerRequest]) extends LobbyCommand
-  final case class Join(p2: ActorRef[PlayerRequest])       extends LobbyCommand
-  final case object GameEnded                              extends LobbyCommand
+  case class TerminateGame(gameId: String,
+                           result: Result,
+                           gameManager: ActorRef[GameAction],
+                           client: ActorRef[ClientMessage]) extends LobbyMessage
 
-  private val initialLobby = Lobby(Seq(), ChessGame.standard())
+  case class Lobby(gameId: String, players: Seq[ActorRef[ClientMessage]]) {
+    def join(player: ActorRef[ClientMessage]): Lobby = Lobby(gameId, players :+ player)
+  }
 
-  def apply(): Behavior[LobbyCommand] =
-    waitingForPlayers(initialLobby)
+  def apply(): Behavior[LobbyMessage] = Behaviors.setup { context =>
+    context.system.receptionist ! Receptionist.Register(NetworkMessages.lobbyServiceKey, context.self)
+    discover(Map())
+  }
 
-  private def waitingForPlayers(lobby: Lobby): Behavior[LobbyCommand] =
+  private def discover(lobbies: Map[String, Lobby]): Behavior[LobbyMessage] =
     Behaviors.receive { (context, message) =>
       message match {
-        case Initialize(p1) => waitingForPlayers(Lobby(Seq(p1), lobby.game))
-        case Join(p2) => {
-          val gameManager = createGameManager(context, lobby join p2)
-          gameManager ! GameManager.Start
-          waitingForGameEnd(gameManager)
+        case CreateGame(client) => discover(createLobby(client, lobbies))
+        case JoinGame(id, client) => {
+          val updatedLobbies = joinLobby(id, client, lobbies)
+          _ = createGameManager(id, lobbies, context)
+          discover(updatedLobbies)
+        }
+        case TerminateGame(id, result, manager, _) => {
+          context stop manager
+          discover(removeLobby(id, result, lobbies))
         }
       }
     }
 
-  private def waitingForGameEnd(gameManager: ActorRef[GameCommand]): Behavior[LobbyCommand] =
-    Behaviors.receive { (context, message) =>
-      message match {
-        case GameEnded => {
-          context stop gameManager
-          waitingForPlayers(initialLobby)
-        }
-      }
+  private def createLobby(player: ActorRef[ClientMessage], lobbies: Map[String, Lobby]): Map[String, Lobby] = {
+    val gameId = lobbies.hashCode.toString
+    lobbies + (gameId -> Lobby(gameId, Seq(player)))
+  }
+
+  private def joinLobby(ofGameId: String, player: ActorRef[ClientMessage], lobbies: Map[String, Lobby]) = {
+    (lobbies get ofGameId) match {
+      case Some(lobby) => lobbies + (ofGameId -> lobby.join(player))
+      case _ => lobbies
     }
+  }
 
-  private def createGameManager(context: ActorContext[LobbyCommand], lobby: Lobby): ActorRef[GameCommand] =
-    context.spawn(GameManager(lobby, context.self), "GameManage")
-}
+  private def removeLobby(ofGameId: String, result: Result, lobbies: Map[String, Lobby]): Map[String, Lobby] = {
+    lobbies - ofGameId
+  }
 
-final case class Lobby(players: Seq[ActorRef[PlayerRequest]], game: ChessGame) {
-  def join(secondPlayer: ActorRef[PlayerRequest]): Lobby =
-    Lobby(players :+ secondPlayer, game)
+  private def createGameManager(ofGameId: String, lobbies: Map[String, Lobby], context: ActorContext[LobbyMessage]): Unit =
+    _ = lobbies get ofGameId match {
+      case Some(lobby) => context.spawn(GameManager(lobby, context.self), s"GameManager$ofGameId")
+    }
 }

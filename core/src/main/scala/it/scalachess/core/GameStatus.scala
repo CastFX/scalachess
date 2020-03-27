@@ -1,8 +1,10 @@
-package it.scalachess.core.gamestatus
+package it.scalachess.core
 
 import it.scalachess.core.colors.Color
 
 sealed trait GameStatus
-case object Ongoing           extends GameStatus
-case object Draw              extends GameStatus
-case class Win(player: Color) extends GameStatus
+sealed trait Result
+case object Ongoing                    extends GameStatus
+case object Draw                       extends GameStatus with Result
+case class Win(player: Color)          extends GameStatus with Result
+case class WinByForfeit(player: Color) extends GameStatus with Result
