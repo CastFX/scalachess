@@ -1,18 +1,19 @@
 package it.scalachess.server
 
 import akka.actor.typed.receptionist.Receptionist
-import akka.actor.typed.{ActorRef, Behavior}
-import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
+import akka.actor.typed.{ ActorRef, Behavior }
+import akka.actor.typed.scaladsl.{ ActorContext, Behaviors }
 import it.scalachess.core.Result
 import it.scalachess.util.NetworkMessages
-import it.scalachess.util.NetworkMessages.{ClientMessage, CreateGame, GameAction, JoinGame, LobbyMessage}
+import it.scalachess.util.NetworkMessages.{ ClientMessage, CreateGame, GameAction, JoinGame, LobbyMessage }
 
 object LobbyManager {
 
   case class TerminateGame(gameId: String,
                            result: Result,
                            gameManager: ActorRef[GameAction],
-                           client: ActorRef[ClientMessage]) extends LobbyMessage
+                           client: ActorRef[ClientMessage])
+      extends LobbyMessage
 
   case class Lobby(gameId: String, players: Seq[ActorRef[ClientMessage]]) {
     def join(player: ActorRef[ClientMessage]): Lobby = Lobby(gameId, players :+ player)
@@ -29,7 +30,7 @@ object LobbyManager {
         case CreateGame(client) => discover(createLobby(client, lobbies))
         case JoinGame(id, client) => {
           val updatedLobbies = joinLobby(id, client, lobbies)
-          _ = createGameManager(id, lobbies, context)
+          createGameManager(id, lobbies, context)
           discover(updatedLobbies)
         }
         case TerminateGame(id, result, manager, _) => {
@@ -44,19 +45,19 @@ object LobbyManager {
     lobbies + (gameId -> Lobby(gameId, Seq(player)))
   }
 
-  private def joinLobby(ofGameId: String, player: ActorRef[ClientMessage], lobbies: Map[String, Lobby]) = {
+  private def joinLobby(ofGameId: String, player: ActorRef[ClientMessage], lobbies: Map[String, Lobby]) =
     (lobbies get ofGameId) match {
       case Some(lobby) => lobbies + (ofGameId -> lobby.join(player))
-      case _ => lobbies
+      case _           => lobbies
     }
-  }
 
-  private def removeLobby(ofGameId: String, result: Result, lobbies: Map[String, Lobby]): Map[String, Lobby] = {
+  private def removeLobby(ofGameId: String, result: Result, lobbies: Map[String, Lobby]): Map[String, Lobby] =
     lobbies - ofGameId
-  }
 
-  private def createGameManager(ofGameId: String, lobbies: Map[String, Lobby], context: ActorContext[LobbyMessage]): Unit =
-    _ = lobbies get ofGameId match {
+  private def createGameManager(ofGameId: String,
+                                lobbies: Map[String, Lobby],
+                                context: ActorContext[LobbyMessage]): Unit =
+    lobbies get ofGameId match {
       case Some(lobby) => context.spawn(GameManager(lobby, context.self), s"GameManager$ofGameId")
     }
 }
