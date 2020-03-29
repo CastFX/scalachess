@@ -17,8 +17,6 @@ import it.scalachess.util.NetworkMessages.{
   RequestMove
 }
 import scalaz.{ Failure, Success }
-import it.scalachess.util.ActorExtensions.OptionActor
-
 import scala.util.Random
 
 object GameManager {
@@ -31,14 +29,9 @@ object GameManager {
       new GameManager(players, lobby.gameId, context, parent).ongoingGame(game)
     }
 
-  private def randomizeRoles(lobby: Lobby): Map[Color, ActorRef[ClientMessage]] = {
-    val p1Starts = Random.nextInt > 0.5
-    (lobby.players.headOption, lobby.players.drop(1).headOption) match {
-      case (Some(p1), Some(p2)) =>
-        if (p1Starts) Map(White -> p1, Black -> p2)
-        else Map(White          -> p2, Black -> p1)
-    }
-  }
+  private def randomizeRoles(lobby: Lobby): Map[Color, ActorRef[ClientMessage]] =
+    if (Random.nextInt > 0.5) Map(White -> lobby.players._1, Black -> lobby.players._2)
+    else Map(White                      -> lobby.players._2, Black -> lobby.players._1)
 }
 
 class GameManager private (players: Map[Color, ActorRef[ClientMessage]],
@@ -55,33 +48,32 @@ class GameManager private (players: Map[Color, ActorRef[ClientMessage]],
 
   private def tryMove(move: String, game: ChessGame): ChessGame =
     game(move) match {
-      case Success(updated) => {
+      case Success(updated) =>
         askToMove(updated)
         updated.gameStatus match {
           case Ongoing   => updated
           case r: Result => communicateResultsAndStop(r); updated
         }
-      }
       case Failure(err) => failedMove(err, game); game
     }
 
   private def failedMove(error: String, game: ChessGame): Unit = {
-    val player = (players get game.player)
+    val player = players(game.player)
     player ! FailedMove(error)
     player ! RequestMove(game.player, game, context.self)
   }
 
   private def forfeits(player: ActorRef[ClientMessage]): Unit =
-    colorOf(player) match {
-      case Some(color) => communicateResultsAndStop(WinByForfeit(color))
+    colorOf(player).fold(()) { c =>
+      communicateResultsAndStop(WinByForfeit(c))
     }
 
   private def askToMove(game: ChessGame): Unit =
-    (players get game.player) ! RequestMove(game.player, game, context.self)
+    players(game.player) ! RequestMove(game.player, game, context.self)
 
   private def communicateResultsAndStop(result: Result): Unit = {
     players.values.foreach { _ ! GameEnded(result) }
-    server ! LobbyManager.TerminateGame(gameId, result, context.self, players.values.head)
+    server ! LobbyManager.TerminateGame(gameId, result, context.self)
   }
 
   private def playerCanMove(game: ChessGame, player: ActorRef[ClientMessage]): Boolean =

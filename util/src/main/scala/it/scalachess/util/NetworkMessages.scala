@@ -21,6 +21,7 @@ object NetworkMessages {
   final case class ForfeitGame(sender: ActorRef[ClientMessage])        extends Sender[ClientMessage] with GameAction
 
   trait ClientMessage
+  final case class LobbyId(id: String) extends ClientMessage
   final case class GameStarted(color: Color, game: ChessGame, sender: ActorRef[GameAction])
       extends Sender[GameAction]
       with ClientMessage

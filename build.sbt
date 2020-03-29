@@ -71,21 +71,21 @@ lazy val dependencies =
     val scalacheckV     = "1.13.5"
     val scalazV         = "7.2.30"
 
-    val logback        = "ch.qos.logback"             % "logback-classic"          % logbackV
-    val logstash       = "net.logstash.logback"       % "logstash-logback-encoder" % logstashV
-    val scalaLogging   = "com.typesafe.scala-logging" %% "scala-logging"           % scalaLoggingV
-    val slf4j          = "org.slf4j"                  % "jcl-over-slf4j"           % slf4jV
-    val typesafeConfig = "com.typesafe"               % "config"                   % typesafeConfigV
-    val akkaTyped      = "com.typesafe.akka"          %% "akka-actor-typed"        % akkaV
-    val akkaRemote     = "com.typesafe.akka"          %% "akka-remote"             % akkaV
-    val akkaCluster    = "com.typesafe.akka"          %% "akka-cluster-typed"      % akkaV
-    val akkaStream     = "com.typesafe.akka"          %% "akka-stream-typed"       % akkaV
-    val monocleCore    = "com.github.julien-truffaut" %% "monocle-core"            % monocleV
-    val monocleMacro   = "com.github.julien-truffaut" %% "monocle-macro"           % monocleV
-    val pureconfig     = "com.github.pureconfig"      %% "pureconfig"              % pureconfigV
-    val scalatest      = "org.scalatest"              %% "scalatest"               % scalatestV
-    val scalacheck     = "org.scalacheck"             %% "scalacheck"              % scalacheckV
-    val scalaz         = "org.scalaz"                 %% "scalaz-core"             % scalazV
+    val logback        = "ch.qos.logback"             % "logback-classic"             % logbackV
+    val logstash       = "net.logstash.logback"       % "logstash-logback-encoder"    % logstashV
+    val scalaLogging   = "com.typesafe.scala-logging" %% "scala-logging"              % scalaLoggingV
+    val slf4j          = "org.slf4j"                  % "jcl-over-slf4j"              % slf4jV
+    val typesafeConfig = "com.typesafe"               % "config"                      % typesafeConfigV
+    val akkaTyped      = "com.typesafe.akka"          %% "akka-actor-typed"           % akkaV
+    val akkaSerialize  = "com.typesafe.akka"          %% "akka-serialization-jackson" % akkaV
+    val akkaRemote     = "com.typesafe.akka"          %% "akka-remote"                % akkaV
+    val akkaCluster    = "com.typesafe.akka"          %% "akka-cluster-typed"         % akkaV
+    val monocleCore    = "com.github.julien-truffaut" %% "monocle-core"               % monocleV
+    val monocleMacro   = "com.github.julien-truffaut" %% "monocle-macro"              % monocleV
+    val pureconfig     = "com.github.pureconfig"      %% "pureconfig"                 % pureconfigV
+    val scalatest      = "org.scalatest"              %% "scalatest"                  % scalatestV
+    val scalacheck     = "org.scalacheck"             %% "scalacheck"                 % scalacheckV
+    val scalaz         = "org.scalaz"                 %% "scalaz-core"                % scalazV
   }
 
 lazy val commonDependencies = Seq(
@@ -102,8 +102,8 @@ lazy val commonDependencies = Seq(
 lazy val akkaDependencies = Seq(
   dependencies.akkaTyped,
   dependencies.akkaCluster,
-  dependencies.akkaStream,
-  dependencies.akkaRemote
+  dependencies.akkaRemote,
+  dependencies.akkaSerialize
 )
 
 // SETTINGS

@@ -1,9 +1,8 @@
 package it.scalachess.core.test
 
-import it.scalachess.core.ChessGame
+import it.scalachess.core.{ ChessGame, Ongoing, Win }
 import it.scalachess.core.board.Position
 import it.scalachess.core.colors.{ Black, White }
-import it.scalachess.core.gamestatus.{ Ongoing, Win }
 import it.scalachess.core.pieces.{ Pawn, Piece }
 import org.scalatest.{ FlatSpec, Matchers, OptionValues }
 import it.scalachess.core.test.ChessGameFailureMatcher.generateFailure
