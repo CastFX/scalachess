@@ -57,6 +57,7 @@ class ChessGameSpec extends FlatSpec with Matchers with OptionValues {
   it should "apply a move correctly" in {
     val whitePawnMove          = "a2 a3"
     val whitePawnFinalPosition = Position(1, 3)
+    println(simpleGame(whitePawnMove))
     simpleGame(whitePawnMove).toOption.value.board.pieceAtPosition(whitePawnFinalPosition).value should equal(
       Piece(White, Pawn))
   }
@@ -68,6 +69,7 @@ class ChessGameSpec extends FlatSpec with Matchers with OptionValues {
     simpleGameTurnCounter += 1
     simpleGame.turn should be(simpleGameTurnCounter)
     simpleGame.player should equal(Black)
+    println(simpleGame(blackPawnMove))
     simpleGame = simpleGame(blackPawnMove).toOption.value
     simpleGameTurnCounter += 1
     simpleGame.turn should be(simpleGameTurnCounter)

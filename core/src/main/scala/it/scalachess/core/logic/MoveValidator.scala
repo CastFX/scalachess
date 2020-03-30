@@ -4,22 +4,28 @@ import it.scalachess.core.Color
 import it.scalachess.core.board.{ Board, Position }
 import it.scalachess.core.pieces.{ Bishop, Pawn, Piece, PieceType, Queen, Rook }
 import scalaz.{ Failure, Success, Validation }
+/*
+final case class ValidateMove(board: Board) {
 
-final case class MoveValidator(board: Board) {
+    private val checkValidator = CheckValidator()
 
-  private val checkValidator = CheckValidator()
-  private val movesGenerator = MovesGenerator
 
-  def validateMove() = {
-
-  }
-
+    def apply(move: ParsedMove, player: Color): Validation[String, ParsedMove] =
+      move match {
+        case Castling(_) || EnPassant(_) || Promotion(_) =>
+          if (GenerateMove(getSpecialMove = true, player)() contains move) Success(move)
+          else Failure("The special move can't be applied")
+        case Move(_, _, _, _, _, _, _, _) =>
+          if (GenerateMove(getSpecialMove = false, player)() contains move) Success(move)
+          else Failure("The move can't be applied")
+      }*/
+/*
   /**
-   * Create a ValidMove from a String representing a move
-   * @param move the move as String
-   * @param player the color of the active player
-   * @return Success containing the ValidMove, otherwise a Failure with the error message
-   */
+ * Create a ValidMove from a String representing a move
+ * @param move the move as String
+ * @param player the color of the active player
+ * @return Success containing the ValidMove, otherwise a Failure with the error message
+ */
   def validateSimpleMove(move: String, player: Color): Validation[String, simpleMove] =
     validateMoveFormat(move) match {
       case Success(positions) =>
@@ -28,19 +34,19 @@ final case class MoveValidator(board: Board) {
     }
 
   /**
-   * Create a ValidMove from two positions
-   * @param from starting position
-   * @param to the final position
-   * @param player the color of the active player
-   * @return Success containing the ValidMove, otherwise a Failure with the error message
-   */
+ * Create a ValidMove from two positions
+ * @param from starting position
+ * @param to the final position
+ * @param player the color of the active player
+ * @return Success containing the ValidMove, otherwise a Failure with the error message
+ */
   def validateSimpleMove(from: Position, to: Position, player: Color): Validation[String, simpleMove] =
     if (Position.of(from).nonEmpty && Position.of(to).nonEmpty)
       validateShift(from, to, player) match {
         case Success(piece) =>
           generatePathError(from, to) match {
             case None =>
-              checkValidator.isKingInCheck(player.other, MoveValidator(board(simpleMove(from, to, piece)))) match {
+              checkValidator.isKingInCheck(player.other, ValidateMove(board(simpleMove(from, to, piece)))) match {
                 case Success(isAllyKingInCheck) =>
                   if (isAllyKingInCheck)
                     Failure("This move makes king under check!")
@@ -54,12 +60,12 @@ final case class MoveValidator(board: Board) {
       } else Failure("Position inserted is out of bound!")
 
   /**
-   * Checks if only the two end point positions represent a correct move
-   * @param from   position where is located the (active) player's piece
-   * @param to     position where the piece should move
-   * @param player the active player
-   * @return Success containing the Piece to move, otherwise a Failure with the error message
-   */
+ * Checks if only the two end point positions represent a correct move
+ * @param from   position where is located the (active) player's piece
+ * @param to     position where the piece should move
+ * @param player the active player
+ * @return Success containing the Piece to move, otherwise a Failure with the error message
+ */
   def validateShift(from: Position, to: Position, player: Color): Validation[String, Piece] =
     board.pieceAtPosition(from) match {
       case None => Failure("The first position inserted is empty")
@@ -83,12 +89,12 @@ final case class MoveValidator(board: Board) {
     }
 
   /**
-   * Checks if the path crossed by the piece moved is free of pieces.
-   * This method assume that the correctness of the two end point positions is already checked.
-   * @param from the start position where is located the (active) player's piece
-   * @param to   the final position where the piece should move
-   * @return Option containing the error message
-   */
+ * Checks if the path crossed by the piece moved is free of pieces.
+ * This method assume that the correctness of the two end point positions is already checked.
+ * @param from the start position where is located the (active) player's piece
+ * @param to   the final position where the piece should move
+ * @return Option containing the error message
+ */
   def generatePathError(from: Position, to: Position): Option[String] = {
 
     def generateErrorPieceInPath(path: Set[Position]) =
@@ -121,20 +127,20 @@ final case class MoveValidator(board: Board) {
   }
 
   /**
-   * Checks if the move represented as String is represented as a valid format
-   * @param move the move as String
-   * @return Success containing a tuple defining a move, otherwise a Failure with the error message
-   */
+ * Checks if the move represented as String is represented as a valid format
+ * @param move the move as String
+ * @return Success containing a tuple defining a move, otherwise a Failure with the error message
+ */
   private def validateMoveFormat(move: String): Validation[String, (Position, Position)] =
     if (move.length == 5) {
       (Position.ofNotation(move.substring(0, 2)), Position.ofNotation(move.substring(3, 5))) match {
         case (Some(from), Some(to)) => Success(from, to)
-        case _ => Failure("Move format not legal")
+        case _                      => Failure("Move format not legal")
       }
     } else {
       Failure("Move format not legal")
     }
 
 }
-
+ */
 case class simpleMove(from: Position, to: Position, piece: Piece)

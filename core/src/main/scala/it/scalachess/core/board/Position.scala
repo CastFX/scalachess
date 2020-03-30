@@ -1,6 +1,5 @@
 package it.scalachess.core.board
 
-import scala.annotation.tailrec
 import scala.math.abs
 
 /**
@@ -10,15 +9,15 @@ import scala.math.abs
  */
 final case class Position(col: Int, row: Int) {
 
-  lazy val left: Option[Position]  = Position.of(col - 1)(row)
-  lazy val right: Option[Position] = Position.of(col + 1)(row)
-  lazy val down: Option[Position]  = Position.of(col)(row - 1)
-  lazy val up: Option[Position]    = Position.of(col)(row + 1)
+  lazy val left: Option[Position]  = Position.ofCurr(col - 1)(row)
+  lazy val right: Option[Position] = Position.ofCurr(col + 1)(row)
+  lazy val down: Option[Position]  = Position.ofCurr(col)(row - 1)
+  lazy val up: Option[Position]    = Position.ofCurr(col)(row + 1)
 
-  lazy val downLeft: Option[Position]  = Position.of(col - 1)(row - 1)
-  lazy val downRight: Option[Position] = Position.of(col + 1)(row - 1)
-  lazy val upLeft: Option[Position]    = Position.of(col - 1)(row + 1)
-  lazy val upRight: Option[Position]   = Position.of(col + 1)(row + 1)
+  lazy val downLeft: Option[Position]  = Position.ofCurr(col - 1)(row - 1)
+  lazy val downRight: Option[Position] = Position.ofCurr(col + 1)(row - 1)
+  lazy val upLeft: Option[Position]    = Position.ofCurr(col - 1)(row + 1)
+  lazy val upRight: Option[Position]   = Position.ofCurr(col + 1)(row + 1)
 
   lazy val adjacentPositions: Set[Position] =
     Set(left, right, down, up, downLeft, downRight, upLeft, upRight).flatten
@@ -80,60 +79,6 @@ final case class Position(col: Int, row: Int) {
   def isStraightTo(pos: Position): Boolean = rowDistanceAbs(pos) == 0 || colDistanceAbs(pos) == 0
 
   /**
-   * Generates the set of the straight path between columns of this and the other position.
-   * The two position located at the end points are not include in the path.
-   * @param pos the other position
-   * @param path the Set in which put the positions
-   * @return path
-   */
-  @tailrec
-  def generatePosBetweenCol(pos: Position, path: Set[Position]): Set[Position] = {
-    val colDist = pos colDistance this
-    if (colDist == 1 || colDist == -1 || colDist == 0) path
-    else {
-      val approachingToThisPos = Position(pos.col + computePathModifier(colDist), pos.row)
-      generatePosBetweenCol(approachingToThisPos, path + approachingToThisPos)
-    }
-  }
-
-  /**
-   * Generates the set of the straight path between rows of this and the other position.
-   * The two position located at the end points are not include in the path.
-   * @param pos the other position
-   * @param path the Set in which put the positions
-   * @return path
-   */
-  @tailrec
-  def generatePosBetweenRow(pos: Position, path: Set[Position]): Set[Position] = {
-    val rowDist = pos rowDistance this
-    if (rowDist == 1 || rowDist == -1 || rowDist == 0) path
-    else {
-      val approachingToThisPos = Position(pos.col, pos.row + computePathModifier(rowDist))
-      generatePosBetweenRow(approachingToThisPos, path + approachingToThisPos)
-    }
-  }
-
-  /**
-   * Generates the set of the diagonal path between this and the other position.
-   * The two position located at the end points are not include in the path.
-   * @param pos the other position
-   * @param path the Set in which put the positions
-   * @return path
-   */
-  @tailrec
-  def generatePosBetweenDiagonal(pos: Position, path: Set[Position]): Set[Position] = {
-    val colDist = pos colDistance this
-    val rowDist = pos rowDistance this
-    if (colDist == 1 || colDist == -1 || colDist == 0 ||
-        rowDist == 1 || rowDist == -1 || rowDist == 0) path
-    else {
-      val approachingToThisPos =
-        Position(pos.col + computePathModifier(colDist), pos.row + computePathModifier(rowDist))
-      generatePosBetweenDiagonal(approachingToThisPos, path + approachingToThisPos)
-    }
-  }
-
-  /**
    * Calculates the modifier in the methods: generatePosBetweenCol, generatePosBetweenRow, computePosBetweenDiagonal
    * @param distance the distance between the this and the position to reach
    * @return the modifier
@@ -154,7 +99,11 @@ object Position {
    * @param row numerical value of the position's row
    * @return Option of the new Position if it's inside the board, None otherwise
    */
-  def of(col: Int)(row: Int): Option[Position] =
+  def ofCurr(col: Int)(row: Int): Option[Position] =
+    if (Board.isInside(col, row)) Option(Position(col, row))
+    else None
+
+  def of(col: Int, row: Int): Option[Position] =
     if (Board.isInside(col, row)) Option(Position(col, row))
     else None
 
@@ -171,6 +120,6 @@ object Position {
     if (notation.length == 2 && notation.charAt(0).isLetter && notation.charAt(1).isDigit) {
       val col: Int = notation.charAt(0).toLower.toInt - 96
       val row: Int = notation.charAt(1).asDigit
-      Position.of(col)(row)
+      Position.ofCurr(col)(row)
     } else None
 }
