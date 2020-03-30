@@ -1,81 +1,40 @@
 package it.scalachess.core.logic
 
-import it.scalachess.core.Color
+import it.scalachess.core.{ Black, Color, White }
 import it.scalachess.core.board.{ Board, Position }
-import it.scalachess.core.pieces.{ Bishop, Pawn, Piece, Queen, Rook }
+import it.scalachess.core.logic.moves.{ BoardMove, ParsedMove, ValidMove }
 import scalaz.{ Failure, Success, Validation }
+//import it.scalachess.core.logic.moves.Move
+import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, PieceType, Queen, Rook }
 
 final case class MoveValidator(board: Board) {
 
-  private val checkValidator = CheckValidator()
+  //def apply(move: Move, player: Color): Unit = ???
 
-  /**
-   * Create a ValidMove from a String representing a move
-   * @param move the move as String
-   * @param player the color of the active player
-   * @return Success containing the ValidMove, otherwise a Failure with the error message
-   */
-  def validateMove(move: String, player: Color): Validation[String, ValidMove] =
-    validateMoveFormat(move) match {
-      case Success(positions) =>
-        validateMove(positions._1, positions._2, player)
-      case Failure(errorMsg) => Failure(errorMsg)
+  def canAttack() = {}
+
+  def pieceCanAttack(pieceType: PieceType, color: Color, start: Position, end: Position): Boolean = {
+    def knightCanAttack(): Boolean = {
+      val rowDistance = start rowDistanceAbs end
+      val colDistance = start colDistanceAbs end
+      (rowDistance == 2 && colDistance == 1
+      || rowDistance == 1 && colDistance == 2)
     }
-
-  /**
-   * Create a ValidMove from two positions
-   * @param from the starting position
-   * @param to the final position
-   * @param player the color of the active player
-   * @return Success containing the ValidMove, otherwise a Failure with the error message
-   */
-  def validateMove(from: Position, to: Position, player: Color): Validation[String, ValidMove] =
-    if (Position.of(from).nonEmpty && Position.of(to).nonEmpty)
-      validateShift(from, to, player) match {
-        case Success(piece) =>
-          generatePathError(from, to) match {
-            case None =>
-              checkValidator.isKingInCheck(player.other, MoveValidator(board(ValidMove(from, to, piece)))) match {
-                case Success(isAllyKingInCheck) =>
-                  if (isAllyKingInCheck)
-                    Failure("This move makes king under check!")
-                  else
-                    Success(ValidMove(from, to, piece))
-                case Failure(errorMsg) => Failure(errorMsg)
-              }
-            case Some(errorMsg) => Failure(errorMsg)
-          }
-        case Failure(errorMsg) => Failure(errorMsg)
-      } else Failure("Position inserted is out of bound!")
-
-  /**
-   * Checks if only the two end point positions represent a correct move
-   * @param from   position where is located the (active) player's piece
-   * @param to     position where the piece should move
-   * @param player the active player
-   * @return Success containing the Piece to move, otherwise a Failure with the error message
-   */
-  def validateShift(from: Position, to: Position, player: Color): Validation[String, Piece] =
-    board.pieceAtPosition(from) match {
-      case None => Failure("The first position inserted is empty")
-      case Some(playerPiece) =>
-        playerPiece.color match {
-          case player.other => Failure("Can't move an enemy piece")
-          case _ =>
-            board.pieceAtPosition(to) match {
-              case None =>
-                if (playerPiece.canMove(from, to)) Success(playerPiece)
-                else Failure("The piece selected can't move there")
-              case Some(piece) =>
-                piece.color match {
-                  case player.other =>
-                    if (playerPiece.canAttack(from, to)) Success(playerPiece)
-                    else Failure("The piece can't attacks there")
-                  case _ => Failure("Can't capture an ally piece")
-                }
-            }
-        }
+    def pawnCanAttack(): Boolean = {
+      val rowDistance = end rowDistance start
+      val colDistance = start colDistanceAbs end
+      (color == White && rowDistance == 1 && colDistance == 1
+      || color == Black && rowDistance == -1 && colDistance == 1)
     }
+    pieceType match {
+      case King   => start isAdjacentTo end
+      case Queen  => (start isDiagonalTo end) || (start isStraightTo end)
+      case Rook   => start isStraightTo end
+      case Bishop => start isDiagonalTo end
+      case Knight => knightCanAttack()
+      case Pawn   => pawnCanAttack()
+    }
+  }
 
   /**
    * Checks if the path crossed by the piece moved is free of pieces.
@@ -115,20 +74,20 @@ final case class MoveValidator(board: Board) {
     }
   }
 
-  /**
-   * Checks if the move represented as String is represented as a valid format
-   * @param move the move as String
-   * @return Success containing a tuple defining a move, otherwise a Failure with the error message
-   */
-  private def validateMoveFormat(move: String): Validation[String, (Position, Position)] =
-    if (move.length == 5) {
-      (Position.ofNotation(move.substring(0, 2)), Position.ofNotation(move.substring(3, 5))) match {
-        case (Some(from), Some(to)) => Success(from, to)
+  def validateParsedMove(move: ParsedMove, player: Color): Validation[String, BoardMove] = {
+    val errorMessage: String        = "The move is not a valid one"
+    val ambiguityMessage: String    = "This move creates an ambiguity, please specify it better"
+    val validMoves: List[ValidMove] = MovesGenerator(board, player)()
+    val parsedMoves: List[ParsedMove] = validMoves
+      .map(validMove => validMove.convertInParsedMove(board))
+    val map: Map[ValidMove, ParsedMove] = (validMoves zip parsedMoves).toMap
+    val filteredMap = map.filter(parsed => move.isEqualTo(parsed._2))
+    filteredMap.size match {
+      case 0 => Failure(errorMessage)
+      case 1 => {
+        Success(filteredMap.head._1.convertInBoardMove)
       }
-    } else {
-      Failure("Move format not legal")
+      case _ => Failure(ambiguityMessage)
     }
-
+  }
 }
-
-case class ValidMove(from: Position, to: Position, piece: Piece)

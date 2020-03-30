@@ -32,14 +32,14 @@ case class ParsedSimpleMove(
         promotion == move.promotion
       case _ => false
     }
-  private def isCaptureEqual(capture: (Option[PieceType], Option[Char]), move: ParsedSimpleMove): Boolean = {
+  private def isCaptureEqual(capture: (Option[PieceType], Option[Char]), move: ParsedSimpleMove): Boolean =
     (capture._1 == move.capture._1 && capture._2 == move.capture._2) ||
-      (capture._1.isEmpty && capture._2.isEmpty && move.capture._1.isEmpty && move.capture._2.isEmpty)
-  }
-  private def isStartingPointEqual(startingCol: Option[Char], startingRow: Option[Int], move: ParsedSimpleMove): Boolean = {
+    (capture._1.isEmpty && capture._2.isEmpty && move.capture._1.isEmpty && move.capture._2.isEmpty)
+  private def isStartingPointEqual(startingCol: Option[Char],
+                                   startingRow: Option[Int],
+                                   move: ParsedSimpleMove): Boolean =
     (startingCol.isDefined && startingCol == move.startingCol || startingCol.isEmpty) &&
-      (startingRow.isDefined && startingRow == move.startingRow || startingRow.isEmpty)
-  }
+    (startingRow.isDefined && startingRow == move.startingRow || startingRow.isEmpty)
 }
 
 /**
@@ -66,7 +66,7 @@ case class Castling(
     check: Boolean,
     checkmate: Boolean
 ) extends ParsedMove {
-  override def isEqualTo(move: ParsedMove): Boolean = {
+  override def isEqualTo(move: ParsedMove): Boolean =
     move match {
       case move: Castling =>
         castlingType == move.castlingType &&
@@ -74,5 +74,4 @@ case class Castling(
         checkmate == move.checkmate
       case _ => false
     }
-  }
 }

@@ -33,7 +33,7 @@ case class ValidSimpleMove(pieceType: PieceType,
 
 case class ValidCastling(castlingType: CastlingType, kingPos: Position, rookPos: Position) extends ValidMove {
   override def convertInBoardMove: BoardMove                 = BoardCastling(kingPos, rookPos)
-  override def convertInParsedMove(board: Board): ParsedMove = ???
+  override def convertInParsedMove(board: Board): ParsedMove = ??? //Castling(castlingType, check, checkMate)
 }
 
 case class ValidEnPassant(capture: Position, from: Position, to: Position) extends ValidMove {
