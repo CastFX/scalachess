@@ -1,18 +1,9 @@
 package it.scalachess.core.board
 
+import it.scalachess.core.logic.moves.{ BoardCastling, BoardEnPassant, BoardMove, BoardPromotion, BoardSimpleMove }
+import it.scalachess.core.logic.simpleMove
 import it.scalachess.core.{ Black, Color, White }
 import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, Piece, PieceType, Queen, Rook }
-import it.scalachess.core.logic.{
-  simpleMove,
-  Castling,
-  EnPassant,
-  Move,
-  ParsedMove,
-  Promotion,
-  ValidMove,
-  ValidPromotion,
-  ValidSimpleMove
-}
 import scalaz.{ Failure, Success, Validation }
 
 /**
@@ -37,7 +28,7 @@ final case class Board(
    * @param row number of the row
    * @return an Option[Piece] with the respective Piece at that coordinates, None if it's empty
    */
-  def pieceAtCoordinates(col: Int)(row: Int): Option[Piece] = Position.of(row)(col) flatMap { pieces get }
+  def pieceAtCoordinates(col: Int)(row: Int): Option[Piece] = Position.ofCurr(row)(col) flatMap { pieces get }
 
   /**
    * Retrieves a Piece under a certain position, if it's present
@@ -52,47 +43,106 @@ final case class Board(
   def apply(validMove: simpleMove): Board =
     Board(pieces + (validMove.to -> validMove.piece) - validMove.from, capturedPieces)
 
-  def apply(validMove: ValidMove): Validation[String, Board] =
-    validMove match {
-      case ValidPromotion(to, pieceToRestore) =>
-        pieces.get(to) match {
-          case Some(pieceToPromote) =>
-            capturedPieces.find(piece => piece == pieceToRestore) match {
-              case Some(pieceThatWillBeRestored) =>
-                Success(Board(pieces + (to -> pieceToRestore), removePromotedPiece(pieceToRestore, capturedPieces)))
-              case None =>
-                Failure(
-                  "Among capture pieces there is no piece having color and type compatible with the ones inserted")
-            }
-          case None => Failure("There's no piece at position received")
+  /**
+   * Applies a move on the board. There is a strong assumption in this method:
+   * it doesn't perform any logic check, it just make sures that the arguments
+   * passed as input exists in its domain, then executes the related changes
+   * @param boardMove containing the information for change the board
+   * @return
+   */
+  def apply(boardMove: BoardMove): Validation[String, Board] =
+    boardMove match {
+      case BoardPromotion(from, to, pieceToRestore) => applyPromotion(from, to, pieceToRestore)
+      case BoardCastling(kingPos, rookPos)          => applyCastling(kingPos, rookPos)
+      case BoardEnPassant(capturePos, from, to)     => applyEnPassant(capturePos, from, to)
+      case BoardSimpleMove(from, to) =>
+        pieceAtPosition(to) match {
+          case Some(pieceCaptured) =>
+            Success(Board(pieces + (to -> pieceAtPosition(to).get) - from, capturedPieces.::(pieceCaptured)))
+          case None => Success(Board(pieces + (to -> pieceAtPosition(to).get) - from, capturedPieces))
         }
-      /*      case Castling(_) => ??? //Board(pieces)
-      case EnPassant(capture) =>
-        val capturedPiece = pieces.get(capture)
-        Board(pieces - capture, capturedPieces.::(capturedPiece))
-       */
-      case ValidSimpleMove(_, _, _, _, _, _, _, _) => Failure("NO")
-      case _                                       => Failure("board has received a non move")
+      case _ => Failure("board has received a not valid move")
     }
 
-  private def removePromotedPiece(piece: Piece, capturedPieces: List[Piece]): List[Piece] = {
-    val capturedPiecesOfThatType = capturedPieces.filter(piece => piece == piece)
-    if (capturedPiecesOfThatType.size == 1) {
-      capturedPieces.filterNot(piece => piece == piece)
-    } else if (capturedPiecesOfThatType.size == 2) {
-      capturedPieces.filterNot(piece => piece == piece).::(piece)
-    } else {
-      capturedPieces
+  /**
+   * Applies the promotion:
+   * move the piece at position 'from' to the position 'to';
+   * adds the piece located at position 'pos' into the 'capturedPieces';
+   * puts the 'pieceToRestore' from 'capturedPieces' to position 'pos'
+   * @param from the position in which the piece starts the movement
+   * @param to the position in which the piece on board receives the promotion
+   * @param pieceToRestore the piece which return on board
+   * @return
+   */
+  private def applyPromotion(from: Position, to: Position, pieceToRestore: Piece): Validation[String, Board] = {
+
+    /**
+     * Removes only one piece's occurrence from capturedPieces
+     * (it's necessary because at the moment, the structure List
+     * doesn't have a proper way to remove the first occurrences,
+     * e.g.: the methods drop and dropWhile do not provide a solution)
+     * @param pieceToRestore the piece to put in game during Promotion move
+     * @param capturedPieces the list containing all the pieces captured
+     * @return capturedPieces without one pieceToRestore's occurrence
+     */
+    def removePromotedPiece(pieceToRestore: Piece, capturedPieces: List[Piece]): List[Piece] = {
+      val capturedPiecesOfThatType = capturedPieces.filter(piece => piece == piece)
+      if (capturedPiecesOfThatType.size == 1) {
+        capturedPieces.filterNot(piece => piece == piece)
+      } else if (capturedPiecesOfThatType.size == 2) {
+        capturedPieces.filterNot(piece => piece == piece).::(pieceToRestore)
+      } else {
+        capturedPieces
+      }
+    }
+
+    pieceAtPosition(from) match {
+      case None => Failure("applyPromotion - there's no piece at position received")
+      case Some(pieceToPromote) =>
+        capturedPieces.find(piece => piece == pieceToRestore) match {
+          case None => Failure("applyPromotion - the capturePieces doesn't contain Piece inserted")
+          case _ =>
+            Success(
+              Board(pieces + (to -> pieceToRestore) - from,
+                    removePromotedPiece(pieceToRestore, capturedPieces).::(pieceToPromote)))
+        }
     }
   }
+
+  private def applyCastling(kingPos: Position, rookPos: Position): Validation[String, Board] =
+    pieceAtPosition(kingPos) match {
+      case None => Failure("applyCastling - there's no piece at king's position received")
+      case Some(kingPiece) =>
+        pieceAtPosition(rookPos) match {
+          case None => Failure("applyCastling - there's no piece at rook's position received")
+          case Some(rookPiece) =>
+            Success(Board(pieces + (rookPos -> kingPiece) + (kingPos -> rookPiece), capturedPieces))
+        }
+    }
+
+  private def applyEnPassant(capturePos: Position, from: Position, to: Position) =
+    pieceAtPosition(from) match {
+      case None => Failure("applyEnPassant - there's no piece at the position received")
+      case Some(pieceToMove) =>
+        pieceAtPosition(capturePos) match {
+          case None => Failure("applyEnPassant - there's no piece at the capture position")
+          case Some(pieceCaptured) =>
+            Success(Board(pieces + (to -> pieceToMove) - from - capturePos, capturedPieces.::(pieceCaptured)))
+        }
+    }
 
 }
 
 object Board {
-  val whitePawnsStartingRow = 2
-  val blackPawnStartingRow  = 7
-  val width: Int            = 8
-  val height: Int           = 8
+  val whiteMajorPiecesStartingRow = 1
+  val whiteMinorPiecesStartingRow = 2
+  val blackMajorPiecesStartingRow = 8
+  val blackMinorPiecesStartingRow = 7
+  val kingsStartingCol            = 5
+  val rightRooksStartingCol       = 8
+  val leftRooksStartingCol        = 1
+  val width: Int                  = 8
+  val height: Int                 = 8
 
   /**
    * Function to check if a certain position expressed with row and column is inside this board
@@ -111,7 +161,7 @@ object Board {
       for (row <- Seq(1, 2, height - 1, height); //for rows 1,2 7,8
            col <- 1 to 8) yield { //for each column [a-h]
         Position
-          .of(col)(row) //from the position
+          .ofCurr(col)(row) //from the position
           .map({ pos =>
             val color: Color = if (row <= 2) White else Black
             val piece        = Piece(color, initialPieceTypeAtPosition(pos)) //get the starting piece

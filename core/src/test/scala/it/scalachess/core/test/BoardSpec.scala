@@ -1,11 +1,12 @@
 package it.scalachess.core.test
 
 import it.scalachess.core.{ Black, White }
-import it.scalachess.core.board.Board
-import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, Queen, Rook }
-import org.scalatest.{ FlatSpec, Inspectors, Matchers }
+import it.scalachess.core.board.{ Board, Position }
+import it.scalachess.core.logic.moves.{ BoardCastling, BoardEnPassant, BoardPromotion }
+import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, Piece, Queen, Rook }
+import org.scalatest.{ FlatSpec, Inspectors, Matchers, OptionValues }
 
-class BoardSpec extends FlatSpec with Matchers with Inspectors {
+class BoardSpec extends FlatSpec with Matchers with Inspectors with OptionValues {
 
   val initialBoard: Board = Board.defaultBoard()
   val piecesPerType = Map(
@@ -16,10 +17,10 @@ class BoardSpec extends FlatSpec with Matchers with Inspectors {
     King   -> 2,
     Queen  -> 2
   )
-  val pawnRowsNumbers  = Seq(2, 7)
-  val majorRowsNumbers = Seq(1, 8)
-  val whiteRowsNumbers = Seq(1, 2)
-  val blackRowsNumbers = Seq(7, 8)
+  val pawnRowsNumbers            = Seq(2, 7)
+  val majorRowsNumbers           = Seq(1, 8)
+  val whiteRowsNumbers           = Seq(1, 2)
+  val blackRowsNumbers           = Seq(7, 8)
   val pieceRowsNumbers: Seq[Int] = whiteRowsNumbers union blackRowsNumbers
 
   "A standard board" should
@@ -107,4 +108,60 @@ class BoardSpec extends FlatSpec with Matchers with Inspectors {
       pieceRowsNumbers should contain(pos.row)
     }
   }
+
+  "Apply the promotion move" should "moves a piece and promote it, on a standard board" in {
+    val defaultBoard          = Board.defaultBoard()
+    val pawnToPromote         = Piece(White, Pawn)
+    val pawnToPromotedPosFrom = Position(1, 2)
+    val pawnToPromotedPosTo   = Position(1, 3)
+    val rookCaptured          = Piece(White, Rook)
+    val boardWithOneCapture   = Board(defaultBoard.pieces, defaultBoard.capturedPieces.::(rookCaptured))
+    boardWithOneCapture.capturedPieces.size should be(1)
+    val boardWithOneCaptureAfterPromotion =
+      boardWithOneCapture(BoardPromotion(pawnToPromotedPosFrom, pawnToPromotedPosTo, rookCaptured)).toOption.value
+    boardWithOneCaptureAfterPromotion.pieceAtPosition(pawnToPromotedPosTo).value should equal(rookCaptured)
+    boardWithOneCaptureAfterPromotion.capturedPieces.size should be(1)
+    boardWithOneCaptureAfterPromotion.capturedPieces.head should equal(pawnToPromote)
+  }
+
+  it should "move a piece, promote it, and not remove all the occurrences of piece returned in game from capuredPiece list" in {
+    val defaultBoard          = Board.defaultBoard()
+    val pawnToPromote         = Piece(White, Pawn)
+    val pawnToPromotedPosFrom = Position(1, 2)
+    val pawnToPromotedPosTo   = Position(1, 3)
+    val rookCaptured          = Piece(White, Rook)
+    val boardWithTwoCaptures  = Board(defaultBoard.pieces, defaultBoard.capturedPieces.::(rookCaptured).::(rookCaptured))
+    val boardWithTwoCapturesAfterPromotion =
+      boardWithTwoCaptures(BoardPromotion(pawnToPromotedPosFrom, pawnToPromotedPosTo, rookCaptured)).toOption.value
+    boardWithTwoCapturesAfterPromotion.pieceAtPosition(pawnToPromotedPosTo).value should equal(rookCaptured)
+    boardWithTwoCapturesAfterPromotion.capturedPieces.size should be(2)
+    boardWithTwoCapturesAfterPromotion.capturedPieces.contains(rookCaptured) should be(true)
+    boardWithTwoCapturesAfterPromotion.capturedPieces.contains(pawnToPromote) should be(true)
+  }
+
+  "Apply the castling move" should "shifts the two piece involved, on a standard board" in {
+    val standardBoard      = Board.defaultBoard()
+    val king               = Piece(White, King)
+    val kingPosition       = Position(5, 1)
+    val rook               = Piece(White, Rook)
+    val rookPosition       = Position(8, 1)
+    val boardAfterCastling = standardBoard(BoardCastling(kingPosition, rookPosition)).toOption.value
+    boardAfterCastling.pieceAtPosition(kingPosition).value should equal(rook)
+    boardAfterCastling.pieceAtPosition(rookPosition).value should equal(king)
+  }
+
+  "Apply the enPassant move" should "moves the piece moved and captured the other" in {
+    val standardBoard   = Board.defaultBoard()
+    val pawnMoved       = Piece(White, Pawn)
+    val pawnPosFrom     = Position(1, 2)
+    val pawnPosTo       = Position(2, 3)
+    val pawnCaptured    = Piece(Black, Pawn)
+    val pawnCapturedPos = Position(1, 7)
+    val boardAfterEnPassant =
+      standardBoard.apply(BoardEnPassant(pawnCapturedPos, pawnPosFrom, pawnPosTo)).toOption.value
+    boardAfterEnPassant.pieceAtPosition(pawnPosTo).value should equal(pawnMoved)
+    boardAfterEnPassant.pieceAtPosition(pawnCapturedPos) should equal(None)
+    boardAfterEnPassant.capturedPieces.head should equal(pawnCaptured)
+  }
+
 }

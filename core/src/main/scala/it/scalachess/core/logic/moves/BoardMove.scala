@@ -1,4 +1,4 @@
-package it.scalachess.core.logic
+package it.scalachess.core.logic.moves
 
 import it.scalachess.core.board.Position
 import it.scalachess.core.pieces.Piece
