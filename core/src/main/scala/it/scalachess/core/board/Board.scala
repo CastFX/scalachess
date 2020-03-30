@@ -1,7 +1,6 @@
 package it.scalachess.core.board
 
 import it.scalachess.core.logic.moves.{ BoardCastling, BoardEnPassant, BoardMove, BoardPromotion, BoardSimpleMove }
-import it.scalachess.core.logic.simpleMove
 import it.scalachess.core.{ Black, Color, White }
 import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, Piece, PieceType, Queen, Rook }
 import scalaz.{ Failure, Success, Validation }
@@ -11,8 +10,7 @@ import scalaz.{ Failure, Success, Validation }
  * @param pieces a map Position -> Piece.
  */
 final case class Board(
-    pieces: Map[Position, Piece],
-    capturedPieces: List[Piece]
+    pieces: Map[Position, Piece]
 ) {
 
   /**
@@ -38,12 +36,6 @@ final case class Board(
   def pieceAt(notation: String): Option[Piece] = Position.ofNotation(notation) flatMap { pieces get }
 
   /**
-   * Apply a correct move to the board.
-   */
-  def apply(validMove: simpleMove): Board =
-    Board(pieces + (validMove.to -> validMove.piece) - validMove.from, capturedPieces)
-
-  /**
    * Applies a move on the board. There is a strong assumption in this method:
    * it doesn't perform any logic check, it just make sures that the arguments
    * passed as input exists in its domain, then executes the related changes
@@ -58,8 +50,8 @@ final case class Board(
       case BoardSimpleMove(from, to) =>
         pieceAtPosition(to) match {
           case Some(pieceCaptured) =>
-            Success(Board(pieces + (to -> pieceAtPosition(to).get) - from, capturedPieces.::(pieceCaptured)))
-          case None => Success(Board(pieces + (to -> pieceAtPosition(to).get) - from, capturedPieces))
+            Success(Board(pieces + (to -> pieceAtPosition(to).get) - from))
+          case None => Success(Board(pieces + (to -> pieceAtPosition(to).get) - from))
         }
       case _ => Failure("board has received a not valid move")
     }
@@ -74,40 +66,12 @@ final case class Board(
    * @param pieceToRestore the piece which return on board
    * @return
    */
-  private def applyPromotion(from: Position, to: Position, pieceToRestore: Piece): Validation[String, Board] = {
-
-    /**
-     * Removes only one piece's occurrence from capturedPieces
-     * (it's necessary because at the moment, the structure List
-     * doesn't have a proper way to remove the first occurrences,
-     * e.g.: the methods drop and dropWhile do not provide a solution)
-     * @param pieceToRestore the piece to put in game during Promotion move
-     * @param capturedPieces the list containing all the pieces captured
-     * @return capturedPieces without one pieceToRestore's occurrence
-     */
-    def removePromotedPiece(pieceToRestore: Piece, capturedPieces: List[Piece]): List[Piece] = {
-      val capturedPiecesOfThatType = capturedPieces.filter(piece => piece == piece)
-      if (capturedPiecesOfThatType.size == 1) {
-        capturedPieces.filterNot(piece => piece == piece)
-      } else if (capturedPiecesOfThatType.size == 2) {
-        capturedPieces.filterNot(piece => piece == piece).::(pieceToRestore)
-      } else {
-        capturedPieces
-      }
-    }
-
+  private def applyPromotion(from: Position, to: Position, pieceToRestore: Piece): Validation[String, Board] =
     pieceAtPosition(from) match {
       case None => Failure("applyPromotion - there's no piece at position received")
-      case Some(pieceToPromote) =>
-        capturedPieces.find(piece => piece == pieceToRestore) match {
-          case None => Failure("applyPromotion - the capturePieces doesn't contain Piece inserted")
-          case _ =>
-            Success(
-              Board(pieces + (to -> pieceToRestore) - from,
-                    removePromotedPiece(pieceToRestore, capturedPieces).::(pieceToPromote)))
-        }
+      case Some(_) =>
+        Success(Board(pieces + (to -> pieceToRestore) - from))
     }
-  }
 
   private def applyCastling(kingPos: Position, rookPos: Position): Validation[String, Board] =
     pieceAtPosition(kingPos) match {
@@ -116,7 +80,7 @@ final case class Board(
         pieceAtPosition(rookPos) match {
           case None => Failure("applyCastling - there's no piece at rook's position received")
           case Some(rookPiece) =>
-            Success(Board(pieces + (rookPos -> kingPiece) + (kingPos -> rookPiece), capturedPieces))
+            Success(Board(pieces + (rookPos -> kingPiece) + (kingPos -> rookPiece)))
         }
     }
 
@@ -127,7 +91,7 @@ final case class Board(
         pieceAtPosition(capturePos) match {
           case None => Failure("applyEnPassant - there's no piece at the capture position")
           case Some(pieceCaptured) =>
-            Success(Board(pieces + (to -> pieceToMove) - from - capturePos, capturedPieces.::(pieceCaptured)))
+            Success(Board(pieces + (to -> pieceToMove) - from - capturePos))
         }
     }
 
@@ -170,7 +134,7 @@ object Board {
       }
     }.flatten.toMap
 
-    Board(pieceMap, List())
+    Board(pieceMap)
   }
 
   private def initialPieceTypeAtPosition(pos: Position): PieceType =
