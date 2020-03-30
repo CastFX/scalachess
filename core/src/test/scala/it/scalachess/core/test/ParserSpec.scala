@@ -1,7 +1,7 @@
 package it.scalachess.core.test
 
 import it.scalachess.core.board.Position
-import it.scalachess.core.moves.{ Castling, KingSide, Move, QueenSide }
+import it.scalachess.core.logic.moves.{ Castling, KingSide, ParsedSimpleMove, QueenSide }
 import it.scalachess.core.parser.Parser.AlgebraicParser
 import it.scalachess.core.pieces.{ Bishop, Pawn, Queen }
 import org.scalatest.{ FlatSpec, Inspectors, Matchers }
@@ -37,27 +37,27 @@ class ParserSpec extends FlatSpec with Matchers with Inspectors {
   it should "be able to parse a move with capture" in {
     val position = Position.ofNotation("a2").get
     parser.parse("Bxa2") shouldEqual Some(
-      Move(position, Bishop, (Some(Bishop), None), check = false, checkmate = false, None, None, None))
+      ParsedSimpleMove(position, Bishop, (Some(Bishop), None), check = false, checkmate = false, None, None, None))
     parser.parse("exa2") shouldEqual Some(
-      Move(position, Pawn, (Some(Pawn), Some("e")), check = false, checkmate = false, None, None, None))
+      ParsedSimpleMove(position, Pawn, (Some(Pawn), Some('e')), check = false, checkmate = false, None, None, None))
   }
 
   it should "be able to parse a move with check" in {
     val position = Position.ofNotation("a4").get
     parser.parse("a4+") shouldEqual Some(
-      Move(position, Pawn, (None, None), check = true, checkmate = false, None, None, None))
+      ParsedSimpleMove(position, Pawn, (None, None), check = true, checkmate = false, None, None, None))
   }
 
   it should "be able to parse a move with checkmate" in {
     val position = Position.ofNotation("a3").get
     parser.parse("a3#") shouldEqual Some(
-      Move(position, Pawn, (None, None), check = false, checkmate = true, None, None, None))
+      ParsedSimpleMove(position, Pawn, (None, None), check = false, checkmate = true, None, None, None))
   }
 
   it should "be able to parse a move with promotion" in {
     val position = Position.ofNotation("a3").get
     parser.parse("a3=Q") shouldEqual Some(
-      Move(position, Pawn, (None, None), check = false, checkmate = false, None, None, Some(Queen)))
+      ParsedSimpleMove(position, Pawn, (None, None), check = false, checkmate = false, None, None, Some(Queen)))
   }
 
   it should "not be able to parse a move with promotion made by not a pawn" in {

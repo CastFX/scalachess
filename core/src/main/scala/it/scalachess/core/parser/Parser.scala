@@ -1,6 +1,6 @@
 package it.scalachess.core.parser
 import it.scalachess.core.board.Position
-import it.scalachess.core.moves.{ Castling, KingSide, Move, ParsedMove, QueenSide }
+import it.scalachess.core.logic.moves.{ Castling, KingSide, ParsedMove, ParsedSimpleMove, QueenSide }
 import it.scalachess.core.parser.Parser.AlgebraicParser
 import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, PieceType, Queen, Rook }
 
@@ -27,13 +27,13 @@ object Parser {
     override def parse(t: String): Option[ParsedMove] =
       t match {
         case movePattern(pieces, cols, rows, captured, position, promotable, checked, checkmated) =>
-          val endPos: Position                             = Position.ofNotation(position).get
-          val capture: (Option[PieceType], Option[String]) = isCaptured(captured)
-          val check: Boolean                               = isChecked(checked)
-          val checkmate: Boolean                           = isCheckmated(checkmated)
-          val col: Option[Char]                            = startingCol(cols)
-          val row: Option[Int]                             = startingRow(rows)
-          val promotion: Option[PieceType]                 = promotionOf(promotable)
+          val endPos: Position                           = Position.ofNotation(position).get
+          val capture: (Option[PieceType], Option[Char]) = isCaptured(captured)
+          val check: Boolean                             = isChecked(checked)
+          val checkmate: Boolean                         = isCheckmated(checkmated)
+          val col: Option[Char]                          = startingCol(cols)
+          val row: Option[Int]                           = startingRow(rows)
+          val promotion: Option[PieceType]               = promotionOf(promotable)
 
           val pieceType: PieceType = capture match {
             case (Some(piece), _) => Some(piece).get
@@ -42,7 +42,7 @@ object Parser {
           if (promotion.isDefined && pieceType != Pawn)
             None
           else
-            Some(Move(endPos, pieceType, capture, check, checkmate, col, row, promotion))
+            Some(ParsedSimpleMove(endPos, pieceType, capture, check, checkmate, col, row, promotion))
         case castleRegex(queenSide, check, checkmate) =>
           Some(Castling(if (queenSide == null) KingSide else QueenSide, isChecked(check), isCheckmated(checkmate)))
         case _ => None
@@ -58,12 +58,12 @@ object Parser {
       case "R" => Rook
       case _   => Pawn
     }
-  private def isCaptured(captured: String): (Option[PieceType], Option[String]) =
+  private def isCaptured(captured: String): (Option[PieceType], Option[Char]) =
     if (captured == null) (None, None)
     else {
       captured.charAt(0) match {
         case 'K' | 'Q' | 'N' | 'R' | 'B' => (Some(pieceOfType(captured.charAt(0).toString)), None)
-        case _                           => (Some(Pawn), Some(captured.charAt(0).toString))
+        case _                           => (Some(Pawn), Some(captured.charAt(0)))
       }
     }
   private def isChecked(checked: String): Boolean       = if (checked == null) false else true
