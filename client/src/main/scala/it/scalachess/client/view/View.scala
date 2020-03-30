@@ -21,6 +21,8 @@ trait View {
    * @return the representation of the board in a string
    */
   def getStringFromBoard(board: Board): String
+
+  def showMessage(message: String)
 }
 
 /**
@@ -30,7 +32,9 @@ class CliView extends View {
   val logger: Logger  = Logger("ViewLogger")
   val newLine: String = "\n"
 
-  override def showBoard(board: Board): Unit = logger.debug(newLine + getStringFromBoard(board))
+  override def showBoard(board: Board): Unit = logger.info(newLine + getStringFromBoard(board))
+
+  def showMessage(message: String): Unit = logger.info(message)
 
   override def getStringFromBoard(board: Board): String = {
     val lettersRange: NumericRange.Inclusive[Char] = 'A' to (Board.width + 64).toChar
@@ -41,7 +45,7 @@ class CliView extends View {
     val boardString = {
       (Board.height to 1 by -1)
         .map { row =>
-          row + " " +
+          s"$row " +
           lettersRange.map { column =>
             board.pieceAt(s"$column$row") match {
               case None        => cell.format(emptyCell)

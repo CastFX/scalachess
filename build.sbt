@@ -77,6 +77,7 @@ lazy val dependencies =
     val slf4j          = "org.slf4j"                  % "jcl-over-slf4j"              % slf4jV
     val typesafeConfig = "com.typesafe"               % "config"                      % typesafeConfigV
     val akkaTyped      = "com.typesafe.akka"          %% "akka-actor-typed"           % akkaV
+    val akkaTest       = "com.typesafe.akka"          %% "akka-actor-testkit-typed"   % akkaV
     val akkaSerialize  = "com.typesafe.akka"          %% "akka-serialization-jackson" % akkaV
     val akkaRemote     = "com.typesafe.akka"          %% "akka-remote"                % akkaV
     val akkaCluster    = "com.typesafe.akka"          %% "akka-cluster-typed"         % akkaV
@@ -101,9 +102,10 @@ lazy val commonDependencies = Seq(
 
 lazy val akkaDependencies = Seq(
   dependencies.akkaTyped,
-  dependencies.akkaCluster,
+//  dependencies.akkaCluster,
   dependencies.akkaRemote,
-  dependencies.akkaSerialize
+  dependencies.akkaSerialize,
+  dependencies.akkaTest % Test
 )
 
 // SETTINGS
