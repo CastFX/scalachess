@@ -13,7 +13,7 @@ case class ValidSimpleMove(pieceType: PieceType,
                            to: Position,
                            capturedPiece: Option[Piece])
     extends ValidMove {
-  override def convertInBoardMove: BoardMove = BoardSimpleMove(from, to)
+  override def convertInBoardMove: BoardMove = BoardSimpleMove(from, to, Piece(color, pieceType))
 }
 
 case class ValidCastling(castlingType: CastlingType, kingPos: Position, rookPos: Position) extends ValidMove {

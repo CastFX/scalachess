@@ -1,7 +1,7 @@
 package it.scalachess.core
 
 import it.scalachess.core.board.Board
-import it.scalachess.core.logic.{ CheckValidator }
+import it.scalachess.core.logic.{ CheckValidator, MoveValidator }
 import scalaz.{ Failure, Success, Validation }
 
 /**
@@ -18,7 +18,7 @@ final case class ChessGame(
     isKingInCheck: Boolean
 ) {
 
-  // private val moveValidator  = ValidateMove(board)
+  private val moveValidator  = MoveValidator(board)
   private val checkValidator = CheckValidator()
 
   def apply(move: String): Validation[String, ChessGame] = ???

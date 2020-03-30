@@ -9,8 +9,8 @@ import scalaz.Validation
 case class GenerateKnightMoves(pieceType: PieceType, color: Color, board: Board, from: Position)
     extends GeneratePieceMoves {
 
-  override def apply(): Set[ValidMove] =
-    Set(
+  override def apply(): List[ValidMove] =
+    List(
       generateKnightMoves(Position.of(from.col + 1, from.row + 2)),
       generateKnightMoves(Position.of(from.col - 1, from.row + 2)),
       generateKnightMoves(Position.of(from.col + 1, from.row - 2)),

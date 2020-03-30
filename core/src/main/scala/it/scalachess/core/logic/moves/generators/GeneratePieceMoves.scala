@@ -11,5 +11,5 @@ trait GeneratePieceMoves {
   def board: Board
   def from: Position
 
-  def apply(): Set[ValidMove]
+  def apply(): List[ValidMove]
 }

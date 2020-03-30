@@ -47,13 +47,8 @@ final case class Board(
       case BoardPromotion(from, to, pieceToRestore) => applyPromotion(from, to, pieceToRestore)
       case BoardCastling(kingPos, rookPos)          => applyCastling(kingPos, rookPos)
       case BoardEnPassant(capturePos, from, to)     => applyEnPassant(capturePos, from, to)
-      case BoardSimpleMove(from, to) =>
-        pieceAtPosition(to) match {
-          case Some(pieceCaptured) =>
-            Success(Board(pieces + (to -> pieceAtPosition(to).get) - from))
-          case None => Success(Board(pieces + (to -> pieceAtPosition(to).get) - from))
-        }
-      case _ => Failure("board has received a not valid move")
+      case BoardSimpleMove(from, to, piece)         => Success(Board(pieces + (to -> piece) - from))
+      case _                                        => Failure("board has received a non board move")
     }
 
   /**

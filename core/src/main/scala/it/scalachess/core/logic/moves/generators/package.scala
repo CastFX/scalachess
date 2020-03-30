@@ -37,10 +37,10 @@ package object generators {
                              pieceName: String,
                              colMod: Int,
                              rowMod: Int,
-                             validMoves: List[ValidSimpleMove]): List[ValidMove] =
+                             validMoves: List[ValidMove]): List[ValidMove] =
     generatePieceMove(pieceType, color, board, from, to, pieceName) match {
-      case Failure(_) =>
-        validMoves match { // the position is out of bound, or an ally piece has been find
+      case Failure(_) => // the position is out of bound, or an ally piece has been find
+        validMoves match {
           case validMoves: List[ValidMove] => validMoves
         }
       case Success(validSimpleMove) => // a move has been generated correctly
@@ -51,7 +51,7 @@ package object generators {
             }
           case None => // processing the next position
             to match {
-              case None =>
+              case None => // error: pos 'to' doesn't exists
                 validMoves match {
                   case validMoves: List[ValidMove] => validMoves
                 }
@@ -59,11 +59,11 @@ package object generators {
                 generateLinearMovement(pieceType,
                                        color,
                                        board,
-                                       to,
+                                       from,
                                        Position.of(to.col + colMod, to.row + rowMod),
                                        pieceName,
-                                       rowMod,
                                        colMod,
+                                       rowMod,
                                        validMoves.::(validSimpleMove))
 
             }

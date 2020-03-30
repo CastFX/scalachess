@@ -8,8 +8,8 @@ import it.scalachess.core.pieces.PieceType
 case class GenerateRookMoves(pieceType: PieceType, color: Color, board: Board, from: Position)
     extends GeneratePieceMoves {
 
-  override def apply(): Set[ValidMove] =
-    Set() ++
+  override def apply(): List[ValidMove] =
+    List() ++
     generateRookMoves(from, 0, 1) ++
     generateRookMoves(from, 0, -1) ++
     generateRookMoves(from, 1, 0) ++

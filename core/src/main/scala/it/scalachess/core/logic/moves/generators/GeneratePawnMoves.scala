@@ -19,13 +19,13 @@ import scalaz.{ Failure, Success, Validation }
 case class GeneratePawnMoves(pieceType: PieceType, color: Color, board: Board, from: Position)
     extends GeneratePieceMoves {
 
-  override def apply(): Set[ValidMove] =
+  override def apply(): List[ValidMove] =
     color match {
       case White => generatePawnMoves(1)
       case Black => generatePawnMoves(-1)
     }
 
-  def generatePawnMoves(forwardRowMod: Int): Set[ValidMove] = {
+  def generatePawnMoves(forwardRowMod: Int): List[ValidMove] = {
     val moveOnePosWithoutCapture =
       generatePawnMovement(Position.of(from.col, from.row + forwardRowMod))
     val moveTwoPosWithoutCapture =
@@ -43,7 +43,7 @@ case class GeneratePawnMoves(pieceType: PieceType, color: Color, board: Board, f
       generatePawnAttack(Position.of(from.col - 1, from.row + forwardRowMod))
     val rightAttack =
       generatePawnAttack(Position.of(from.col + 1, from.row + forwardRowMod))
-    Set(moveOnePosWithoutCapture, moveTwoPosWithoutCapture, leftAttack, rightAttack)
+    List(moveOnePosWithoutCapture, moveTwoPosWithoutCapture, leftAttack, rightAttack)
       .filter(_.toOption.nonEmpty)
       .map(_.toOption.get)
   }
