@@ -30,7 +30,9 @@ class InputParserSpec extends FlatSpec with Matchers with OptionValues with Insp
   }
 
   "All other commands" should "be parsed as Move" in {
-    forAll(moves) { InputParser.inputToCommand(_) should be(ParsedMove(_)) }
+    forAll(moves) { m =>
+      InputParser.inputToCommand(m) should be(ParsedMove(m))
+    }
     forAll(Seq(create, forfeit) ++ joinCommands.keys) { InputParser.inputToCommand(_) should not be a[ParsedMove] }
   }
 }
