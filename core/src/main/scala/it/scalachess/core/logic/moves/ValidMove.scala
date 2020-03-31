@@ -27,7 +27,7 @@ case class ValidSimpleMove(pieceType: PieceType,
     val nextBoard = board(convertInBoardMove) match {
       case Success(a) => a
     }
-    val captured = if (capturedPiece.isDefined) (Some(pieceType), Some(to.col.toChar)) else (None, None)
+    val captured = if (capturedPiece.isDefined) Capture(Some(pieceType), Some(to.col.toChar)) else Capture(None, None)
     val check: Boolean = CheckValidator().isKingInCheck(color, nextBoard) match {
       case Success(isCheck) => if (isCheck) true else false
       case _                => false

@@ -16,10 +16,12 @@ sealed trait ParsedMove {
   def isEqualTo(move: ParsedMove): Boolean
 }
 
+case class Capture(attackingPieceType: Option[PieceType], column: Option[Char])
+
 case class ParsedSimpleMove(
     endPos: Position,
     pieceType: PieceType,
-    capture: (Option[PieceType], Option[Char]),
+    capture: Capture,
     check: Boolean,
     checkmate: Boolean,
     startingCol: Option[Char],
@@ -38,9 +40,9 @@ case class ParsedSimpleMove(
         promotion == move.promotion
       case _ => false
     }
-  private def isCaptureEqual(capture: (Option[PieceType], Option[Char]), move: ParsedSimpleMove): Boolean =
-    (capture._1 == move.capture._1 && capture._2 == move.capture._2) ||
-    (capture._1.isEmpty && capture._2.isEmpty && move.capture._1.isEmpty && move.capture._2.isEmpty)
+  private def isCaptureEqual(capture: Capture, move: ParsedSimpleMove): Boolean =
+    (capture.attackingPieceType == move.capture.attackingPieceType && capture.column == move.capture.column) ||
+    (capture.attackingPieceType.isEmpty && capture.column.isEmpty && move.capture.attackingPieceType.isEmpty && move.capture.column.isEmpty)
   private def isStartingPointEqual(startingCol: Option[Char],
                                    startingRow: Option[Int],
                                    move: ParsedSimpleMove): Boolean =
