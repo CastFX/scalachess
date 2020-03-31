@@ -17,14 +17,20 @@ case class ValidSimpleMove(pieceType: PieceType,
                            capturedPiece: Option[Piece])
     extends ValidMove {
   override def convertInBoardMove: BoardMove = BoardSimpleMove(from, to, Piece(color, pieceType))
+
+  /**
+   * Converts the ValidMove into a ParsedMove given a board.
+   * @param board the current board
+   * @return the ParsedMove obtained by converting the ValidMove
+   */
   override def convertInParsedMove(board: Board): ParsedMove = {
     val nextBoard = board(convertInBoardMove) match {
       case Success(a) => a
     }
     val captured = if (capturedPiece.isDefined) (Some(pieceType), Some(to.col.toChar)) else (None, None)
     val check: Boolean = CheckValidator().isKingInCheck(color, nextBoard) match {
-      case Success(_) => true
-      case _          => false
+      case Success(isCheck) => if (isCheck) true else false
+      case _                => false
     }
     val checkmate: Boolean = CheckValidator().isKingInCheckmate(color, MoveValidator(nextBoard))
     ParsedSimpleMove(to, pieceType, captured, check, checkmate, Some((from.col + 96).toChar), Some(from.row), None)

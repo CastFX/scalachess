@@ -7,6 +7,12 @@ import it.scalachess.core.pieces.PieceType
  * Definition of a ParsedMove from Algebraic Notation
  */
 sealed trait ParsedMove {
+
+  /**
+   * Check if the ParsedMove is equal to another ParsedMove.
+   * @param move the ParsedMove to check against
+   * @return true if the moves are equals, false otherwise
+   */
   def isEqualTo(move: ParsedMove): Boolean
 }
 

@@ -74,6 +74,12 @@ final case class MoveValidator(board: Board) {
     }
   }
 
+  /**
+   * Checks if a parsedMove is also a valid move and can be applied to a board.
+   * @param move the parsed move to be validated
+   * @param player the player which is doing the move
+   * @return Success(BoardMove) if the move is valid, a Failure message otherwise
+   */
   def validateParsedMove(move: ParsedMove, player: Color): Validation[String, BoardMove] = {
     val errorMessage: String        = "The move is not a valid one"
     val ambiguityMessage: String    = "This move creates an ambiguity, please specify it better"
@@ -81,12 +87,10 @@ final case class MoveValidator(board: Board) {
     val parsedMoves: List[ParsedMove] = validMoves
       .map(validMove => validMove.convertInParsedMove(board))
     val map: Map[ValidMove, ParsedMove] = (validMoves zip parsedMoves).toMap
-    val filteredMap = map.filter(parsed => move.isEqualTo(parsed._2))
+    val filteredMap                     = map.filter(parsed => move.isEqualTo(parsed._2))
     filteredMap.size match {
       case 0 => Failure(errorMessage)
-      case 1 => {
-        Success(filteredMap.head._1.convertInBoardMove)
-      }
+      case 1 => Success(filteredMap.head._1.convertInBoardMove)
       case _ => Failure(ambiguityMessage)
     }
   }
