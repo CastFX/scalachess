@@ -1,57 +1,86 @@
 package it.scalachess.server
 
 import akka.actor.typed.receptionist.Receptionist
-import akka.actor.typed.scaladsl.{ ActorContext, Behaviors }
+import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ ActorRef, Behavior }
 import it.scalachess.core.Result
+import it.scalachess.server.LobbyManager.{ RoomMap, TerminateGame }
+import it.scalachess.util.NetworkErrors.{ RoomFull, RoomNotFound }
 import it.scalachess.util.NetworkMessages
 import it.scalachess.util.NetworkMessages._
+import org.slf4j.Logger
 
+/**
+ * Companion object of LobbyManager to register the actor to the Receptionist
+ */
 object LobbyManager {
+  type RoomMap = Map[String, Room]
 
-  case class TerminateGame(gameId: String, result: Result, gameManager: ActorRef[GameAction]) extends LobbyMessage
+  /**
+   * A message sent by the GameManager to this actor to notify about the game end result.
+   *
+   * @param roomId      Identifier of the ended game
+   * @param result      Final result of the ended game
+   * @param gameManager GameManage in charge of the ended game
+   */
+  case class TerminateGame(roomId: String, result: Result, gameManager: ActorRef[GameAction]) extends LobbyMessage
 
-  case class Lobby(gameId: String, players: (ActorRef[ClientMessage], ActorRef[ClientMessage])) {
-    def join(player: ActorRef[ClientMessage]): Lobby = Lobby(gameId, (players._1, player))
-  }
-
-  type LobbyMap = Map[String, Lobby]
-
+  /**
+   * Creates the initial Behavior of this actor, with 0 rooms
+   *
+   * @return the initial Behavior, which is waiting for Clients to create and join rooms.
+   */
   def apply(): Behavior[LobbyMessage] = Behaviors.setup { context =>
     context.system.receptionist ! Receptionist.Register(NetworkMessages.lobbyServiceKey, context.self)
-    discover(Map())
+    new LobbyManager(context.log).discover(Map())
   }
+}
 
-  private def discover(lobbies: LobbyMap): Behavior[LobbyMessage] =
+/** A typed actor who lets Client create and join rooms where chess games will be hosted.
+ * It also spawns a GameManager for each game ready to start
+ * @param logger logs the actions done by the LobbyManager
+ */
+class LobbyManager(logger: Logger) {
+
+  /**
+   * Standard behavior of the LobbyManager
+   * It waits for Clients to create or join rooms
+   * @param rooms The updated and immutable RoomMap which contains all the rooms mapped to their identifiers
+   * @return the Behavior of this Actor
+   */
+  private def discover(rooms: RoomMap): Behavior[LobbyMessage] =
     Behaviors.receive { (context, message) =>
-      context.log.debug(message.toString)
       message match {
-        case CreateGame(client) => discover(createLobby(client, lobbies))
-        case JoinGame(id, client) =>
-          val updatedLobbies = joinLobby(id, client, lobbies)
-          spawnGameManager(id, updatedLobbies, context)
-          discover(updatedLobbies)
+        case CreateRoom(client) =>
+          val id      = math.abs(rooms.hashCode).toString
+          val newRoom = Room(id, client)
+          client ! RoomId(id)
+          logger.info(s"Client ${client.hashCode} created room $id")
+          discover(rooms + (id -> newRoom))
+
+        case JoinRoom(id, client) =>
+          rooms get id match {
+            case Some(room) if !room.full =>
+              val updatedRoom = room.join(client)
+              logger.info(s"Client ${client.hashCode} joined room $id")
+              context.spawn(GameManager(updatedRoom, context.self), s"GameManager$id")
+              discover(rooms + (id -> updatedRoom))
+            case Some(room) if room.full =>
+              client ! RoomFull(id)
+              Behaviors.same
+            case None =>
+              logger.info(s"Client ${client.hashCode} failed to join room $id")
+              client ! RoomNotFound(id)
+              Behaviors.same
+          }
+
         case TerminateGame(id, _, manager) =>
           context stop manager
-          discover(removeLobby(id, lobbies))
+          logger.info(s"Removed room $id and stopped GameManager ${manager.hashCode}")
+          discover(rooms - id)
+
+        case _ =>
+          Behaviors.same
       }
     }
-
-  private def createLobby(player: ActorRef[ClientMessage], lobbies: LobbyMap): LobbyMap = {
-    val gameId = math.abs(lobbies.hashCode).toString
-    player ! LobbyId(gameId)
-    lobbies + (gameId -> Lobby(gameId, (player, player)))
-  }
-
-  private def joinLobby(ofGameId: String, player: ActorRef[ClientMessage], lobbies: LobbyMap): LobbyMap =
-    lobbies get ofGameId match {
-      case Some(lobby) => lobbies + (ofGameId -> lobby.join(player))
-      case _           => lobbies
-    }
-
-  private def removeLobby(ofGameId: String, lobbies: LobbyMap): LobbyMap = lobbies - ofGameId
-
-  private def spawnGameManager(ofGameId: String, lobbies: LobbyMap, context: ActorContext[LobbyMessage]): Unit = {
-    val _ = context.spawn(GameManager(lobbies(ofGameId), context.self), s"GameManager$ofGameId")
-  }
 }

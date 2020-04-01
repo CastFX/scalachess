@@ -17,6 +17,7 @@ object ClientMain extends App {
   val client        = ActorSystem(Client(serverAddress), "Client", customConf)
   val inputParser   = client.systemActorOf[String](InputParser(client), "InputReader")
 
+  //Stdin redirect to an actor, needs to be outside of the actor system because it is a blocking call
   Source.stdin
     .getLines()
     .takeWhile(_ != InputParser.quitCommand)

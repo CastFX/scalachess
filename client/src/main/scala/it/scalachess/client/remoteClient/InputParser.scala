@@ -6,6 +6,9 @@ import it.scalachess.client.remoteClient.Client.{ ClientCommand, Create, Forfeit
 
 import scala.util.matching.Regex
 
+/**
+ * Actor which parses String into ClientCommand and notifies its parent
+ */
 object InputParser {
 
   val CreateCommand: String  = "/create"
@@ -18,6 +21,12 @@ object InputParser {
     Behaviors.same
   }
 
+  /**
+   * Converts a String into the proper ClientCommand.
+   * It assumes that a non-matched input is Move
+   * @param input String to be parsed
+   * @return A ClientCommand of the input
+   */
   def inputToCommand(input: String): ClientCommand =
     input match {
       case CreateCommand   => Create

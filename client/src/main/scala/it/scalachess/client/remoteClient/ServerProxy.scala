@@ -5,19 +5,32 @@ import akka.actor.typed.receptionist.Receptionist
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.adapter._
 import akka.actor.typed.{ ActorRef, Behavior }
-import it.scalachess.client.remoteClient.Client.{ ConnectedToServer, Create, Forfeit, Join, ParsedMove }
+import it.scalachess.client.remoteClient.Client._
+import it.scalachess.util.NetworkErrors.ClientError
 import it.scalachess.util.NetworkMessages
 import it.scalachess.util.NetworkMessages._
 
+/**
+ * Companion Object of the Actor in charge of receiving and sending messages to the Server
+ * Contains all the logic behind the connection to the remote Actors of the Server
+ */
 object ServerProxy {
   private final case class ListingResponse(listing: Receptionist.Listing) extends ClientMessage
 
   val serverSystemName = "LobbyManager"
 
+  /**
+   * Sets up the connection with the server's LobbyManager
+   * First it asks the server's Receptionist to retrieve the ActorRef of the LobbyManager.
+   * As soon as a ListingResponse message has been received the connection to the server is established.
+   * @param serverAddress remote address of the server, including the port
+   * @param parent ActorRef of the Client parent. ServerProxy will forward messages from the Server to it
+   * @return the Behavior of this Actor
+   */
   def apply(serverAddress: String, parent: ActorRef[ClientMessage]): Behavior[ClientMessage] =
     discoverLobbyManager(serverAddress, parent)
 
-  def discoverLobbyManager(serverAddress: String, parent: ActorRef[ClientMessage]): Behavior[ClientMessage] =
+  private def discoverLobbyManager(serverAddress: String, parent: ActorRef[ClientMessage]): Behavior[ClientMessage] =
     Behaviors.setup { context =>
       val remoteServerAddress       = AddressFromURIString(s"akka://$serverSystemName@$serverAddress/$serverSystemName")
       val receptionistRemoteAddress = context.system.receptionist.path.toStringWithAddress(remoteServerAddress)
@@ -37,32 +50,51 @@ object ServerProxy {
     }
 }
 
+/**
+ * Class of ServerProxy after establishing a connection with the Server
+ */
 class ServerProxy private (lobbyManager: ActorRef[LobbyMessage], parent: ActorRef[ClientMessage]) {
 
-  def proxyInLobby(): Behavior[ClientMessage] = Behaviors.receive { (context, message) =>
+  /**
+   * Behavior of the Actor when the Client is currently in the lobby
+   * Forwards lobby commands to the LobbyManager
+   * Forwards server messages to the Client
+   * @return Behavior of the Actor when the Client is currently in the lobby
+   */
+  private def proxyInLobby(): Behavior[ClientMessage] = Behaviors.receive { (context, message) =>
     context.log.debug(message.toString)
     message match {
       //To Server
       case Create =>
-        lobbyManager ! CreateGame(context.self)
+        lobbyManager ! CreateRoom(context.self)
         Behaviors.same
       case Join(id) =>
-        lobbyManager ! JoinGame(id, context.self)
+        lobbyManager ! JoinRoom(id, context.self)
         Behaviors.same
 
       //From Server
-      case LobbyId(_) =>
+      case RoomId(_) =>
         parent ! message
         Behaviors.same
       case GameStart(_, _, _, manager) =>
         parent ! message
         proxyInGame(manager)
+      case error: ClientError =>
+        parent ! error
+        Behaviors.same
       case _ =>
         Behaviors.same
     }
   }
 
-  def proxyInGame(gameManager: ActorRef[GameAction]): Behavior[ClientMessage] = Behaviors.receive {
+  /**
+   * Behavior of the Actor when the Client is currently in a chess game
+   * Forwards game actions to the GameManager, in the server
+   * Forwards server messages from the GameManager to the Client
+   * @param gameManager ActorRef of the GameManager in charge of handling the flow of the game, in the server
+   * @return Behavior of the Actor when the Client is currently in a chess game
+   */
+  private def proxyInGame(gameManager: ActorRef[GameAction]): Behavior[ClientMessage] = Behaviors.receive {
     (context, message) =>
       message match {
         //To Server
@@ -74,12 +106,15 @@ class ServerProxy private (lobbyManager: ActorRef[LobbyMessage], parent: ActorRe
           Behaviors.same
 
         //From Server
-        case GameUpdate(_, _, _, _) | FailedMove(_) =>
+        case GameUpdate(_, _, _, _) =>
           parent ! message
           Behaviors.same
-        case GameEnd(_) =>
+        case GameEnd(_, _) =>
           parent ! message
           proxyInLobby()
+        case error: ClientError =>
+          parent ! error
+          Behaviors.same
         case _ =>
           Behaviors.same
       }
