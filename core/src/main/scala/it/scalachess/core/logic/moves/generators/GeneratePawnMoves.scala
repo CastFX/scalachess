@@ -6,49 +6,59 @@ import it.scalachess.core.logic.moves.{ ValidMove, ValidSimpleMove }
 import it.scalachess.core.pieces.PieceType
 import scalaz.{ Failure, Success, Validation }
 
-/*
- * why use Validation[...,...] if the method apply returns Set[ValidMove]?
- * Failure is useful for declarate errors
- *
- * magari in futuro oltre al match delle mosse giuste, si fa anche il match delle mosse sbagliate,
- * nel caso la mossa inserita in input dall'utente matcha una mossa sbagliata, si restituisce
- * il messaggio di errore (con la notazione algebrica è impossibile matchare mosse sbagliate,
- * ma magari con la notazione mossa(from, to) sì
- */
+private[generators] object GeneratePawnMoves extends GeneratePieceMoves {
 
-case class GeneratePawnMoves(pieceType: PieceType, color: Color, board: Board, from: Position)
-    extends GeneratePieceMoves {
-
-  override def apply(): List[ValidMove] =
+  override def apply(pieceType: PieceType, color: Color, board: Board, from: Position): List[ValidMove] =
     color match {
-      case White => generatePawnMoves(1)
-      case Black => generatePawnMoves(-1)
+      case White => generatePawnSimpleMoves(pieceType, color, board, from, from.rowUpMod, Board.whitePawnsStartingRow)
+      case Black => generatePawnSimpleMoves(pieceType, color, board, from, from.rowDownMod, Board.blackPawnsStartingRow)
     }
 
-  def generatePawnMoves(forwardRowMod: Int): List[ValidMove] = {
+  def generatePawnSimpleMoves(pieceType: PieceType,
+                              color: Color,
+                              board: Board,
+                              from: Position,
+                              forwardRowMod: Int,
+                              startingRow: Int): List[ValidSimpleMove] = {
     val moveOnePosWithoutCapture =
-      generatePawnMovement(Position.of(from.col, from.row + forwardRowMod))
+      generatePawnMovement(pieceType, color, board, from, Position.of(from.col, from.row + forwardRowMod))
     val moveTwoPosWithoutCapture =
       from.row match {
-        case Board.whiteMinorPiecesStartingRow =>
+        case `startingRow` =>
           moveOnePosWithoutCapture match {
             case Failure(errorMsg) => Failure(errorMsg)
             case Success(_) =>
-              generatePawnMovement(Position.of(from.col, from.row + forwardRowMod + forwardRowMod))
+              generatePawnMovement(pieceType,
+                                   color,
+                                   board,
+                                   from,
+                                   Position.of(from.col, from.row + forwardRowMod + forwardRowMod))
           }
         case _ =>
           Failure("Pawn's movement: can't move two position forward, because it's not located in the starting row")
       }
     val leftAttack =
-      generatePawnAttack(Position.of(from.col - 1, from.row + forwardRowMod))
+      generatePawnAttack(pieceType,
+                         color,
+                         board,
+                         from,
+                         Position.of(from.col - from.colLeftMod, from.row + forwardRowMod))
     val rightAttack =
-      generatePawnAttack(Position.of(from.col + 1, from.row + forwardRowMod))
+      generatePawnAttack(pieceType,
+                         color,
+                         board,
+                         from,
+                         Position.of(from.col + from.colRightMod, from.row + forwardRowMod))
     List(moveOnePosWithoutCapture, moveTwoPosWithoutCapture, leftAttack, rightAttack)
       .filter(_.toOption.nonEmpty)
       .map(_.toOption.get)
   }
 
-  private def generatePawnMovement(to: Option[Position]): Validation[String, ValidSimpleMove] =
+  private def generatePawnMovement(pieceType: PieceType,
+                                   color: Color,
+                                   board: Board,
+                                   from: Position,
+                                   to: Option[Position]): Validation[String, ValidSimpleMove] =
     to match {
       case None => Failure("Pawn's movement: the end position doesn't exist in the board")
       case Some(to) =>
@@ -58,7 +68,11 @@ case class GeneratePawnMoves(pieceType: PieceType, color: Color, board: Board, f
         }
     }
 
-  private def generatePawnAttack(to: Option[Position]): Validation[String, ValidSimpleMove] =
+  private def generatePawnAttack(pieceType: PieceType,
+                                 color: Color,
+                                 board: Board,
+                                 from: Position,
+                                 to: Option[Position]): Validation[String, ValidSimpleMove] =
     to match {
       case None => Failure("Pawn's attack: the end position doesn't exist in the board")
       case Some(to) =>

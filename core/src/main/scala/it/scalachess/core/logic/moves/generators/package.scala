@@ -9,63 +9,53 @@ import scala.annotation.tailrec
 
 package object generators {
 
-  def generatePieceMove(pieceType: PieceType,
-                        color: Color,
-                        board: Board,
-                        from: Position,
-                        to: Option[Position],
-                        pieceName: String): Validation[String, ValidSimpleMove] =
+  def generateSimpleMove(pieceType: PieceType,
+                         player: Color,
+                         board: Board,
+                         from: Position,
+                         to: Option[Position]): Validation[String, ValidSimpleMove] =
     to match {
-      case None => Failure(s"$pieceName's movement: the end position doesn't exist in the board")
+      case None => Failure(s"${pieceType.name}'s movement: the end position doesn't exist in the board")
       case Some(to) =>
         board.pieceAtPosition(to) match {
-          case None => Success(ValidSimpleMove(pieceType, color, from, to, None))
+          case None => Success(ValidSimpleMove(pieceType, player, from, to, None))
           case Some(pieceToCapture) =>
             pieceToCapture.color match {
-              case color.other => Success(ValidSimpleMove(pieceType, color, from, to, Some(pieceToCapture)))
-              case _           => Failure(s"$pieceName's movement: can't attack an ally piece")
+              case player.other => Success(ValidSimpleMove(pieceType, player, from, to, Some(pieceToCapture)))
+              case _            => Failure(s"${pieceType.name}'s movement: can't attack an ally piece")
             }
         }
     }
 
   @tailrec
-  def generateLinearMovement(pieceType: PieceType,
-                             color: Color,
-                             board: Board,
-                             from: Position,
-                             to: Option[Position],
-                             pieceName: String,
-                             colMod: Int,
-                             rowMod: Int,
-                             validMoves: List[ValidMove]): List[ValidMove] =
-    generatePieceMove(pieceType, color, board, from, to, pieceName) match {
-      case Failure(_) => // the position is out of bound, or an ally piece has been find
-        validMoves match {
-          case validMoves: List[ValidMove] => validMoves
-        }
-      case Success(validSimpleMove) => // a move has been generated correctly
-        validSimpleMove.capturedPiece match {
-          case Some(_) =>
-            (validMoves.::(validSimpleMove)) match { // the move which captures a piece is been generated
-              case validMoves: List[ValidMove] => validMoves
-            }
-          case None => // processing the next position
-            to match {
-              case None => // error: pos 'to' doesn't exists
-                validMoves match {
-                  case validMoves: List[ValidMove] => validMoves
+  def generateLinearMovementSimpleMoves(pieceType: PieceType,
+                                        color: Color,
+                                        board: Board,
+                                        from: Position,
+                                        to: Option[Position],
+                                        colMod: Int,
+                                        rowMod: Int,
+                                        simpleValidMoves: List[ValidSimpleMove]): List[ValidSimpleMove] =
+    generateSimpleMove(pieceType, color, board, from, to) match {
+      case Failure(_) => simpleValidMoves // the position is out of bound, or an ally piece has been find
+      case Success(validMove) =>
+        validMove match {
+          case validSimpleMove: ValidSimpleMove =>
+            validSimpleMove.capturedPiece match {
+              case Some(_) => simpleValidMoves.::(validSimpleMove) // the move which captures a piece is been generated
+              case None => // processing the next position
+                to match {
+                  case Some(to) =>
+                    generateLinearMovementSimpleMoves(pieceType,
+                                                      color,
+                                                      board,
+                                                      from,
+                                                      Position.of(to.col + colMod, to.row + rowMod),
+                                                      colMod,
+                                                      rowMod,
+                                                      simpleValidMoves.::(validSimpleMove))
+                  case _ => simpleValidMoves
                 }
-              case Some(to) =>
-                generateLinearMovement(pieceType,
-                                       color,
-                                       board,
-                                       from,
-                                       Position.of(to.col + colMod, to.row + rowMod),
-                                       pieceName,
-                                       colMod,
-                                       rowMod,
-                                       validMoves.::(validSimpleMove))
-
             }
         }
     }

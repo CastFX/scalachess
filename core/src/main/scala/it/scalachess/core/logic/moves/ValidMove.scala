@@ -6,6 +6,7 @@ import it.scalachess.core.pieces.{ Piece, PieceType }
 
 sealed trait ValidMove {
   def convertInBoardMove: BoardMove
+
 }
 case class ValidSimpleMove(pieceType: PieceType,
                            color: Color,
@@ -13,15 +14,20 @@ case class ValidSimpleMove(pieceType: PieceType,
                            to: Position,
                            capturedPiece: Option[Piece])
     extends ValidMove {
-  override def convertInBoardMove: BoardMove = BoardSimpleMove(from, to, Piece(color, pieceType))
+  override def convertInBoardMove: BoardMove = BoardSimpleMove(from, to)
 }
 
-case class ValidCastling(castlingType: CastlingType, kingPos: Position, rookPos: Position) extends ValidMove {
-  override def convertInBoardMove: BoardMove = BoardCastling(kingPos, rookPos)
+case class ValidCastling(castlingType: CastlingType,
+                         kingPos: Position,
+                         rookPos: Position,
+                         kingFinalPos: Position,
+                         rookFinalPos: Position)
+    extends ValidMove {
+  override def convertInBoardMove: BoardMove = BoardCastling(kingPos, rookPos, kingFinalPos, rookFinalPos)
 }
 
-case class ValidEnPassant(capture: Position, from: Position, to: Position) extends ValidMove {
-  override def convertInBoardMove: BoardMove = BoardEnPassant(capture, from, to)
+case class ValidEnPassant(from: Position, to: Position, capturePos: Position) extends ValidMove {
+  override def convertInBoardMove: BoardMove = BoardEnPassant(from, to, capturePos)
 }
 
 case class ValidPromotion(from: Position, to: Position, piece: Piece) extends ValidMove {

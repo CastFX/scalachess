@@ -115,7 +115,7 @@ class BoardSpec extends FlatSpec with Matchers with Inspectors with OptionValues
     val queenPiece            = Piece(White, Queen)
     val board                 = Board.defaultBoard()
     val boardAfterPromotion =
-      board(BoardPromotion(pawnToPromotedPosFrom, pawnToPromotedPosTo, queenPiece)).toOption.value
+      board(BoardPromotion(pawnToPromotedPosFrom, pawnToPromotedPosTo, queenPiece))
     boardAfterPromotion.pieceAtPosition(pawnToPromotedPosTo).value should equal(queenPiece)
     boardAfterPromotion.pieceAtPosition(pawnToPromotedPosFrom) should equal(None)
   }
@@ -123,12 +123,14 @@ class BoardSpec extends FlatSpec with Matchers with Inspectors with OptionValues
   "Apply the castling move" should "just shifts the two piece involved, on a standard board" in {
     val king               = Piece(White, King)
     val kingPosition       = Position(5, 1)
+    val kingFinalPos       = Position(7, 1)
     val rook               = Piece(White, Rook)
     val rookPosition       = Position(8, 1)
+    val rookFinalPos       = Position(6, 1)
     val standardBoard      = Board.defaultBoard()
-    val boardAfterCastling = standardBoard(BoardCastling(kingPosition, rookPosition)).toOption.value
-    boardAfterCastling.pieceAtPosition(kingPosition).value should equal(rook)
-    boardAfterCastling.pieceAtPosition(rookPosition).value should equal(king)
+    val boardAfterCastling = standardBoard(BoardCastling(kingPosition, rookPosition, kingFinalPos, rookFinalPos))
+    boardAfterCastling.pieceAtPosition(rookFinalPos).value should equal(rook)
+    boardAfterCastling.pieceAtPosition(kingFinalPos).value should equal(king)
   }
 
   "Apply the enPassant move" should "moves the piece moved and captured the other" in {
@@ -138,7 +140,7 @@ class BoardSpec extends FlatSpec with Matchers with Inspectors with OptionValues
     val pawnCapturedPos = Position(1, 7)
     val standardBoard   = Board.defaultBoard()
     val boardAfterEnPassant =
-      standardBoard.apply(BoardEnPassant(pawnCapturedPos, pawnPosFrom, pawnPosTo)).toOption.value
+      standardBoard.apply(BoardEnPassant(pawnPosFrom, pawnPosTo, pawnCapturedPos))
     boardAfterEnPassant.pieceAtPosition(pawnPosTo).value should equal(pawnMoved)
     boardAfterEnPassant.pieceAtPosition(pawnCapturedPos) should equal(None)
   }

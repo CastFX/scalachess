@@ -25,10 +25,10 @@ class PositionSpec extends FlatSpec with Matchers with OptionValues with Inspect
 
   "up, down, left, right" should "be idempotent" in {
     val c5                = Position.ofNotation("c5").get
-    val upDownC5          = c5.up.value.down.value
-    val leftRightC5       = c5.left.value.right.value
-    val upLeftDownRightC5 = c5.upLeft.value.downRight.value
-    val upRightDownLeftC5 = c5.upRight.value.downLeft.value
+    val upDownC5          = c5.posUp.value.posDown.value
+    val leftRightC5       = c5.posLeft.value.posRight.value
+    val upLeftDownRightC5 = c5.posUpLeft.value.posDownRight.value
+    val upRightDownLeftC5 = c5.posUpRight.value.posDownLeft.value
 
     all(Seq(upDownC5, leftRightC5, upLeftDownRightC5, upRightDownLeftC5)) should equal(c5)
   }
@@ -37,30 +37,30 @@ class PositionSpec extends FlatSpec with Matchers with OptionValues with Inspect
     val outerDownRow = allPositions
       .filter { _.row == 1 }
       .flatMap { p =>
-        Seq(p.downLeft, p.downRight, p.down)
+        Seq(p.posDownLeft, p.posDownRight, p.posDown)
       }
 
     val outerUpRow = allPositions
       .filter { _.row == Board.height }
       .flatMap { p =>
-        Seq(p.upLeft, p.upRight, p.up)
+        Seq(p.posUpLeft, p.posUpRight, p.posUp)
       }
 
     val outerLeftColumn = allPositions
       .filter { _.col == 1 }
       .flatMap { p =>
-        Seq(p.downLeft, p.upLeft, p.left)
+        Seq(p.posDownLeft, p.posUpLeft, p.posLeft)
       }
 
     val outerRightColumn = allPositions
       .filter { _.col == Board.width }
       .flatMap { p =>
-        Seq(p.downRight, p.upRight, p.right)
+        Seq(p.posDownRight, p.posUpRight, p.posRight)
       }
 
     val outerPositions = outerDownRow ++ outerUpRow ++ outerLeftColumn ++ outerRightColumn
     outerPositions should not be empty
-    all(outerPositions) should not be 'defined
+    all(outerPositions) should not be defined
   }
 
   "rowDistance between positions on different rows" should "be equal to the difference in row value" in {
