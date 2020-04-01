@@ -2,9 +2,8 @@ package it.scalachess.core.logic.moves
 
 import it.scalachess.core.Color
 import it.scalachess.core.board.{ Board, Position }
-import it.scalachess.core.logic.{ CheckValidator, MoveValidator }
+import it.scalachess.core.logic.{ IsKingInCheck, IsKingInCheckmate }
 import it.scalachess.core.pieces.{ Piece, PieceType }
-import scalaz.Success
 
 sealed trait ValidMove {
   def convertInBoardMove: BoardMove
@@ -16,7 +15,7 @@ case class ValidSimpleMove(pieceType: PieceType,
                            to: Position,
                            capturedPiece: Option[Piece])
     extends ValidMove {
-  override def convertInBoardMove: BoardMove = BoardSimpleMove(from, to, Piece(color, pieceType))
+  override def convertInBoardMove: BoardMove = BoardSimpleMove(from, to)
 
   /**
    * Converts the ValidMove into a ParsedMove given a board.
@@ -24,26 +23,27 @@ case class ValidSimpleMove(pieceType: PieceType,
    * @return the ParsedMove obtained by converting the ValidMove
    */
   override def convertInParsedMove(board: Board): ParsedMove = {
-    val nextBoard = board(convertInBoardMove) match {
-      case Success(a) => a
-    }
-    val captured = if (capturedPiece.isDefined) Capture(Some(pieceType), Some(to.col.toChar)) else Capture(None, None)
-    val check: Boolean = CheckValidator().isKingInCheck(color, nextBoard) match {
-      case Success(isCheck) => if (isCheck) true else false
-      case _                => false
-    }
-    val checkmate: Boolean = CheckValidator().isKingInCheckmate(color, MoveValidator(nextBoard))
+    val nextBoard = board(convertInBoardMove)
+    val captured =
+      if (capturedPiece.isDefined) Capture(Some(pieceType), Some((to.col + 96).toChar)) else Capture(None, None)
+    val check: Boolean     = IsKingInCheck(color.other, nextBoard)
+    val checkmate: Boolean = IsKingInCheckmate(color.other, nextBoard)
     ParsedSimpleMove(to, pieceType, captured, check, checkmate, Some((from.col + 96).toChar), Some(from.row), None)
   }
 }
 
-case class ValidCastling(castlingType: CastlingType, kingPos: Position, rookPos: Position) extends ValidMove {
-  override def convertInBoardMove: BoardMove                 = BoardCastling(kingPos, rookPos)
+case class ValidCastling(castlingType: CastlingType,
+                         kingPos: Position,
+                         rookPos: Position,
+                         kingFinalPos: Position,
+                         rookFinalPos: Position)
+    extends ValidMove {
+  override def convertInBoardMove: BoardMove                 = BoardCastling(kingPos, rookPos, kingFinalPos, rookFinalPos)
   override def convertInParsedMove(board: Board): ParsedMove = ??? //Castling(castlingType, check, checkMate)
 }
 
-case class ValidEnPassant(capture: Position, from: Position, to: Position) extends ValidMove {
-  override def convertInBoardMove: BoardMove                 = BoardEnPassant(capture, from, to)
+case class ValidEnPassant(from: Position, to: Position, capturePos: Position) extends ValidMove {
+  override def convertInBoardMove: BoardMove                 = BoardEnPassant(from, to, capturePos)
   override def convertInParsedMove(board: Board): ParsedMove = ???
 }
 

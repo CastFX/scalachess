@@ -18,15 +18,10 @@ object Client extends App {
     view.showBoard(game.board)
     do {
       move = scala.io.StdIn.readLine(s"Its ${game.player} turn to move, enter the move: ")
-      parser.parse(move) match {
-        case None => logger.error("Not algebraic format, insert another move ")
-        case Some(parsedMove) => {
-          result = game(parsedMove)
-          result match {
-            case Failure(e) => logger.error(s"error = $e")
-            case _          => logger.debug("The move was accepted")
-          }
-        }
+      result = game(move)
+      result match {
+        case Failure(e) => logger.error(s"error = $e")
+        case _          => logger.debug("The move was accepted")
       }
     } while (result.isFailure)
     game = result.getOrElse(game)

@@ -5,25 +5,38 @@ import it.scalachess.core.board.{ Board, Position }
 import it.scalachess.core.logic.moves.ValidMove
 import it.scalachess.core.pieces.PieceType
 
-case class GenerateBishopMoves(pieceType: PieceType, color: Color, board: Board, from: Position)
-    extends GeneratePieceMoves {
-
-  override def apply(): List[ValidMove] =
-    List() ++
-    generateBishopMoves(from, 1, 1) ++
-    generateBishopMoves(from, -1, -1) ++
-    generateBishopMoves(from, 1, -1) ++
-    generateBishopMoves(from, -1, 1)
-
-  private def generateBishopMoves(from: Position, colMod: Int, rowMod: Int): List[ValidMove] =
-    generateLinearMovement(pieceType,
-                           color,
-                           board,
-                           from,
-                           Position.of(from.col + colMod, from.row + rowMod),
-                           "bishop",
-                           colMod,
-                           rowMod,
-                           List())
-
+private[generators] object GenerateBishopMoves extends GeneratePieceMoves {
+  override def apply(pieceType: PieceType, color: Color, board: Board, from: Position): List[ValidMove] =
+    generateLinearMovementSimpleMoves(pieceType,
+                                      color,
+                                      board,
+                                      from,
+                                      Position.of(from.col + from.colRightMod, from.row + from.rowUpMod),
+                                      from.colRightMod,
+                                      from.rowUpMod,
+                                      List()) ++
+    generateLinearMovementSimpleMoves(pieceType,
+                                      color,
+                                      board,
+                                      from,
+                                      Position.of(from.col + from.colRightMod, from.row + from.rowDownMod),
+                                      from.colRightMod,
+                                      from.rowDownMod,
+                                      List()) ++
+    generateLinearMovementSimpleMoves(pieceType,
+                                      color,
+                                      board,
+                                      from,
+                                      Position.of(from.col + from.colLeftMod, from.row + from.rowDownMod),
+                                      from.colLeftMod,
+                                      from.rowDownMod,
+                                      List()) ++
+    generateLinearMovementSimpleMoves(pieceType,
+                                      color,
+                                      board,
+                                      from,
+                                      Position.of(from.col + from.colLeftMod, from.row + from.rowUpMod),
+                                      from.colLeftMod,
+                                      from.rowUpMod,
+                                      List())
 }

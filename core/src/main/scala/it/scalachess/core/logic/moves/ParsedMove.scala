@@ -42,6 +42,7 @@ case class ParsedSimpleMove(
     }
   private def isCaptureEqual(capture: Capture, move: ParsedSimpleMove): Boolean =
     (capture.attackingPieceType == move.capture.attackingPieceType && capture.column == move.capture.column) ||
+    (capture.attackingPieceType == move.capture.attackingPieceType && capture.column.isEmpty) ||
     (capture.attackingPieceType.isEmpty && capture.column.isEmpty && move.capture.attackingPieceType.isEmpty && move.capture.column.isEmpty)
   private def isStartingPointEqual(startingCol: Option[Char],
                                    startingRow: Option[Int],

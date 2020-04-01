@@ -5,11 +5,8 @@ import it.scalachess.core.board.{ Board, Position }
 import it.scalachess.core.logic.moves.ValidMove
 import it.scalachess.core.pieces.PieceType
 
-trait GeneratePieceMoves {
-  def pieceType: PieceType
-  def color: Color
-  def board: Board
-  def from: Position
+private[generators] trait GeneratePieceMoves extends ((PieceType, Color, Board, Position) => List[ValidMove]) {
 
-  def apply(): List[ValidMove]
+  override def apply(pieceType: PieceType, color: Color, board: Board, from: Position): List[ValidMove]
+
 }

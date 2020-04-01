@@ -1,8 +1,8 @@
 package it.scalachess.core.board
 
+import it.scalachess.core.logic.moves.{ BoardCastling, BoardEnPassant, BoardMove, BoardPromotion, BoardSimpleMove }
 import it.scalachess.core.{ Black, Color, White }
 import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, Piece, PieceType, Queen, Rook }
-import it.scalachess.core.logic.ValidMove
 
 /**
  * Functional chess board representation
@@ -12,31 +12,12 @@ final case class Board(
     pieces: Map[Position, Piece]
 ) {
 
-  lazy val kingPositions: Map[Color, Position] = pieces collect {
-    case (pos, Piece(color, King)) => color -> pos
-  }
-
-  /**
-   * Creates a valid king position, only if the king having the color specified is present
-   * @param color of the king to get
-   * @return position of the king
-   */
-  def kingPositionOf(color: Color): Option[Position] = kingPositions get color
-
   /**
    * Returns an Option type of the Piece at a certain Position, if present
    * @param pos A position on the Board
    * @return an Option[Piece] with the respective Piece on that Position, None if it's empty
    */
   def pieceAtPosition(pos: Position): Option[Piece] = pieces get pos
-
-  /**
-   * Curried function of pieceAt, to get the Piece at the passed coordinates
-   * @param col numerical value of column
-   * @param row number of the row
-   * @return an Option[Piece] with the respective Piece at that coordinates, None if it's empty
-   */
-  def pieceAtCoordinates(col: Int)(row: Int): Option[Piece] = Position.of(row)(col) flatMap { pieces get }
 
   /**
    * Retrieves a Piece under a certain position, if it's present
@@ -46,17 +27,72 @@ final case class Board(
   def pieceAt(notation: String): Option[Piece] = Position.ofNotation(notation) flatMap { pieces get }
 
   /**
-   * Apply a correct move to the board.
+   * Applies a move on the board. There is a strong assumption in this method:
+   * it doesn't perform any logic check, it just make sures that the arguments
+   * passed as input exists in its domain, then executes the related changes
+   * @param boardMove containing the information for change the board
+   * @return the board with changes
    */
-  def apply(validMove: ValidMove): Board =
-    Board(pieces + (validMove.to -> validMove.piece) - validMove.from)
+  def apply(boardMove: BoardMove): Board =
+    boardMove match {
+      case BoardPromotion(from, to, pieceToRestore) =>
+        require(pieceAtPosition(from).nonEmpty,
+                "Applying Promotion move on board: the piece to move doesn't exist in board")
+        executeSimpleMove(from, to, pieceToRestore)
+      case BoardCastling(kingPos, rookPos, kingFinalPos, rookFinalPos) =>
+        pieceAtPosition(kingPos) match {
+          case None =>
+            require(requirement = false,
+                    "Applying castling move on board: the first piece to move doesn't exist in board")
+            this
+          case Some(firstPieceToMove) =>
+            pieceAtPosition(rookPos) match {
+              case None =>
+                require(requirement = false,
+                        "Applying EnPassant move on board: the second piece to capture doesn't exist in board")
+                this
+              case Some(secondPieceToMove) =>
+                executeSimpleMove(kingPos, kingFinalPos, firstPieceToMove)
+                  .executeSimpleMove(rookPos, rookFinalPos, secondPieceToMove)
+            }
+        }
+      case BoardEnPassant(from, to, capturePos) =>
+        pieceAtPosition(from) match {
+          case None =>
+            require(requirement = false, "Applying EnPassant move on board: the piece to move doesn't exist in board")
+            this
+          case Some(pieceToMove) =>
+            require(pieceAtPosition(capturePos).nonEmpty,
+                    "Applying EnPassant move on board: the piece to capture doesn't exist in board")
+            executeSimpleMove(from, to, pieceToMove)
+              .removePieceAtPosition(capturePos)
+        }
+
+      case BoardSimpleMove(from, to) =>
+        pieceAtPosition(from) match {
+          case None =>
+            require(requirement = false, "Applying SimpleMove move on board: the piece to move doesn't exist in board")
+            this
+          case Some(pieceToMove) => executeSimpleMove(from, to, pieceToMove)
+        }
+
+    }
+
+  private def executeSimpleMove(from: Position, to: Position, pieceToMove: Piece): Board =
+    Board(pieces + (to -> pieceToMove) - from)
+
+  private def removePieceAtPosition(pos: Position): Board =
+    Board(pieces - pos)
+
 }
 
 object Board {
-  val whitePawnsStartingRow = 2
-  val blackPawnStartingRow  = 7
-  val width: Int            = 8
-  val height: Int           = 8
+  val width: Int                  = 8
+  val height: Int                 = 8
+  val whiteMajorPiecesStartingRow = 1
+  val whitePawnsStartingRow       = 2
+  val blackMajorPiecesStartingRow = 8
+  val blackPawnsStartingRow       = 7
 
   /**
    * Function to check if a certain position expressed with row and column is inside this board
@@ -75,7 +111,7 @@ object Board {
       for (row <- Seq(1, 2, height - 1, height); //for rows 1,2 7,8
            col <- 1 to 8) yield { //for each column [a-h]
         Position
-          .of(col)(row) //from the position
+          .of(col, row) //from the position
           .map({ pos =>
             val color: Color = if (row <= 2) White else Black
             val piece        = Piece(color, initialPieceTypeAtPosition(pos)) //get the starting piece
