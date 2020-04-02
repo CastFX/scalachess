@@ -93,13 +93,13 @@ class ChessGameSpec extends FlatSpec with Matchers with OptionValues {
     val firstWhitePawnMove  = "f3"
     val blackPawnMove       = "e6"
     val secondWhitePawnMove = "g4"
-    val blackQueenMove      = "Qh4+#"
+    val blackQueenMove      = "Qh4#"
     foolMateGame = foolMateGame(firstWhitePawnMove).toOption.value
     foolMateGame = foolMateGame(blackPawnMove).toOption.value
     foolMateGame = foolMateGame(secondWhitePawnMove).toOption.value
-    foolMateGame.isKingInCheck should be(false)
+    foolMateGame.isKingInCheck shouldBe false
     foolMateGame = foolMateGame(blackQueenMove).toOption.value
-    foolMateGame.isKingInCheck should be(true)
+    foolMateGame.isKingInCheck shouldBe true
     foolMateGame.gameStatus should equal(Win(Black))
   }
 
@@ -113,7 +113,7 @@ class ChessGameSpec extends FlatSpec with Matchers with OptionValues {
     val fourthMoveBlackKnight = "Nc6"
     val fifthMoveWhiteQueen   = "Qh5"
     val sixthMoveBlackKnight  = "Nf6"
-    val seventhMoveWhiteQueen = "Qxf7+#"
+    val seventhMoveWhiteQueen = "Qxf7#"
     scholarMateGame = scholarMateGame(firstMoveWhitePawn).toOption.value
     scholarMateGame = scholarMateGame(secondMoveBlackPawn).toOption.value
     scholarMateGame = scholarMateGame(thirdMoveWhiteBishop).toOption.value
@@ -122,7 +122,7 @@ class ChessGameSpec extends FlatSpec with Matchers with OptionValues {
     scholarMateGame = scholarMateGame(sixthMoveBlackKnight).toOption.value
     scholarMateGame = scholarMateGame(seventhMoveWhiteQueen).toOption.value
     scholarMateGame.gameStatus should equal(Win(White))
-    scholarMateGame.isKingInCheck should be(true)
+    scholarMateGame.isKingInCheck shouldBe true
   }
 
 }

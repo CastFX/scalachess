@@ -6,19 +6,19 @@ import it.scalachess.core.pieces.PieceType
 /**
  * Definition of a ParsedMove from Algebraic Notation
  */
-sealed trait ParsedMove {
+sealed trait AlgebraicMove {
 
   /**
    * Check if the ParsedMove is equal to another ParsedMove.
    * @param move the ParsedMove to check against
    * @return true if the moves are equals, false otherwise
    */
-  def isEqualTo(move: ParsedMove): Boolean
+  def isEqualTo(move: AlgebraicMove): Boolean
 }
 
 case class Capture(attackingPieceType: Option[PieceType], column: Option[Char])
 
-case class ParsedSimpleMove(
+case class AlgebraicSimpleMove(
     endPos: Position,
     pieceType: PieceType,
     capture: Capture,
@@ -27,26 +27,25 @@ case class ParsedSimpleMove(
     startingCol: Option[Char],
     startingRow: Option[Int],
     promotion: Option[PieceType]
-) extends ParsedMove {
-  override def isEqualTo(move: ParsedMove): Boolean =
+) extends AlgebraicMove {
+  override def isEqualTo(move: AlgebraicMove): Boolean =
     move match {
-      case move: ParsedSimpleMove =>
+      case move: AlgebraicSimpleMove =>
         endPos == move.endPos &&
         pieceType == move.pieceType &&
         isCaptureEqual(capture, move) &&
-        check == move.check &&
-        checkmate == move.checkmate &&
+        ((check == move.check && checkmate == move.checkmate) || (checkmate && checkmate == move.checkmate)) &&
         isStartingPointEqual(startingCol, startingRow, move) &&
         promotion == move.promotion
       case _ => false
     }
-  private def isCaptureEqual(capture: Capture, move: ParsedSimpleMove): Boolean =
+  private def isCaptureEqual(capture: Capture, move: AlgebraicSimpleMove): Boolean =
     (capture.attackingPieceType == move.capture.attackingPieceType && capture.column == move.capture.column) ||
     (capture.attackingPieceType == move.capture.attackingPieceType && capture.column.isEmpty) ||
     (capture.attackingPieceType.isEmpty && capture.column.isEmpty && move.capture.attackingPieceType.isEmpty && move.capture.column.isEmpty)
   private def isStartingPointEqual(startingCol: Option[Char],
                                    startingRow: Option[Int],
-                                   move: ParsedSimpleMove): Boolean =
+                                   move: AlgebraicSimpleMove): Boolean =
     (startingCol.isDefined && startingCol == move.startingCol || startingCol.isEmpty) &&
     (startingRow.isDefined && startingRow == move.startingRow || startingRow.isEmpty)
 }
@@ -70,17 +69,16 @@ case object QueenSide extends CastlingType
  * Definition of a castling
  * @param castlingType the type of castling
  */
-case class Castling(
+case class AlgebraicCastling(
     castlingType: CastlingType,
     check: Boolean,
     checkmate: Boolean
-) extends ParsedMove {
-  override def isEqualTo(move: ParsedMove): Boolean =
+) extends AlgebraicMove {
+  override def isEqualTo(move: AlgebraicMove): Boolean =
     move match {
-      case move: Castling =>
+      case move: AlgebraicCastling =>
         castlingType == move.castlingType &&
-        check == move.check &&
-        checkmate == move.checkmate
+        ((check == move.check && checkmate == move.checkmate) || (checkmate && checkmate == move.checkmate))
       case _ => false
     }
 }

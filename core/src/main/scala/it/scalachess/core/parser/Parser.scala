@@ -1,15 +1,21 @@
 package it.scalachess.core.parser
 import it.scalachess.core.board.Position
-import it.scalachess.core.logic.moves.{ Capture, Castling, KingSide, ParsedMove, ParsedSimpleMove, QueenSide }
-import it.scalachess.core.parser.Parser.AlgebraicParser
+import it.scalachess.core.logic.moves.{
+  AlgebraicCastling,
+  AlgebraicMove,
+  AlgebraicSimpleMove,
+  Capture,
+  KingSide,
+  QueenSide
+}
 import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, PieceType, Queen, Rook }
 
 import scala.util.matching.Regex
 
 object Parser {
   abstract class Parser[T] {
-    def parse(t: T): Option[ParsedMove]
-    def parseAll(seq: Seq[T]): Seq[Option[ParsedMove]] = seq map parse
+    def parse(t: T): Option[AlgebraicMove]
+    def parseAll(seq: Seq[T]): Seq[Option[AlgebraicMove]] = seq map parse
   }
 
   case class AlgebraicParser() extends Parser[String] {
@@ -24,7 +30,7 @@ object Parser {
     private val movePattern: Regex =
       s"($pieces)?($cols)?($rows)?($capture)?($cols$rows)(=$promotablePieces)?($check)?($checkmate)?".r
 
-    override def parse(t: String): Option[ParsedMove] =
+    override def parse(t: String): Option[AlgebraicMove] =
       t match {
         case movePattern(pieces, cols, rows, captured, position, promotable, checked, checkmated) =>
           val endPos: Position             = Position.ofNotation(position).get
@@ -41,9 +47,12 @@ object Parser {
           if (promotion.isDefined && pieceType != Pawn)
             None
           else
-            Some(ParsedSimpleMove(endPos, pieceType, capture, check, checkmate, col, row, promotion))
+            Some(AlgebraicSimpleMove(endPos, pieceType, capture, check, checkmate, col, row, promotion))
         case castleRegex(queenSide, check, checkmate) =>
-          Some(Castling(if (queenSide == null) KingSide else QueenSide, isChecked(check), isCheckmated(checkmate)))
+          Some(
+            AlgebraicCastling(if (queenSide == null) KingSide else QueenSide,
+                              isChecked(check),
+                              isCheckmated(checkmate)))
         case _ => None
       }
   }
@@ -81,13 +90,12 @@ object Parser {
 
 }
 
-object Main {
-  def main(args: Array[String]): Unit = {
-    val test: Seq[String] =
-      Seq("Ra3", "e4", "Bb5", "0-0", "0-0-0", "Rae8", "Ra6+", "a4#", "Nb6d7", "xe4", "exe4", "Qxe4", "a3=Q", "Qa3=Q")
-    val parser: AlgebraicParser = AlgebraicParser()
-    for (elem <- parser.parseAll(test)) {
-      println(elem)
-    }
-  }
-}
+//object Main {
+//  def main(args: Array[String]): Unit = {
+//    val test: Seq[String] =
+//      Seq("Ra3", "e4", "Bb5", "0-0", "0-0-0", "Rae8", "Ra6+", "a4#", "Nb6d7", "xe4", "exe4", "Qxe4", "a3=Q", "Qa3=Q")
+//    val parser: AlgebraicParser = AlgebraicParser()
+//    for (elem <- parser.parseAll(test)) {
+//    }
+//  }
+//}
