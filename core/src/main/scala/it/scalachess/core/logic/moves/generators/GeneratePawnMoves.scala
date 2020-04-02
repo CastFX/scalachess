@@ -2,8 +2,8 @@ package it.scalachess.core.logic.moves.generators
 
 import it.scalachess.core.{ Black, Color, White }
 import it.scalachess.core.board.{ Board, Position }
-import it.scalachess.core.logic.moves.{ ValidMove, ValidSimpleMove }
-import it.scalachess.core.pieces.PieceType
+import it.scalachess.core.logic.moves.{ ValidMove, ValidPromotion, ValidSimpleMove }
+import it.scalachess.core.pieces.{ Bishop, Knight, Piece, PieceType, Queen, Rook }
 import scalaz.{ Failure, Success, Validation }
 
 private[generators] object GeneratePawnMoves extends GeneratePieceMoves {
@@ -19,7 +19,7 @@ private[generators] object GeneratePawnMoves extends GeneratePieceMoves {
                               board: Board,
                               from: Position,
                               forwardRowMod: Int,
-                              startingRow: Int): List[ValidSimpleMove] = {
+                              startingRow: Int): List[ValidMove] = {
     val moveOnePosWithoutCapture =
       generatePawnMovement(pieceType, color, board, from, Position.of(from.col, from.row + forwardRowMod))
     val moveTwoPosWithoutCapture =
@@ -52,8 +52,15 @@ private[generators] object GeneratePawnMoves extends GeneratePieceMoves {
     List(moveOnePosWithoutCapture, moveTwoPosWithoutCapture, leftAttack, rightAttack)
       .filter(_.toOption.nonEmpty)
       .map(_.toOption.get)
+      .flatMap(move => {
+        if (isWhitePromoting(move))
+          convertToPromotion(move)
+        else if (isBlackPromoting(move))
+          convertToPromotion(move)
+        else
+          Seq(move)
+      })
   }
-
   private def generatePawnMovement(pieceType: PieceType,
                                    color: Color,
                                    board: Board,
@@ -85,5 +92,16 @@ private[generators] object GeneratePawnMoves extends GeneratePieceMoves {
             }
         }
     }
+
+  private def convertToPromotion(move: ValidSimpleMove): List[ValidPromotion] = {
+    val symbols = Seq(Queen, Knight, Bishop, Rook)
+    symbols
+      .map(piece =>
+        ValidPromotion(move.pieceType, move.color, move.from, move.to, move.capturedPiece, Piece(move.color, piece)))
+      .toList
+  }
+
+  private def isWhitePromoting(move: ValidSimpleMove): Boolean = move.color == White && move.to.row == 8
+  private def isBlackPromoting(move: ValidSimpleMove): Boolean = move.color == Black && move.to.row == 1
 
 }

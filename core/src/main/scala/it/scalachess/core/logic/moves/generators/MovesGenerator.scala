@@ -21,7 +21,7 @@ final case class MovesGenerator(player: Color, board: Board) {
   private def generateAllPossiblePieceMoves(from: Position, pieceType: PieceType): List[ValidMove] =
     pieceType match {
       case Knight => GenerateKnightMoves(pieceType, player, board, from)
-      case Pawn   => GeneratePawnMoves(pieceType, player, board, from)
+      case Pawn   => GeneratePawnMoves(pieceType, player, board, from) //::: GeneratePawnSpecialMoves()
       case Rook   => GenerateRookMoves(pieceType, player, board, from)
       case Bishop => GenerateBishopMoves(pieceType, player, board, from)
       case Queen  => GenerateQueenMoves(pieceType, player, board, from)

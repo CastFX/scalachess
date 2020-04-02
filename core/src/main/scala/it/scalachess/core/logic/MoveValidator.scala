@@ -19,10 +19,13 @@ final case class MoveValidator(board: Board) {
     val ambiguityMessage: String    = "This move creates an ambiguity, please specify it better"
     val isKingCheck: Boolean        = true
     val validMoves: List[ValidMove] = MovesGenerator(player, board)(isKingCheck)
+    println(validMoves)
     val parsedMoves: List[AlgebraicMove] = validMoves
       .map(validMove => validMove.convertInParsedMove(board))
     val map: Map[ValidMove, AlgebraicMove] = (validMoves zip parsedMoves).toMap
-    val filteredMap                        = map.filter(parsed => move.isEqualTo(parsed._2))
+    println(map)
+    println(move)
+    val filteredMap = map.filter(parsed => move.isEqualTo(parsed._2))
     filteredMap.size match {
       case 0 => Failure(errorMessage)
       case 1 => Success(filteredMap.head._1.convertInBoardMove)

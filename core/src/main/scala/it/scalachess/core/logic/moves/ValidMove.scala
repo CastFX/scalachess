@@ -7,8 +7,15 @@ import it.scalachess.core.pieces.{ Piece, PieceType }
 
 sealed trait ValidMove {
   def convertInBoardMove: BoardMove
+
+  /**
+   * Converts the ValidMove into a ParsedMove given a board.
+   * @param board the current board
+   * @return the ParsedMove obtained by converting the ValidMove
+   */
   def convertInParsedMove(board: Board): AlgebraicMove
 }
+
 case class ValidSimpleMove(pieceType: PieceType,
                            color: Color,
                            from: Position,
@@ -16,12 +23,6 @@ case class ValidSimpleMove(pieceType: PieceType,
                            capturedPiece: Option[Piece])
     extends ValidMove {
   override def convertInBoardMove: BoardMove = BoardSimpleMove(from, to)
-
-  /**
-   * Converts the ValidMove into a ParsedMove given a board.
-   * @param board the current board
-   * @return the ParsedMove obtained by converting the ValidMove
-   */
   override def convertInParsedMove(board: Board): AlgebraicMove =
     AlgebraicCreator.generateAlgebraicSimpleMove(board(convertInBoardMove),
                                                  capturedPiece,
@@ -51,7 +52,6 @@ case class ValidEnPassant(pieceType: PieceType,
                           from: Position,
                           to: Position,
                           capturedPiece: Option[Piece],
-                          promotion: Option[Piece],
                           capturePos: Position)
     extends ValidMove {
   override def convertInBoardMove: BoardMove = BoardEnPassant(from, to, capturePos)
@@ -62,7 +62,7 @@ case class ValidEnPassant(pieceType: PieceType,
                                                  color,
                                                  from,
                                                  to,
-                                                 promotion)
+                                                 None)
 }
 
 case class ValidPromotion(pieceType: PieceType,
@@ -92,7 +92,7 @@ private object AlgebraicCreator {
                                   to: Position,
                                   promotion: Option[Piece]): AlgebraicMove = {
     val captured =
-      if (capturedPiece.isDefined) Capture(Some(pieceType), Some((to.col + 96).toChar)) else Capture(None, None)
+      if (capturedPiece.isDefined) Capture(Some(pieceType), Some((from.col + 96).toChar)) else Capture(None, None)
     val check: Boolean           = IsKingInCheck(color.other, nextBoard)
     val checkmate: Boolean       = IsKingInCheckmate(color.other, nextBoard)
     val promo: Option[PieceType] = if (promotion.isEmpty) None else Some(promotion.get.pieceType)
