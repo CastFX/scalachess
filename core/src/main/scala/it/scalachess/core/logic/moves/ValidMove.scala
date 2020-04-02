@@ -13,7 +13,7 @@ sealed trait ValidMove {
    * @param board the current board
    * @return the ParsedMove obtained by converting the ValidMove
    */
-  def convertInParsedMove(board: Board): AlgebraicMove
+  def convertInAlgebraicMove(board: Board): AlgebraicMove
 }
 
 case class ValidSimpleMove(pieceType: PieceType,
@@ -23,7 +23,7 @@ case class ValidSimpleMove(pieceType: PieceType,
                            capturedPiece: Option[Piece])
     extends ValidMove {
   override def convertInBoardMove: BoardMove = BoardSimpleMove(from, to)
-  override def convertInParsedMove(board: Board): AlgebraicMove =
+  override def convertInAlgebraicMove(board: Board): AlgebraicMove =
     AlgebraicCreator.generateAlgebraicSimpleMove(board(convertInBoardMove),
                                                  capturedPiece,
                                                  pieceType,
@@ -41,7 +41,7 @@ case class ValidCastling(castlingType: CastlingType,
                          color: Color)
     extends ValidMove {
   override def convertInBoardMove: BoardMove = BoardCastling(kingPos, rookPos, kingFinalPos, rookFinalPos)
-  override def convertInParsedMove(board: Board): AlgebraicMove = {
+  override def convertInAlgebraicMove(board: Board): AlgebraicMove = {
     val nextBoard = board(convertInBoardMove)
     AlgebraicCastling(castlingType, IsKingInCheck(color.other, nextBoard), IsKingInCheckmate(color.other, nextBoard))
   }
@@ -55,7 +55,7 @@ case class ValidEnPassant(pieceType: PieceType,
                           capturePos: Position)
     extends ValidMove {
   override def convertInBoardMove: BoardMove = BoardEnPassant(from, to, capturePos)
-  override def convertInParsedMove(board: Board): AlgebraicMove =
+  override def convertInAlgebraicMove(board: Board): AlgebraicMove =
     AlgebraicCreator.generateAlgebraicSimpleMove(board(convertInBoardMove),
                                                  capturedPiece,
                                                  pieceType,
@@ -73,7 +73,7 @@ case class ValidPromotion(pieceType: PieceType,
                           promotion: Piece)
     extends ValidMove {
   override def convertInBoardMove: BoardMove = BoardPromotion(from, to, promotion)
-  override def convertInParsedMove(board: Board): AlgebraicMove =
+  override def convertInAlgebraicMove(board: Board): AlgebraicMove =
     AlgebraicCreator.generateAlgebraicSimpleMove(board(convertInBoardMove),
                                                  capturedPiece,
                                                  pieceType,

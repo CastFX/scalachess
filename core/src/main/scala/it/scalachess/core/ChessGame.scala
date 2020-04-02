@@ -1,15 +1,19 @@
 package it.scalachess.core
 
 import it.scalachess.core.board.Board
+import it.scalachess.core.logic.moves.ValidMove
 import it.scalachess.core.logic.{ IsKingInCheck, IsKingInCheckmate, MoveValidator }
 import it.scalachess.core.parser.Parser.AlgebraicParser
 import scalaz.{ Failure, Success, Validation }
 
 /**
  * Functional Representation of a game of Chess
- * @param board The board which contains all the chesspieces
+ * @param board The board which contains all the chess pieces
  * @param player The Player (White/Black) who is moving
  * @param turn The turn number of this game
+ * @param gameStatus the status of the game
+ * @param isKingInCheck true if the king is in check, false otherwise
+ * @param moveHistory the history of the moves of this chess game
  */
 final case class ChessGame(
     board: Board,
@@ -17,7 +21,7 @@ final case class ChessGame(
     turn: Int,
     gameStatus: GameStatus,
     isKingInCheck: Boolean,
-    moveHistory: List[String]
+    moveHistory: List[ValidMove]
 ) {
 
   private val moveValidator = MoveValidator(board)
@@ -27,9 +31,9 @@ final case class ChessGame(
     parser.parse(move) match {
       case None => Failure("Not algebraic format, insert another move ")
       case Some(parsedMove) =>
-        moveValidator.validateParsedMove(parsedMove, player) match {
-          case Success(boardMove) =>
-            val nextBoard = board(boardMove)
+        moveValidator.validateAlgebraicMove(parsedMove, player) match {
+          case Success(validMove) =>
+            val nextBoard = board(validMove.convertInBoardMove)
             if (IsKingInCheckmate(player.other, nextBoard))
               Success(
                 ChessGame(nextBoard,
@@ -37,7 +41,7 @@ final case class ChessGame(
                           turn + 1,
                           Win(player),
                           isKingInCheck = true,
-                          moveHistory ::: List(move)))
+                          moveHistory ::: List(validMove)))
             else {
               Success(
                 ChessGame(nextBoard,
@@ -45,7 +49,7 @@ final case class ChessGame(
                           turn + 1,
                           Ongoing,
                           IsKingInCheck(player.other, nextBoard),
-                          moveHistory ::: List(move)))
+                          moveHistory ::: List(validMove)))
             }
           case Failure(errorMsg) => Failure(errorMsg)
         }

@@ -13,7 +13,7 @@ sealed trait AlgebraicMove {
    * @param move the ParsedMove to check against
    * @return true if the moves are equals, false otherwise
    */
-  def isEqualTo(move: AlgebraicMove): Boolean
+  def isEquivalentTo(move: AlgebraicMove): Boolean
 }
 
 case class Capture(attackingPieceType: Option[PieceType], column: Option[Char])
@@ -28,7 +28,7 @@ case class AlgebraicSimpleMove(
     startingRow: Option[Int],
     promotion: Option[PieceType]
 ) extends AlgebraicMove {
-  override def isEqualTo(move: AlgebraicMove): Boolean =
+  override def isEquivalentTo(move: AlgebraicMove): Boolean =
     move match {
       case move: AlgebraicSimpleMove =>
         endPos == move.endPos &&
@@ -74,7 +74,7 @@ case class AlgebraicCastling(
     check: Boolean,
     checkmate: Boolean
 ) extends AlgebraicMove {
-  override def isEqualTo(move: AlgebraicMove): Boolean =
+  override def isEquivalentTo(move: AlgebraicMove): Boolean =
     move match {
       case move: AlgebraicCastling =>
         castlingType == move.castlingType &&

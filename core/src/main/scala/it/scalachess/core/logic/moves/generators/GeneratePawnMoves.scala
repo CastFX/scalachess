@@ -53,9 +53,7 @@ private[generators] object GeneratePawnMoves extends GeneratePieceMoves {
       .filter(_.toOption.nonEmpty)
       .map(_.toOption.get)
       .flatMap(move => {
-        if (isWhitePromoting(move))
-          convertToPromotion(move)
-        else if (isBlackPromoting(move))
+        if (isWhitePromoting(move) || isBlackPromoting(move))
           convertToPromotion(move)
         else
           Seq(move)
