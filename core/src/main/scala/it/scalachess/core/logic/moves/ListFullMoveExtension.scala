@@ -30,8 +30,7 @@ object ListFullMoveExtension {
     def filterChecks(isKingInCheck: Boolean, isKingInCheckmate: Boolean): List[T] =
       list.filter {
         case FullMove(_, check, checkMate) =>
-          isKingInCheck == check &&
-          isKingInCheckmate == checkMate
+          (isKingInCheckmate == checkMate && checkMate) || (isKingInCheck == check && isKingInCheckmate == checkMate)
       }
 
     def filterCaptures(capture: Option[Capture]): List[T] = capture match {

@@ -35,8 +35,8 @@ object Parser {
         case movePattern(pieces, cols, rows, captured, position, promotable, checked, checkmated) =>
           val endPos: Position             = Position.ofNotation(position).get
           val capture: Option[Capture]     = captures(captured)
-          val check: Boolean               = isChecked(checked)
           val checkmate: Boolean           = isCheckmated(checkmated)
+          val check: Boolean               = isChecked(checked)
           val col: Option[Char]            = startingCol(cols)
           val row: Option[Int]             = startingRow(rows)
           val promotion: Option[PieceType] = promotionOf(promotable)
@@ -71,8 +71,8 @@ object Parser {
         case c: Char                     => Some(Capture(Some(c)))
       }
     }
-  private def isChecked(checked: String): Boolean       = if (checked == null) false else true
-  private def isCheckmated(checkmated: String): Boolean = if (checkmated == null) false else true
+  private def isChecked(checked: String): Boolean       = checked != null
+  private def isCheckmated(checkmated: String): Boolean = checkmated != null
   private def startingCol(cols: String): Option[Char]   = if (cols == null) None else Some(cols.charAt(0))
   private def startingRow(rows: String): Option[Int]    = if (rows == null) None else Some(rows.toInt)
   private def promotionOf(promoted: String): Option[PieceType] =

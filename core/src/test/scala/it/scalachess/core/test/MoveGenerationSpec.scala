@@ -4,9 +4,8 @@ import it.scalachess.core.{ Black, White }
 import it.scalachess.core.board.{ Board, Position }
 import it.scalachess.core.logic.moves.{ FullMove, ValidSimpleMove }
 import it.scalachess.core.logic.moves.generators.MoveGenerator
-import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, Piece, Queen }
+import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, Queen }
 import org.scalatest.{ FlatSpec, Inspectors, Matchers, OptionValues }
-import it.scalachess.core.logic.moves.generators.PieceGenerators.PieceWithMoveGenerator
 
 class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with OptionValues {
 
@@ -129,8 +128,6 @@ class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with Opt
     val moves = new MoveGenerator(board, Black).allMoves()
     moves.map(_.validMove).contains(blackQueenMove) should be(true)
     board = board(blackQueenMove.boardChanges)
-    println(board)
-    println(moves.find(_.validMove equals blackQueenMove))
     moves.find(_.validMove equals blackQueenMove).value.resultsInCheckmate shouldBe true
 
     new MoveGenerator(board, White).allMoves().isEmpty should be(true)
@@ -145,7 +142,7 @@ class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with Opt
     val fourthMoveBlackKnight = ValidSimpleMove(Position(2, 8), Position(3, 6), Knight, Black, None)
     val fifthMoveWhiteQueen   = ValidSimpleMove(Position(4, 1), Position(8, 5), Queen, White, None)
     val sixthMoveBlackKnight  = ValidSimpleMove(Position(7, 8), Position(6, 6), Knight, Black, None)
-    val seventhMoveWhiteQueen = ValidSimpleMove(Position(8, 5), Position(6, 7), Queen, White, None)
+    val seventhMoveWhiteQueen = ValidSimpleMove(Position(8, 5), Position(6, 7), Queen, White, Some(Position(6, 7)))
     var board                 = Board.defaultBoard()
 
     board = board(firstMoveWhitePawn.boardChanges)
@@ -155,8 +152,8 @@ class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with Opt
     board = board(fifthMoveWhiteQueen.boardChanges)
     board = board(sixthMoveBlackKnight.boardChanges)
 
-    val moves = new MoveGenerator(board, Black).allMoves()
-    moves.map(_.validMove).contains(seventhMoveWhiteQueen) should be(true)
+    val moves = new MoveGenerator(board, White).allMoves()
+    moves.map(_.validMove).contains(seventhMoveWhiteQueen) shouldBe true
     board = board(seventhMoveWhiteQueen.boardChanges)
 
     moves.find(_.validMove equals seventhMoveWhiteQueen).value.resultsInCheckmate shouldBe true

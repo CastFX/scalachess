@@ -31,11 +31,11 @@ class MoveGenerator(board: Board, player: Color) {
   }
 
   def resultsInCheckmate(move: ValidMove, kingColor: Color): Boolean = {
-    val afterBoard = board.apply(move.boardChanges)
-    val result = new MoveGenerator(afterBoard, kingColor)
+    val afterBoard     = board.apply(move.boardChanges)
+    val afterGenerator = new MoveGenerator(afterBoard, kingColor)
+    afterGenerator
       .validMovesWithoutCheck()
-      .filter(resultsInCheck(_, kingColor))
-    result.isEmpty
+      .forall(afterGenerator.resultsInCheck(_, kingColor))
   }
 
   private def capturesKing(move: ValidMove, kingColor: Color, board: Board): Boolean =
