@@ -2,13 +2,14 @@ package it.scalachess.core.test
 
 import it.scalachess.core.board.Position
 import it.scalachess.core.logic.moves.{ AlgebraicCastling, AlgebraicSimpleMove, Capture, KingSide, QueenSide }
+import it.scalachess.core.parser.Parser
 import it.scalachess.core.parser.Parser.AlgebraicParser
-import it.scalachess.core.pieces.{ Bishop, Pawn, Queen }
-import org.scalatest.{ FlatSpec, Inspectors, Matchers }
+import it.scalachess.core.pieces.{ Bishop, Knight, Pawn, Queen }
+import org.scalatest.{ FlatSpec, Inspectors, Matchers, OptionValues }
 
-class ParserSpec extends FlatSpec with Matchers with Inspectors {
+class ParserSpec extends FlatSpec with Matchers with Inspectors with OptionValues {
 
-  val parser: AlgebraicParser = AlgebraicParser()
+  val parser: Parser.AlgebraicParser.type = AlgebraicParser
 
   "The parser" should "be able to parse moves in algebraic notations" in {
     val movesToBeParsed: Seq[String] =
@@ -35,53 +36,34 @@ class ParserSpec extends FlatSpec with Matchers with Inspectors {
   }
 
   it should "be able to parse a move with capture" in {
-    val position = Position.ofNotation("a2").get
+    val position = Position.ofNotation("a2").value
     parser.parse("Bxa2") shouldEqual Some(
-      AlgebraicSimpleMove(position,
-                          Bishop,
-                          Capture(Some(Bishop), None),
-                          check = false,
-                          checkmate = false,
-                          None,
-                          None,
-                          None))
+      AlgebraicSimpleMove(position, Bishop, Some(Capture(None)), check = false, checkmate = false, None, None, None))
     parser.parse("exa2") shouldEqual Some(
-      AlgebraicSimpleMove(position,
-                          Pawn,
-                          Capture(Some(Pawn), Some('e')),
-                          check = false,
-                          checkmate = false,
-                          None,
-                          None,
-                          None))
+      AlgebraicSimpleMove(position, Pawn, Some(Capture(Some('e'))), check = false, checkmate = false, None, None, None))
   }
 
   it should "be able to parse a move with check" in {
-    val position = Position.ofNotation("a4").get
+    val position = Position.ofNotation("a4").value
     parser.parse("a4+") shouldEqual Some(
-      AlgebraicSimpleMove(position, Pawn, Capture(None, None), check = true, checkmate = false, None, None, None))
+      AlgebraicSimpleMove(position, Pawn, None, check = true, checkmate = false, None, None, None))
   }
 
   it should "be able to parse a move with checkmate" in {
-    val position = Position.ofNotation("a3").get
+    val position = Position.ofNotation("a3").value
     parser.parse("a3#") shouldEqual Some(
-      AlgebraicSimpleMove(position, Pawn, Capture(None, None), check = false, checkmate = true, None, None, None))
+      AlgebraicSimpleMove(position, Pawn, None, check = false, checkmate = true, None, None, None))
   }
 
   it should "be able to parse a move with promotion" in {
-    val position = Position.ofNotation("a3").get
+    val position = Position.ofNotation("a3").value
     parser.parse("a3=Q") shouldEqual Some(
-      AlgebraicSimpleMove(position,
-                          Pawn,
-                          Capture(None, None),
-                          check = false,
-                          checkmate = false,
-                          None,
-                          None,
-                          Some(Queen)))
+      AlgebraicSimpleMove(position, Pawn, None, check = false, checkmate = false, None, None, Some(Queen)))
   }
 
-  it should "not be able to parse a move with promotion made by not a pawn" in {
-    parser.parse("Ra5=Q").isDefined shouldBe false
+  it should "not be able to parse a move with capture with too many arguments" in {
+    parser.parse("NeNxa7=Q") shouldEqual None
+    parser.parse("Neexa7=Q") shouldEqual None
   }
+
 }

@@ -87,8 +87,11 @@ object Position {
    */
   def ofNotation(notation: String): Option[Position] =
     if (notation.length == 2 && notation.charAt(0).isLetter && notation.charAt(1).isDigit) {
-      val col: Int = notation.charAt(0).toLower.toInt - 96
+      val col: Int = colToInt(notation.charAt(0))
       val row: Int = notation.charAt(1).asDigit
       Position.ofCurr(col)(row)
     } else None
+
+  def colToInt(col: Char): Int =
+    col.toLower.toInt - 96
 }

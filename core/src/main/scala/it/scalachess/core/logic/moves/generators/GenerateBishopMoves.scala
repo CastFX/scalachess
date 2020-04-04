@@ -3,11 +3,11 @@ package it.scalachess.core.logic.moves.generators
 import it.scalachess.core.Color
 import it.scalachess.core.board.{ Board, Position }
 import it.scalachess.core.logic.moves.ValidMove
-import it.scalachess.core.pieces.PieceType
+import it.scalachess.core.pieces.Bishop
 
 private[generators] object GenerateBishopMoves extends GeneratePieceMoves {
-  override def apply(pieceType: PieceType, color: Color, board: Board, from: Position): List[ValidMove] =
-    generateLinearMovementSimpleMoves(pieceType,
+  override def apply(color: Color, board: Board, from: Position): List[ValidMove] =
+    generateLinearMovementSimpleMoves(Bishop,
                                       color,
                                       board,
                                       from,
@@ -15,7 +15,7 @@ private[generators] object GenerateBishopMoves extends GeneratePieceMoves {
                                       from.colRightMod,
                                       from.rowUpMod,
                                       List()) ++
-    generateLinearMovementSimpleMoves(pieceType,
+    generateLinearMovementSimpleMoves(Bishop,
                                       color,
                                       board,
                                       from,
@@ -23,7 +23,7 @@ private[generators] object GenerateBishopMoves extends GeneratePieceMoves {
                                       from.colRightMod,
                                       from.rowDownMod,
                                       List()) ++
-    generateLinearMovementSimpleMoves(pieceType,
+    generateLinearMovementSimpleMoves(Bishop,
                                       color,
                                       board,
                                       from,
@@ -31,7 +31,7 @@ private[generators] object GenerateBishopMoves extends GeneratePieceMoves {
                                       from.colLeftMod,
                                       from.rowDownMod,
                                       List()) ++
-    generateLinearMovementSimpleMoves(pieceType,
+    generateLinearMovementSimpleMoves(Bishop,
                                       color,
                                       board,
                                       from,

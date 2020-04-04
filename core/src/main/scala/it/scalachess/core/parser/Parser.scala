@@ -18,7 +18,7 @@ object Parser {
     def parseAll(seq: Seq[T]): Seq[Option[AlgebraicMove]] = seq map parse
   }
 
-  case class AlgebraicParser() extends Parser[String] {
+  object AlgebraicParser extends Parser[String] {
     private val promotablePieces = "[N,B,R,Q]"
     private val pieces           = s"$promotablePieces|K"
     private val cols             = "[a-h]"
@@ -34,20 +34,17 @@ object Parser {
       t match {
         case movePattern(pieces, cols, rows, captured, position, promotable, checked, checkmated) =>
           val endPos: Position             = Position.ofNotation(position).get
-          val capture: Capture             = isCaptured(captured)
+          val capture: Option[Capture]     = captures(captured)
           val check: Boolean               = isChecked(checked)
           val checkmate: Boolean           = isCheckmated(checkmated)
           val col: Option[Char]            = startingCol(cols)
           val row: Option[Int]             = startingRow(rows)
           val promotion: Option[PieceType] = promotionOf(promotable)
           val pieceType: PieceType = capture match {
-            case Capture(Some(piece), _) => Some(piece).get
-            case _                       => pieceOfType(pieces)
+            case Some(Capture(None)) => pieceOfType(captured.charAt(0).toString)
+            case _                   => pieceOfType(pieces)
           }
-          if (promotion.isDefined && pieceType != Pawn)
-            None
-          else
-            Some(AlgebraicSimpleMove(endPos, pieceType, capture, check, checkmate, col, row, promotion))
+          Some(AlgebraicSimpleMove(endPos, pieceType, capture, check, checkmate, col, row, promotion))
         case castleRegex(queenSide, check, checkmate) =>
           Some(
             AlgebraicCastling(if (queenSide == null) KingSide else QueenSide,
@@ -66,12 +63,12 @@ object Parser {
       case "R" => Rook
       case _   => Pawn
     }
-  private def isCaptured(captured: String): Capture =
-    if (captured == null) Capture(None, None)
+  private def captures(captured: String): Option[Capture] =
+    if (captured == null) None
     else {
       captured.charAt(0) match {
-        case 'K' | 'Q' | 'N' | 'R' | 'B' => Capture(Some(pieceOfType(captured.charAt(0).toString)), None)
-        case _                           => Capture(Some(Pawn), Some(captured.charAt(0)))
+        case 'K' | 'Q' | 'N' | 'R' | 'B' => Some(Capture(None))
+        case c: Char                     => Some(Capture(Some(c)))
       }
     }
   private def isChecked(checked: String): Boolean       = if (checked == null) false else true

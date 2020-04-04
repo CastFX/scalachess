@@ -1,8 +1,8 @@
 package it.scalachess.core
 
 import it.scalachess.core.board.Board
-import it.scalachess.core.logic.moves.ValidMove
-import it.scalachess.core.logic.{ IsKingInCheck, IsKingInCheckmate, MoveValidator }
+import it.scalachess.core.logic.moves.FullMove
+import it.scalachess.core.logic.MoveValidator
 import it.scalachess.core.parser.Parser.AlgebraicParser
 import scalaz.{ Failure, Success, Validation }
 
@@ -12,7 +12,6 @@ import scalaz.{ Failure, Success, Validation }
  * @param player The Player (White/Black) who is moving
  * @param turn The turn number of this game
  * @param gameStatus the status of the game
- * @param isKingInCheck true if the king is in check, false otherwise
  * @param moveHistory the history of the moves of this chess game
  */
 final case class ChessGame(
@@ -20,40 +19,24 @@ final case class ChessGame(
     player: Color,
     turn: Int,
     gameStatus: GameStatus,
-    isKingInCheck: Boolean,
-    moveHistory: List[ValidMove]
+    moveHistory: Seq[FullMove]
 ) {
+  lazy val isKingInCheck: Boolean = moveHistory.last.resultsInCheck
 
-  private val moveValidator = MoveValidator(board)
-
-  def apply(move: String): Validation[String, ChessGame] = {
-    val parser: AlgebraicParser = AlgebraicParser()
-    parser.parse(move) match {
-      case None => Failure("Not algebraic format, insert another move ")
-      case Some(parsedMove) =>
-        moveValidator.validateAlgebraicMove(parsedMove, player) match {
-          case Success(validMove) =>
-            val nextBoard = board(validMove.convertInBoardMove)
-            if (IsKingInCheckmate(player.other, nextBoard))
-              Success(
-                ChessGame(nextBoard,
-                          player.other,
-                          turn + 1,
-                          Win(player),
-                          isKingInCheck = true,
-                          moveHistory ::: List(validMove)))
-            else {
-              Success(
-                ChessGame(nextBoard,
-                          player.other,
-                          turn + 1,
-                          Ongoing,
-                          IsKingInCheck(player.other, nextBoard),
-                          moveHistory ::: List(validMove)))
-            }
-          case Failure(errorMsg) => Failure(errorMsg)
-        }
-    }
+  def apply(move: String): Validation[String, ChessGame] = gameStatus match {
+    case Ongoing =>
+      AlgebraicParser.parse(move) match {
+        case None => Failure("Not algebraic format, insert another move")
+        case Some(parsedMove) =>
+          MoveValidator(board, player)(parsedMove) match {
+            case Success(fullMove) =>
+              val nextBoard = board(fullMove.validMove.boardChanges)
+              val result    = if (fullMove.resultsInCheckmate) Win(player) else Ongoing
+              Success(ChessGame(nextBoard, player.other, turn + 1, result, moveHistory :+ fullMove))
+            case error: Failure[String] => error
+          }
+      }
+    case _ => Failure("The game is not ongoing")
   }
 }
 
@@ -64,5 +47,5 @@ object ChessGame {
    * @return An initialized ChessGame instance
    */
   def standard(): ChessGame =
-    ChessGame(Board.defaultBoard(), White, 0, Ongoing, isKingInCheck = false, List())
+    ChessGame(Board.defaultBoard(), White, 0, Ongoing, Seq())
 }
