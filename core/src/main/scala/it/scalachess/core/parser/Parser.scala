@@ -1,13 +1,7 @@
 package it.scalachess.core.parser
 import it.scalachess.core.board.Position
-import it.scalachess.core.logic.moves.{
-  AlgebraicCastling,
-  AlgebraicMove,
-  AlgebraicSimpleMove,
-  Capture,
-  KingSide,
-  QueenSide
-}
+import it.scalachess.core.logic.moves.{ AlgebraicCastling, AlgebraicMove, AlgebraicSimpleMove, KingSide, QueenSide }
+import it.scalachess.core.parser.Parser.AlgebraicParser
 import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, PieceType, Queen, Rook }
 
 import scala.util.matching.Regex
@@ -23,7 +17,7 @@ object Parser {
     private val pieces           = s"$promotablePieces|K"
     private val cols             = "[a-h]"
     private val rows             = "[1-8]"
-    private val capture          = s"(?:$pieces|$cols)x"
+    private val capture          = s"x"
     private val check            = "\\+"
     private val checkmate        = "#"
     private val castleRegex      = s"0-0(-0)?($check)?($checkmate)?".r
@@ -34,17 +28,17 @@ object Parser {
       t match {
         case movePattern(pieces, cols, rows, captured, position, promotable, checked, checkmated) =>
           val endPos: Position             = Position.ofNotation(position).get
-          val capture: Option[Capture]     = captures(captured)
           val checkmate: Boolean           = isCheckmated(checkmated)
           val check: Boolean               = isChecked(checked)
           val col: Option[Char]            = startingCol(cols)
           val row: Option[Int]             = startingRow(rows)
+          val capture: Boolean             = captured != null
           val promotion: Option[PieceType] = promotionOf(promotable)
-          val pieceType: PieceType = capture match {
-            case Some(Capture(None)) => pieceOfType(captured.charAt(0).toString)
-            case _                   => pieceOfType(pieces)
-          }
-          Some(AlgebraicSimpleMove(endPos, pieceType, capture, check, checkmate, col, row, promotion))
+          val pieceType: PieceType         = pieceOfType(pieces)
+          if (capture && (pieces == null && cols == null && rows == null))
+            None
+          else
+            Some(AlgebraicSimpleMove(endPos, pieceType, capture, check, checkmate, col, row, promotion))
         case castleRegex(queenSide, check, checkmate) =>
           Some(
             AlgebraicCastling(if (queenSide == null) KingSide else QueenSide,
@@ -63,14 +57,7 @@ object Parser {
       case "R" => Rook
       case _   => Pawn
     }
-  private def captures(captured: String): Option[Capture] =
-    if (captured == null) None
-    else {
-      captured.charAt(0) match {
-        case 'K' | 'Q' | 'N' | 'R' | 'B' => Some(Capture(None))
-        case c: Char                     => Some(Capture(Some(c)))
-      }
-    }
+
   private def isChecked(checked: String): Boolean       = checked != null
   private def isCheckmated(checkmated: String): Boolean = checkmated != null
   private def startingCol(cols: String): Option[Char]   = if (cols == null) None else Some(cols.charAt(0))
@@ -87,12 +74,12 @@ object Parser {
 
 }
 
-//object Main {
-//  def main(args: Array[String]): Unit = {
-//    val test: Seq[String] =
-//      Seq("Ra3", "e4", "Bb5", "0-0", "0-0-0", "Rae8", "Ra6+", "a4#", "Nb6d7", "xe4", "exe4", "Qxe4", "a3=Q", "Qa3=Q")
-//    val parser: AlgebraicParser = AlgebraicParser()
-//    for (elem <- parser.parseAll(test)) {
-//    }
-//  }
-//}
+object Main {
+  def main(args: Array[String]): Unit = {
+    val test: Seq[String] =
+      Seq("Ra3", "e4", "Bb5", "0-0", "0-0-0", "Rae8", "Ra6+", "a4#", "Nb6d7", "xe4", "exe4", "Qxe4", "a3=Q", "Qa3=Q")
+    for (elem <- AlgebraicParser.parseAll(test)) {
+      println(elem)
+    }
+  }
+}

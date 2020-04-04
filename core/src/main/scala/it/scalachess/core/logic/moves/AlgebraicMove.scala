@@ -8,12 +8,10 @@ import it.scalachess.core.pieces.PieceType
  */
 sealed trait AlgebraicMove
 
-case class Capture(column: Option[Char])
-
 case class AlgebraicSimpleMove(
     endPos: Position,
     pieceType: PieceType,
-    capture: Option[Capture],
+    capture: Boolean,
     check: Boolean,
     checkmate: Boolean,
     startingCol: Option[Char],

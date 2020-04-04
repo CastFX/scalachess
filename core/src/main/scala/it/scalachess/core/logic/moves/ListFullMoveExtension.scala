@@ -33,17 +33,11 @@ object ListFullMoveExtension {
           (isKingInCheckmate == checkMate && checkMate) || (isKingInCheck == check && isKingInCheckmate == checkMate)
       }
 
-    def filterCaptures(capture: Option[Capture]): List[T] = capture match {
-      case Some(capture) =>
-        list.filter {
-          case FullMove(validMove, _, _) =>
-            validMove.capture match {
-              case Some(Position(col, _)) => capture.column.fold(true)(Position.colToInt(_) == col)
-              case _                      => false
-            }
-        }
-      case None => list
-    }
+    def filterCaptures(capture: Boolean): List[T] =
+      list.filter {
+        case FullMove(validMove, _, _) =>
+          (validMove.capture.isEmpty && !capture) || (validMove.capture.isDefined && capture)
+      }
 
     def filterPromotions(promotion: Option[PieceType]): List[T] = promotion match {
       case Some(toPiece) =>
