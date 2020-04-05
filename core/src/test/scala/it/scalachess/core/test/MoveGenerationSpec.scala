@@ -2,15 +2,15 @@ package it.scalachess.core.test
 
 import it.scalachess.core.{ Black, White }
 import it.scalachess.core.board.{ Board, Position }
-import it.scalachess.core.logic.moves.{ FullMove, ValidSimpleMove }
+import it.scalachess.core.logic.moves.{ FullMove, ValidEnPassant, ValidSimpleMove }
 import it.scalachess.core.logic.moves.generators.MoveGenerator
-import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, Queen }
+import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, Piece, Queen }
 import org.scalatest.{ FlatSpec, Inspectors, Matchers, OptionValues }
 
 class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with OptionValues {
 
   "Applying a moveGeneration on a standard board " should "create some specific legal moves" in {
-    val moveGenerator = new MoveGenerator(Board.defaultBoard(), White)
+    val moveGenerator = new MoveGenerator(Board.defaultBoard(), White, Seq())
     val knightsMoves = moveGenerator.allMoves().filter {
       case FullMove(validMove, _, _) =>
         validMove.pieceType match {
@@ -79,28 +79,28 @@ class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with Opt
     val _7_anotherWhiteKingMoveAllowed = ValidSimpleMove(Position(5, 1), Position(6, 1), King, White, None)
     var board                          = Board.defaultBoard()
 
-    new MoveGenerator(board, White).allMoves().map(_.validMove).contains(_1_whitePawnMove) should be(true)
+    new MoveGenerator(board, White, Seq()).allMoves().map(_.validMove).contains(_1_whitePawnMove) should be(true)
     board = board(_1_whitePawnMove.boardChanges)
 
-    new MoveGenerator(board, Black).allMoves().map(_.validMove).contains(_2_firstBlackPawnMove) should be(true)
+    new MoveGenerator(board, Black, Seq()).allMoves().map(_.validMove).contains(_2_firstBlackPawnMove) should be(true)
     board = board(_2_firstBlackPawnMove.boardChanges)
 
-    new MoveGenerator(board, White).allMoves().map(_.validMove).contains(_3_whiteBishopMove) should be(true)
+    new MoveGenerator(board, White, Seq()).allMoves().map(_.validMove).contains(_3_whiteBishopMove) should be(true)
     board = board(_3_whiteBishopMove.boardChanges)
 
-    new MoveGenerator(board, Black).allMoves().map(_.validMove).contains(_4_secondBlackPawnMove) should be(true)
+    new MoveGenerator(board, Black, Seq()).allMoves().map(_.validMove).contains(_4_secondBlackPawnMove) should be(true)
     board = board(_4_secondBlackPawnMove.boardChanges)
 
-    new MoveGenerator(board, White).allMoves().map(_.validMove).contains(_5_secondWhitePawnMove) should be(true)
+    new MoveGenerator(board, White, Seq()).allMoves().map(_.validMove).contains(_5_secondWhitePawnMove) should be(true)
     board = board(_5_secondWhitePawnMove.boardChanges)
 
-    val moves = new MoveGenerator(board, Black).allMoves()
+    val moves = new MoveGenerator(board, Black, Seq()).allMoves()
     moves.map(_.validMove).contains(_6_blackQueenMove) should be(true)
     board = board(_6_blackQueenMove.boardChanges)
 
     moves.find(_.validMove equals _6_blackQueenMove).value.resultsInCheck shouldBe true
 
-    val whiteKingPossibleMoves = new MoveGenerator(board, White).allMoves().map(_.validMove)
+    val whiteKingPossibleMoves = new MoveGenerator(board, White, Seq()).allMoves().map(_.validMove)
     whiteKingPossibleMoves.contains(_7_whiteKingMoveNotAllowed) should be(false)
     whiteKingPossibleMoves.contains(_7_whiteKingMoveAllowed) should be(true)
     whiteKingPossibleMoves.contains(_7_anotherWhiteKingMoveAllowed) should be(true)
@@ -116,21 +116,21 @@ class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with Opt
     val blackQueenMove      = ValidSimpleMove(Position(4, 8), Position(8, 4), Queen, Black, None)
     var board               = Board.defaultBoard()
 
-    new MoveGenerator(board, White).allMoves().map(_.validMove).contains(firstWhitePawnMove) should be(true)
+    new MoveGenerator(board, White, Seq()).allMoves().map(_.validMove).contains(firstWhitePawnMove) should be(true)
     board = board(firstWhitePawnMove.boardChanges)
 
-    new MoveGenerator(board, Black).allMoves().map(_.validMove).contains(blackPawnMove) should be(true)
+    new MoveGenerator(board, Black, Seq()).allMoves().map(_.validMove).contains(blackPawnMove) should be(true)
     board = board(blackPawnMove.boardChanges)
 
-    new MoveGenerator(board, White).allMoves().map(_.validMove).contains(secondWhitePawnMove) should be(true)
+    new MoveGenerator(board, White, Seq()).allMoves().map(_.validMove).contains(secondWhitePawnMove) should be(true)
     board = board(secondWhitePawnMove.boardChanges)
 
-    val moves = new MoveGenerator(board, Black).allMoves()
+    val moves = new MoveGenerator(board, Black, Seq()).allMoves()
     moves.map(_.validMove).contains(blackQueenMove) should be(true)
     board = board(blackQueenMove.boardChanges)
     moves.find(_.validMove equals blackQueenMove).value.resultsInCheckmate shouldBe true
 
-    new MoveGenerator(board, White).allMoves().isEmpty should be(true)
+    new MoveGenerator(board, White, Seq()).allMoves().isEmpty should be(true)
   }
   /*
    * SCHOLAR'S MATE
@@ -152,7 +152,7 @@ class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with Opt
     board = board(fifthMoveWhiteQueen.boardChanges)
     board = board(sixthMoveBlackKnight.boardChanges)
 
-    val moves = new MoveGenerator(board, White).allMoves()
+    val moves = new MoveGenerator(board, White, Seq()).allMoves()
     moves.map(_.validMove).contains(seventhMoveWhiteQueen) shouldBe true
     board = board(seventhMoveWhiteQueen.boardChanges)
 
@@ -161,7 +161,25 @@ class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with Opt
 
   "the first move" should "not result in a checkmate" in {
     val board = Board.defaultBoard()
-    val move  = new MoveGenerator(board, White).allMoves().headOption.value
+    val move  = new MoveGenerator(board, White, Seq()).allMoves().headOption.value
     move.resultsInCheckmate shouldBe false
+  }
+
+  "An en passant" should "be recognised" in {
+    val firstMoveWhitePawn        = ValidSimpleMove(Position(5, 2), Position(5, 4), Pawn, White, None)
+    val secondMoveBlackPawn       = ValidSimpleMove(Position(1, 7), Position(1, 6), Pawn, Black, None)
+    val thirdMoveWhitePawn        = ValidSimpleMove(Position(5, 4), Position(5, 5), Pawn, White, None)
+    val blackPawnTriggerEnPassant = ValidSimpleMove(Position(6, 7), Position(6, 5), Pawn, Black, None)
+    val blackPawnTriggerFullMove =
+      FullMove(blackPawnTriggerEnPassant, resultsInCheck = false, resultsInCheckmate = false)
+    val shouldEnPassant = ValidEnPassant(Position(5, 5), Position(6, 6), White, Position(6, 5))
+    val moves           = Seq(firstMoveWhitePawn, secondMoveBlackPawn, thirdMoveWhitePawn, blackPawnTriggerEnPassant)
+    var board: Board    = Board.defaultBoard()
+    moves.foreach(move => board = board(move.boardChanges))
+    val validMoves = new MoveGenerator(board, White, Seq(blackPawnTriggerFullMove)).allMoves()
+    validMoves.map(_.validMove).contains(shouldEnPassant) shouldBe true
+    board = board(shouldEnPassant.boardChanges)
+    board.pieceAtPosition(Position(6, 6)).value shouldEqual Piece(White, Pawn)
+    board.pieceAtPosition(Position(6, 5)).isEmpty shouldBe true
   }
 }

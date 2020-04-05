@@ -8,8 +8,8 @@ import it.scalachess.core.logic.moves.ListFullMoveExtension.ListFullMove
 import scalaz.{ Failure, Success, Validation }
 
 object MoveValidator {
-  def apply(board: Board, player: Color)(move: AlgebraicMove): Validation[String, FullMove] = {
-    val fullMoves: List[FullMove] = new MoveGenerator(board, player)
+  def apply(board: Board, player: Color, history: Seq[FullMove])(move: AlgebraicMove): Validation[String, FullMove] = {
+    val fullMoves: List[FullMove] = new MoveGenerator(board, player, history)
       .allMoves()
 
     val equivalentMoves: List[FullMove] = move match {

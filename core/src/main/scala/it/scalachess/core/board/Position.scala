@@ -14,14 +14,14 @@ final case class Position(col: Int, row: Int) {
   lazy val rowDownMod: Int  = -1
   lazy val rowUpMod: Int    = 1
 
-  lazy val posLeft: Option[Position]  = Position.ofCurr(col - colLeftMod)(row)
+  lazy val posLeft: Option[Position]  = Position.ofCurr(col + colLeftMod)(row)
   lazy val posRight: Option[Position] = Position.ofCurr(col + colRightMod)(row)
-  lazy val posDown: Option[Position]  = Position.ofCurr(col)(row - rowDownMod)
+  lazy val posDown: Option[Position]  = Position.ofCurr(col)(row + rowDownMod)
   lazy val posUp: Option[Position]    = Position.ofCurr(col)(row + rowUpMod)
 
-  lazy val posDownLeft: Option[Position]  = Position.ofCurr(col - colLeftMod)(row - rowDownMod)
-  lazy val posDownRight: Option[Position] = Position.ofCurr(col + colRightMod)(row - rowDownMod)
-  lazy val posUpLeft: Option[Position]    = Position.ofCurr(col - colLeftMod)(row + rowUpMod)
+  lazy val posDownLeft: Option[Position]  = Position.ofCurr(col + colLeftMod)(row + rowDownMod)
+  lazy val posDownRight: Option[Position] = Position.ofCurr(col + colRightMod)(row + rowDownMod)
+  lazy val posUpLeft: Option[Position]    = Position.ofCurr(col + colLeftMod)(row + rowUpMod)
   lazy val posUpRight: Option[Position]   = Position.ofCurr(col + colRightMod)(row + rowUpMod)
 
   lazy val adjacentPositions: Set[Position] =
