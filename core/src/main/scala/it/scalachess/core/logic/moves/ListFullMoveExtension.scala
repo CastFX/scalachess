@@ -3,6 +3,9 @@ package it.scalachess.core.logic.moves
 import it.scalachess.core.board.Position
 import it.scalachess.core.pieces.PieceType
 
+/**
+ * An extension of a list of full move to implement the possibility of having specific filters
+ */
 object ListFullMoveExtension {
   def apply[T <: FullMove](implicit a: ListFullMove[T]): ListFullMove[T] = a
 

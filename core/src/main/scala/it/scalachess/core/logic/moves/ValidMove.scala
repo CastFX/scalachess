@@ -39,6 +39,13 @@ final case class ValidSimpleMove(from: Position,
     )
 }
 
+/**
+ * Definition of a valid en passant
+ * @param from the starting position of the piece
+ * @param to the ending position of the piece
+ * @param color the color of the piece
+ * @param capturedPawn the pawn that is captured after the piece is moved
+ */
 final case class ValidEnPassant(from: Position, to: Position, color: Color, capturedPawn: Position) extends ValidMove {
 
   val pieceType: PieceType      = Pawn
@@ -50,6 +57,14 @@ final case class ValidEnPassant(from: Position, to: Position, color: Color, capt
     )
 }
 
+/**
+ * Definition of a valid promotion
+ * @param from the starting position of the piece
+ * @param to the ending position of the piece
+ * @param color the color of the piece
+ * @param promotesTo the piece that the starting piece should be promoted to
+ * @param capture the position of the piece to capture if the move results in a capture
+ */
 final case class ValidPromotion(from: Position,
                                 to: Position,
                                 color: Color,
@@ -65,6 +80,15 @@ final case class ValidPromotion(from: Position,
     )
 }
 
+/**
+ * Definition of a valid Castling
+ * @param from the starting position of the King
+ * @param to the ending position of the King
+ * @param color the color of the King
+ * @param rookFrom the starting position of the Rook
+ * @param rookTo the ending position of the Rook
+ * @param castlingType the type of the Castling: QueenSide or KingSide
+ */
 final case class ValidCastling(from: Position,
                                to: Position,
                                color: Color,

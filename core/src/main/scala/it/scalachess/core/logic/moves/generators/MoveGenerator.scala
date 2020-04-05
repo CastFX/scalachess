@@ -9,7 +9,7 @@ import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, Piece, Queen, Roo
 class MoveGenerator(board: Board, player: Color, history: Seq[FullMove]) {
 
   /**
-   * All valid moves, except the one that leaves the king in check.
+   * A list of valid moves, except the ones that leave the king in check.
    * @return a list of full moves.
    */
   def allMoves(): List[FullMove] =
@@ -17,20 +17,20 @@ class MoveGenerator(board: Board, player: Color, history: Seq[FullMove]) {
       .map(move => FullMove(move, resultsInCheck(move, player.other), resultsInCheckmate(move, player.other)))
       .filter(move => !resultsInCheck(move.validMove, player))
 
-  def validMovesWithoutCheck(): List[ValidMove] =
+  private def validMovesWithoutCheck(): List[ValidMove] =
     board.pieces
       .filter(_._2.color == player)
       .flatMap { case (pos, piece) => piece.validMoves(pos, board, history) }
       .toList
 
-  def resultsInCheck(move: ValidMove, kingColor: Color): Boolean = {
+  private def resultsInCheck(move: ValidMove, kingColor: Color): Boolean = {
     val afterBoard = board.apply(move.boardChanges)
     new MoveGenerator(afterBoard, kingColor.other, history)
       .validMovesWithoutCheck()
       .exists(capturesKing(_, kingColor, afterBoard))
   }
 
-  def resultsInCheckmate(move: ValidMove, kingColor: Color): Boolean = {
+  private def resultsInCheckmate(move: ValidMove, kingColor: Color): Boolean = {
     val afterBoard     = board.apply(move.boardChanges)
     val afterGenerator = new MoveGenerator(afterBoard, kingColor, history)
     afterGenerator

@@ -1,7 +1,6 @@
 package it.scalachess.core.parser
 import it.scalachess.core.board.Position
 import it.scalachess.core.logic.moves.{ AlgebraicCastling, AlgebraicMove, AlgebraicSimpleMove, KingSide, QueenSide }
-import it.scalachess.core.parser.Parser.AlgebraicParser
 import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, PieceType, Queen, Rook }
 
 import scala.util.matching.Regex
@@ -12,6 +11,9 @@ object Parser {
     def parseAll(seq: Seq[T]): Seq[Option[AlgebraicMove]] = seq map parse
   }
 
+  /**
+   * Can be used to parse a move that the player writes as input
+   */
   object AlgebraicParser extends Parser[String] {
     private val promotablePieces = "[N,B,R,Q]"
     private val pieces           = s"$promotablePieces|K"
@@ -24,6 +26,11 @@ object Parser {
     private val movePattern: Regex =
       s"($pieces)?($cols)?($rows)?($capture)?($cols$rows)(=$promotablePieces)?($check)?($checkmate)?".r
 
+    /**
+     * Parse the given player input
+     * @param t the input of the player
+     * @return an AlgebraicMove if the input can be parsed, None otherwise
+     */
     override def parse(t: String): Option[AlgebraicMove] =
       t match {
         case movePattern(pieces, cols, rows, captured, position, promotable, checked, checkmated) =>
@@ -74,12 +81,11 @@ object Parser {
 
 }
 
-object Main {
-  def main(args: Array[String]): Unit = {
-    val test: Seq[String] =
-      Seq("Ra3", "e4", "Bb5", "0-0", "0-0-0", "Rae8", "Ra6+", "a4#", "Nb6d7", "xe4", "exe4", "Qxe4", "a3=Q", "Qa3=Q")
-    for (elem <- AlgebraicParser.parseAll(test)) {
-      println(elem)
-    }
-  }
-}
+//object Main {
+//  def main(args: Array[String]): Unit = {
+//    val test: Seq[String] =
+//      Seq("Ra3", "e4", "Bb5", "0-0", "0-0-0", "Rae8", "Ra6+", "a4#", "Nb6d7", "xe4", "exe4", "Qxe4", "a3=Q", "Qa3=Q")
+//    for (elem <- AlgebraicParser.parseAll(test)) {
+//    }
+//  }
+//}

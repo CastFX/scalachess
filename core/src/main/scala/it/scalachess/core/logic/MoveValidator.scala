@@ -7,7 +7,19 @@ import it.scalachess.core.logic.moves.{ AlgebraicCastling, AlgebraicMove, Algebr
 import it.scalachess.core.logic.moves.ListFullMoveExtension.ListFullMove
 import scalaz.{ Failure, Success, Validation }
 
+/**
+ * It can be used to validate a move
+ */
 object MoveValidator {
+
+  /**
+   * Validates a move
+   * @param board the board where the move should be valid
+   * @param player the player trying to make the move
+   * @param history the history of the moves of the chess game
+   * @param move the move the player is trying to make
+   * @return a Failure if the move is not valid, a FullMove otherwise
+   */
   def apply(board: Board, player: Color, history: Seq[FullMove])(move: AlgebraicMove): Validation[String, FullMove] = {
     val fullMoves: List[FullMove] = new MoveGenerator(board, player, history)
       .allMoves()

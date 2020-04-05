@@ -14,17 +14,18 @@ private[generators] object GeneratePawnSpecialMoves extends GeneratePieceSpecial
     history.lastOption match {
       case None => List()
       case Some(move) =>
-        if ((move.validMove.from.row - move.validMove.to.row != 2) && move.validMove.pieceType != Pawn) {
+        val position = move.validMove.to
+        if (isForwardTwoSquares(move.validMove) && isCloseTo(position, from))
+          List(ValidEnPassant(from, position.posUp.get, color, position))
+        else
           List()
-        } else {
-          val posLeft  = move.validMove.to.posLeft
-          val posRight = move.validMove.to.posRight
-          val posUp    = move.validMove.to.posUp
-          if (posLeft.isDefined && posLeft.get == from || posRight.isDefined && posRight.get == from) {
-            List(ValidEnPassant(from, posUp.get, color, move.validMove.to))
-          } else {
-            List()
-          }
-        }
     }
+  private def isCloseTo(position: Position, to: Position): Boolean = {
+    val posLeft  = position.posLeft
+    val posRight = position.posRight
+    (posLeft.isDefined && posLeft.get == to) || (posRight.isDefined && posRight.get == to)
+  }
+
+  private def isForwardTwoSquares(validMove: ValidMove): Boolean =
+    (validMove.from.row - validMove.to.row).abs == 2 && validMove.pieceType == Pawn
 }
