@@ -246,4 +246,20 @@ class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with Opt
     Seq(kingMove, whiteMove).foreach(move => board = board(move.boardChanges))
     new MoveGenerator(board, Black, Seq(fullMoveWhite)).allMoves().map(_.validMove).contains(castling) shouldBe false
   }
+
+  "At the start of a game, a castling" should "not be allowed" in {
+    var board: Board = Board.defaultBoard()
+    val castlingBlackKing =
+      ValidCastling(Position(5, 8), Position(7, 8), Black, Position(8, 8), Position(6, 8), KingSide)
+    val castlingBlackQueen =
+      ValidCastling(Position(5, 8), Position(3, 8), Black, Position(1, 8), Position(4, 8), QueenSide)
+    val castlingWhiteQueen =
+      ValidCastling(Position(5, 1), Position(3, 1), White, Position(1, 1), Position(4, 1), QueenSide)
+    val castlingWhiteKing =
+      ValidCastling(Position(5, 1), Position(7, 1), White, Position(8, 1), Position(6, 1), KingSide)
+    new MoveGenerator(board, Black, Seq()).allMoves().map(_.validMove).contains(castlingBlackKing) shouldBe false
+    new MoveGenerator(board, Black, Seq()).allMoves().map(_.validMove).contains(castlingBlackQueen) shouldBe false
+    new MoveGenerator(board, White, Seq()).allMoves().map(_.validMove).contains(castlingWhiteKing) shouldBe false
+    new MoveGenerator(board, White, Seq()).allMoves().map(_.validMove).contains(castlingWhiteQueen) shouldBe false
+  }
 }

@@ -26,9 +26,9 @@ final case class ChessGame(
   def apply(move: String): Validation[String, ChessGame] = gameStatus match {
     case Ongoing =>
       AlgebraicParser.parse(move) match {
-        case None => Failure("Not algebraic format, insert another move")
-        case Some(parsedMove) =>
-          MoveValidator(board, player, moveHistory)(parsedMove) match {
+        case Failure(error) => Failure(error)
+        case Success(algebraicMove) =>
+          MoveValidator(board, player, moveHistory)(algebraicMove) match {
             case Success(fullMove) =>
               val nextBoard = board(fullMove.validMove.boardChanges)
               val result    = if (fullMove.resultsInCheckmate) Win(player) else Ongoing

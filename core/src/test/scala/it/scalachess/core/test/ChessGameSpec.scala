@@ -178,4 +178,13 @@ class ChessGameSpec extends FlatSpec with Matchers with OptionValues {
     castlingGame.board.pieceAtPosition(Position(7, 8)).value shouldBe Piece(Black, King)
     castlingGame.board.pieceAtPosition(Position(6, 8)).value shouldBe Piece(Black, Rook)
   }
+
+  "At the start of a game, a castling" should "not be allowed" in {
+    val game: ChessGame = ChessGame.standard()
+    val castlingKing    = "0-0-0"
+    val castlingQueen   = "0-0"
+    game(castlingKing).toOption.isDefined shouldBe false
+    game(castlingQueen).toOption.isDefined shouldBe false
+  }
+
 }

@@ -2,13 +2,14 @@ package it.scalachess.core.parser
 import it.scalachess.core.board.Position
 import it.scalachess.core.logic.moves.{ AlgebraicCastling, AlgebraicMove, AlgebraicSimpleMove, KingSide, QueenSide }
 import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, PieceType, Queen, Rook }
+import scalaz.{ Failure, Success, Validation }
 
 import scala.util.matching.Regex
 
 object Parser {
   abstract class Parser[T] {
-    def parse(t: T): Option[AlgebraicMove]
-    def parseAll(seq: Seq[T]): Seq[Option[AlgebraicMove]] = seq map parse
+    def parse(t: T): Validation[String, AlgebraicMove]
+    def parseAll(seq: Seq[T]): Seq[Validation[String, AlgebraicMove]] = seq map parse
   }
 
   /**
@@ -25,13 +26,14 @@ object Parser {
     private val castleRegex      = s"0-0(-0)?($check)?($checkmate)?".r
     private val movePattern: Regex =
       s"($pieces)?($cols)?($rows)?($capture)?($cols$rows)(=$promotablePieces)?($check)?($checkmate)?".r
+    private val parsingError = "The move inserted is not in algebraic format, insert another move."
 
     /**
      * Parse the given player input
      * @param t the input of the player
      * @return an AlgebraicMove if the input can be parsed, None otherwise
      */
-    override def parse(t: String): Option[AlgebraicMove] =
+    override def parse(t: String): Validation[String, AlgebraicMove] =
       t match {
         case movePattern(pieces, cols, rows, captured, position, promotable, checked, checkmated) =>
           val endPos: Position             = Position.ofNotation(position).get
@@ -43,15 +45,15 @@ object Parser {
           val promotion: Option[PieceType] = promotionOf(promotable)
           val pieceType: PieceType         = pieceOfType(pieces)
           if (capture && (pieces == null && cols == null && rows == null))
-            None
+            Failure(parsingError)
           else
-            Some(AlgebraicSimpleMove(endPos, pieceType, capture, check, checkmate, col, row, promotion))
+            Success(AlgebraicSimpleMove(endPos, pieceType, capture, check, checkmate, col, row, promotion))
         case castleRegex(queenSide, check, checkmate) =>
-          Some(
+          Success(
             AlgebraicCastling(if (queenSide == null) KingSide else QueenSide,
                               isChecked(check),
                               isCheckmated(checkmate)))
-        case _ => None
+        case _ => Failure(parsingError)
       }
   }
 
