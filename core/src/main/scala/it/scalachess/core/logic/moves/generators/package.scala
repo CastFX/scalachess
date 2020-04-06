@@ -18,10 +18,10 @@ package object generators {
       case None => Failure(s"${pieceType.name}'s movement: the end position doesn't exist in the board")
       case Some(to) =>
         board.pieceAtPosition(to) match {
-          case None => Success(ValidSimpleMove(pieceType, player, from, to, None))
+          case None => Success(ValidSimpleMove(from, to, pieceType, player, None))
           case Some(pieceToCapture) =>
             pieceToCapture.color match {
-              case player.other => Success(ValidSimpleMove(pieceType, player, from, to, Some(pieceToCapture)))
+              case player.other => Success(ValidSimpleMove(from, to, pieceType, player, Some(to)))
               case _            => Failure(s"${pieceType.name}'s movement: can't attack an ally piece")
             }
         }
@@ -41,7 +41,7 @@ package object generators {
       case Success(validMove) =>
         validMove match {
           case validSimpleMove: ValidSimpleMove =>
-            validSimpleMove.capturedPiece match {
+            validSimpleMove.capture match {
               case Some(_) => simpleValidMoves.::(validSimpleMove) // the move which captures a piece is been generated
               case None => // processing the next position
                 to match {

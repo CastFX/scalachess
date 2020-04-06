@@ -8,7 +8,7 @@ class PositionSpec extends FlatSpec with Matchers with OptionValues with Inspect
     Map("a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4, "e" -> 5, "f" -> 6, "g" -> 7, "h" -> 8)
 
   val allPositions: Seq[Position] = {
-    for (row <- 1 to Board.width; col <- 1 to Board.height) yield Position.ofCurr(row)(col)
+    for (row <- 1 to Board.width; col <- 1 to Board.height) yield Position.of(col, row)
   }.flatten
 
   "Each position expressed as a string" should "have the correct coordinate values" in {
@@ -60,20 +60,20 @@ class PositionSpec extends FlatSpec with Matchers with OptionValues with Inspect
 
     val outerPositions = outerDownRow ++ outerUpRow ++ outerLeftColumn ++ outerRightColumn
     outerPositions should not be empty
-    all(outerPositions) should not be defined
+    all(outerPositions) should not be 'defined
   }
 
   "rowDistance between positions on different rows" should "be equal to the difference in row value" in {
     val rowValueCombinations = (1 to Board.height).combinations(2).toList
     forAll(rowValueCombinations) {
       case Vector(rowN1: Int, rowN2: Int) =>
-        val row_1 = (1 to Board.width) flatMap { Position.ofCurr(_)(rowN1) }
+        val row_1 = (1 to Board.width) flatMap { Position.of(_, rowN1) }
         row_1 should not be empty
         forAll(row_1) { p =>
           p.row should equal(rowN1)
         }
 
-        val row_2 = (1 to Board.width) flatMap { Position.ofCurr(_)(rowN2) }
+        val row_2 = (1 to Board.width) flatMap { Position.of(_, rowN2) }
         row_2 should not be empty
         forAll(row_2) { p =>
           p.row should equal(rowN2)
@@ -91,13 +91,13 @@ class PositionSpec extends FlatSpec with Matchers with OptionValues with Inspect
     val columnValueCombinations = (1 to Board.width).combinations(2).toList
     forAll(columnValueCombinations) {
       case Vector(colN1: Int, colN2: Int) =>
-        val col_1 = (1 to Board.height) flatMap { Position.ofCurr(colN1) }
+        val col_1 = (1 to Board.height) flatMap { Position.of(colN1, _) }
         col_1 should not be empty
         forAll(col_1) { p =>
           p.col should equal(colN1)
         }
 
-        val col_2 = (1 to Board.height) flatMap { Position.ofCurr(colN2) }
+        val col_2 = (1 to Board.height) flatMap { Position.of(colN2, _) }
         col_2 should not be empty
         forAll(col_2) { p =>
           p.col should equal(colN2)
