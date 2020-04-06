@@ -6,7 +6,6 @@ import it.scalachess.core.parser.Parser
 import it.scalachess.core.parser.Parser.AlgebraicParser
 import it.scalachess.core.pieces.{ Bishop, Pawn, Queen }
 import org.scalatest.{ FlatSpec, Inspectors, Matchers, OptionValues }
-import scalaz.{ Failure, Success }
 
 class ParserSpec extends FlatSpec with Matchers with Inspectors with OptionValues {
 

@@ -248,7 +248,7 @@ class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with Opt
   }
 
   "At the start of a game, a castling" should "not be allowed" in {
-    var board: Board = Board.defaultBoard()
+    val board: Board = Board.defaultBoard()
     val castlingBlackKing =
       ValidCastling(Position(5, 8), Position(7, 8), Black, Position(8, 8), Position(6, 8), KingSide)
     val castlingBlackQueen =
