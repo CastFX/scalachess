@@ -1,14 +1,15 @@
 package it.scalachess.core.test
 
+import it.scalachess.core.board.Board.BoardChanges
 import it.scalachess.core.{ Black, White }
-import it.scalachess.core.board.Board
-import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, Queen, Rook }
-import org.scalatest.{ FlatSpec, Inspectors, Matchers }
+import it.scalachess.core.board.{ Board, Position }
+import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, Piece, PieceType, Queen, Rook }
+import org.scalatest.{ FlatSpec, Inspectors, Matchers, OptionValues }
 
-class BoardSpec extends FlatSpec with Matchers with Inspectors {
+class BoardSpec extends FlatSpec with Matchers with Inspectors with OptionValues {
 
   val initialBoard: Board = Board.defaultBoard()
-  val piecesPerType = Map(
+  val piecesPerType: Map[PieceType, Int] = Map(
     Pawn   -> 16,
     Rook   -> 4,
     Knight -> 4,
@@ -16,10 +17,10 @@ class BoardSpec extends FlatSpec with Matchers with Inspectors {
     King   -> 2,
     Queen  -> 2
   )
-  val pawnRowsNumbers  = Seq(2, 7)
-  val majorRowsNumbers = Seq(1, 8)
-  val whiteRowsNumbers = Seq(1, 2)
-  val blackRowsNumbers = Seq(7, 8)
+  val pawnRowsNumbers: Seq[Int]  = Seq(2, 7)
+  val majorRowsNumbers: Seq[Int] = Seq(1, 8)
+  val whiteRowsNumbers: Seq[Int] = Seq(1, 2)
+  val blackRowsNumbers: Seq[Int] = Seq(7, 8)
   val pieceRowsNumbers: Seq[Int] = whiteRowsNumbers union blackRowsNumbers
 
   "A standard board" should
@@ -106,5 +107,41 @@ class BoardSpec extends FlatSpec with Matchers with Inspectors {
     forAll(initialBoard.pieces.keys) { pos =>
       pieceRowsNumbers should contain(pos.row)
     }
+  }
+
+  "Apply the promotion move" should "just moves a piece and promote it, on a standard board" in {
+    val pawnToPromotedPosFrom = Position(1, 2)
+    val pawnToPromotedPosTo   = Position(1, 3)
+    val queenPiece            = Piece(White, Queen)
+    val board                 = Board.defaultBoard()
+    val boardAfterPromotion   = board(BoardChanges(Map(pawnToPromotedPosTo -> queenPiece), Set(pawnToPromotedPosFrom)))
+    boardAfterPromotion.pieceAtPosition(pawnToPromotedPosTo).value should equal(queenPiece)
+    boardAfterPromotion.pieceAtPosition(pawnToPromotedPosFrom) should equal(None)
+  }
+
+  "Apply the castling move" should "just shifts the two piece involved, on a standard board" in {
+    val king          = Piece(White, King)
+    val kingPosition  = Position(5, 1)
+    val kingFinalPos  = Position(7, 1)
+    val rook          = Piece(White, Rook)
+    val rookPosition  = Position(8, 1)
+    val rookFinalPos  = Position(6, 1)
+    val standardBoard = Board.defaultBoard()
+    val boardAfterCastling =
+      standardBoard(BoardChanges(Map(kingFinalPos -> king, rookFinalPos -> rook), Set(kingPosition, rookPosition)))
+    boardAfterCastling.pieceAtPosition(rookFinalPos).value should equal(rook)
+    boardAfterCastling.pieceAtPosition(kingFinalPos).value should equal(king)
+  }
+
+  "Apply the enPassant move" should "moves the piece moved and captured the other" in {
+    val pawnMoved       = Piece(White, Pawn)
+    val pawnPosFrom     = Position(1, 2)
+    val pawnPosTo       = Position(2, 3)
+    val pawnCapturedPos = Position(1, 7)
+    val standardBoard   = Board.defaultBoard()
+    val boardAfterEnPassant =
+      standardBoard.apply(BoardChanges(Map(pawnPosTo -> pawnMoved), Set(pawnPosFrom, pawnCapturedPos)))
+    boardAfterEnPassant.pieceAtPosition(pawnPosTo).value should equal(pawnMoved)
+    boardAfterEnPassant.pieceAtPosition(pawnCapturedPos) should equal(None)
   }
 }

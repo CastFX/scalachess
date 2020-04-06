@@ -8,7 +8,7 @@ class PositionSpec extends FlatSpec with Matchers with OptionValues with Inspect
     Map("a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4, "e" -> 5, "f" -> 6, "g" -> 7, "h" -> 8)
 
   val allPositions: Seq[Position] = {
-    for (row <- 1 to Board.width; col <- 1 to Board.height) yield Position.of(row)(col)
+    for (row <- 1 to Board.width; col <- 1 to Board.height) yield Position.of(col, row)
   }.flatten
 
   "Each position expressed as a string" should "have the correct coordinate values" in {
@@ -25,10 +25,10 @@ class PositionSpec extends FlatSpec with Matchers with OptionValues with Inspect
 
   "up, down, left, right" should "be idempotent" in {
     val c5                = Position.ofNotation("c5").get
-    val upDownC5          = c5.up.value.down.value
-    val leftRightC5       = c5.left.value.right.value
-    val upLeftDownRightC5 = c5.upLeft.value.downRight.value
-    val upRightDownLeftC5 = c5.upRight.value.downLeft.value
+    val upDownC5          = c5.posUp.value.posDown.value
+    val leftRightC5       = c5.posLeft.value.posRight.value
+    val upLeftDownRightC5 = c5.posUpLeft.value.posDownRight.value
+    val upRightDownLeftC5 = c5.posUpRight.value.posDownLeft.value
 
     all(Seq(upDownC5, leftRightC5, upLeftDownRightC5, upRightDownLeftC5)) should equal(c5)
   }
@@ -37,25 +37,25 @@ class PositionSpec extends FlatSpec with Matchers with OptionValues with Inspect
     val outerDownRow = allPositions
       .filter { _.row == 1 }
       .flatMap { p =>
-        Seq(p.downLeft, p.downRight, p.down)
+        Seq(p.posDownLeft, p.posDownRight, p.posDown)
       }
 
     val outerUpRow = allPositions
       .filter { _.row == Board.height }
       .flatMap { p =>
-        Seq(p.upLeft, p.upRight, p.up)
+        Seq(p.posUpLeft, p.posUpRight, p.posUp)
       }
 
     val outerLeftColumn = allPositions
       .filter { _.col == 1 }
       .flatMap { p =>
-        Seq(p.downLeft, p.upLeft, p.left)
+        Seq(p.posDownLeft, p.posUpLeft, p.posLeft)
       }
 
     val outerRightColumn = allPositions
       .filter { _.col == Board.width }
       .flatMap { p =>
-        Seq(p.downRight, p.upRight, p.right)
+        Seq(p.posDownRight, p.posUpRight, p.posRight)
       }
 
     val outerPositions = outerDownRow ++ outerUpRow ++ outerLeftColumn ++ outerRightColumn
@@ -67,13 +67,13 @@ class PositionSpec extends FlatSpec with Matchers with OptionValues with Inspect
     val rowValueCombinations = (1 to Board.height).combinations(2).toList
     forAll(rowValueCombinations) {
       case Vector(rowN1: Int, rowN2: Int) =>
-        val row_1 = (1 to Board.width) flatMap { Position.of(_)(rowN1) }
+        val row_1 = (1 to Board.width) flatMap { Position.of(_, rowN1) }
         row_1 should not be empty
         forAll(row_1) { p =>
           p.row should equal(rowN1)
         }
 
-        val row_2 = (1 to Board.width) flatMap { Position.of(_)(rowN2) }
+        val row_2 = (1 to Board.width) flatMap { Position.of(_, rowN2) }
         row_2 should not be empty
         forAll(row_2) { p =>
           p.row should equal(rowN2)
@@ -91,13 +91,13 @@ class PositionSpec extends FlatSpec with Matchers with OptionValues with Inspect
     val columnValueCombinations = (1 to Board.width).combinations(2).toList
     forAll(columnValueCombinations) {
       case Vector(colN1: Int, colN2: Int) =>
-        val col_1 = (1 to Board.height) flatMap { Position.of(colN1) }
+        val col_1 = (1 to Board.height) flatMap { Position.of(colN1, _) }
         col_1 should not be empty
         forAll(col_1) { p =>
           p.col should equal(colN1)
         }
 
-        val col_2 = (1 to Board.height) flatMap { Position.of(colN2) }
+        val col_2 = (1 to Board.height) flatMap { Position.of(colN2, _) }
         col_2 should not be empty
         forAll(col_2) { p =>
           p.col should equal(colN2)
