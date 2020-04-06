@@ -15,17 +15,13 @@ class ParserSpec extends FlatSpec with Matchers with Inspectors with OptionValue
   "The parser" should "be able to parse moves in algebraic notations" in {
     val movesToBeParsed: Seq[String] =
       Seq("e4", "Re4", "0-0", "0-0-0", "Rae8", "Ra6+", "a4#", "Nb6d7", "exe4", "Qxe4")
-    parser.parseAll(movesToBeParsed).forall {
-      case Success(_) => true
-    }
+    parser.parseAll(movesToBeParsed).foreach(move => move.toOption.isDefined shouldBe true)
   }
 
   it should "not be able to parse invalid moves" in {
     val invalidMovesToBeParsed: Seq[String] =
       Seq("move", "a", "aa", "33", "+", "#", "xe3", "", " ")
-    parser.parseAll(invalidMovesToBeParsed).forall {
-      case Failure(_) => true
-    }
+    parser.parseAll(invalidMovesToBeParsed).foreach(move => move.toOption.isEmpty shouldBe true)
   }
 
   it should "be able to parse a castling king side" in {
