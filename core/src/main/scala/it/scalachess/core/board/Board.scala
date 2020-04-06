@@ -1,27 +1,14 @@
 package it.scalachess.core.board
 
+import it.scalachess.core.board.Board.BoardChanges
+import it.scalachess.core.{ Black, Color, White }
 import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, Piece, PieceType, Queen, Rook }
-import it.scalachess.core.colors.{ Black, Color, White }
-import it.scalachess.core.logic.ValidMove
 
 /**
  * Functional chess board representation
  * @param pieces a map Position -> Piece.
  */
-final case class Board(
-    pieces: Map[Position, Piece]
-) {
-
-  lazy val kingPositions: Map[Color, Position] = pieces collect {
-    case (pos, Piece(color, King)) => (color -> pos)
-  }
-
-  /**
-   * Creates a valid king position, only if the king having the color specified is present
-   * @param color of the king to get
-   * @return position of the king
-   */
-  def kingPositionOf(color: Color): Option[Position] = kingPositions get color
+final case class Board(pieces: Map[Position, Piece]) {
 
   /**
    * Returns an Option type of the Piece at a certain Position, if present
@@ -31,14 +18,6 @@ final case class Board(
   def pieceAtPosition(pos: Position): Option[Piece] = pieces get pos
 
   /**
-   * Curried function of pieceAt, to get the Piece at the passed coordinates
-   * @param col numerical value of column
-   * @param row number of the row
-   * @return an Option[Piece] with the respective Piece at that coordinates, None if it's empty
-   */
-  def pieceAtCoordinates(col: Int)(row: Int): Option[Piece] = Position.of(row)(col) flatMap { pieces get }
-
-  /**
    * Retrieves a Piece under a certain position, if it's present
    * @param notation String notation of the Position, e.g "a1", "h8"
    * @return an Option[Piece] with the respective Piece at those coordinates, None if there isn't any
@@ -46,15 +25,34 @@ final case class Board(
   def pieceAt(notation: String): Option[Piece] = Position.ofNotation(notation) flatMap { pieces get }
 
   /**
-   * Apply a correct move to the board.
+   * Applies a move on the board. There is a strong assumption in this method:
+   * it doesn't perform any logic check, it just make sures that the arguments
+   * passed as input exists in its domain, then executes the related changes
+   * @param changes containing the information for change the board
+   * @return the board with changes
    */
-  def apply(validMove: ValidMove): Board =
-    Board(pieces + (validMove.to -> validMove.piece) - validMove.from)
+  def apply(changes: BoardChanges): Board = Board(pieces -- changes.deletions ++ changes.updates)
+
+  def kingPos(ofColor: Color): Option[Position] =
+    pieces
+      .filter {
+        case (_, Piece(color, pieceType)) =>
+          ofColor == color && pieceType == King
+      }
+      .keys
+      .headOption
+
 }
 
 object Board {
-  val width: Int  = 8
-  val height: Int = 8
+  final case class BoardChanges(updates: Map[Position, Piece], deletions: Set[Position])
+
+  val width: Int                  = 8
+  val height: Int                 = 8
+  val whiteMajorPiecesStartingRow = 1
+  val whitePawnsStartingRow       = 2
+  val blackMajorPiecesStartingRow = 8
+  val blackPawnsStartingRow       = 7
 
   /**
    * Function to check if a certain position expressed with row and column is inside this board
@@ -73,7 +71,7 @@ object Board {
       for (row <- Seq(1, 2, height - 1, height); //for rows 1,2 7,8
            col <- 1 to 8) yield { //for each column [a-h]
         Position
-          .of(col)(row) //from the position
+          .of(col, row) //from the position
           .map({ pos =>
             val color: Color = if (row <= 2) White else Black
             val piece        = Piece(color, initialPieceTypeAtPosition(pos)) //get the starting piece
@@ -92,8 +90,8 @@ object Board {
           case 1 | 8 => Rook //(a1,a8,h1,h8)
           case 2 | 7 => Knight //(b1,b8,g1,g8)
           case 3 | 6 => Bishop //(c1,c8,f1,f8)
-          case 5     => King //(d1,d8)
-          case 4     => Queen //(e1,e8)
+          case 5     => King //(e1,e8)
+          case 4     => Queen //(d1,d8)
         }
       case 2 | 7 => Pawn // (a2-h2, a7-h7)
     }
