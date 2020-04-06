@@ -2,7 +2,7 @@ package it.scalachess.core.test
 
 import it.scalachess.core.{ Black, ChessGame, Ongoing, White, Win }
 import it.scalachess.core.board.Position
-import it.scalachess.core.pieces.{ Pawn, Piece }
+import it.scalachess.core.pieces.{ King, Pawn, Piece, Rook }
 import org.scalatest.{ FlatSpec, Matchers, OptionValues }
 import it.scalachess.core.test.ChessGameFailureMatcher.generateFailure
 
@@ -125,4 +125,57 @@ class ChessGameSpec extends FlatSpec with Matchers with OptionValues {
     scholarMateGame.isKingInCheck shouldBe true
   }
 
+  "Build a game where the white player" should "be able to use a QueenSide Castling" in {
+    var castlingGame: ChessGame = ChessGame.standard()
+    val firstMove               = "Na3"
+    val secondMove              = "a6"
+    val thirdMove               = "b3"
+    val fourthMove              = "b6"
+    val fifthMove               = "c3"
+    val sixthMove               = "c6"
+    val seventhMove             = "Qc2"
+    val eighthMove              = "d6"
+    val ninthMove               = "Bb2"
+    val tenthMove               = "e6"
+    val castling                = "0-0-0"
+    Seq(firstMove,
+        secondMove,
+        thirdMove,
+        fourthMove,
+        fifthMove,
+        sixthMove,
+        seventhMove,
+        eighthMove,
+        ninthMove,
+        tenthMove,
+        castling).foreach(move => castlingGame = castlingGame(move).toOption.value)
+    castlingGame.board.pieceAtPosition(Position(3, 1)).value shouldBe Piece(White, King)
+    castlingGame.board.pieceAtPosition(Position(4, 1)).value shouldBe Piece(White, Rook)
+  }
+
+  "Build a game where the black player" should "be able to use a KingSide Castling" in {
+    var castlingGame: ChessGame = ChessGame.standard()
+    val firstMove               = "a3"
+    val secondMove              = "Nh6"
+    val thirdMove               = "b3"
+    val fourthMove              = "g6"
+    val fifthMove               = "c3"
+    val sixthMove               = "f6"
+    val seventhMove             = "d3"
+    val eighthMove              = "Bg7"
+    val ninthMove               = "e3"
+    val castling                = "0-0"
+    Seq(firstMove,
+        secondMove,
+        thirdMove,
+        fourthMove,
+        fifthMove,
+        sixthMove,
+        seventhMove,
+        eighthMove,
+        ninthMove,
+        castling).foreach(move => castlingGame = castlingGame(move).toOption.value)
+    castlingGame.board.pieceAtPosition(Position(7, 8)).value shouldBe Piece(Black, King)
+    castlingGame.board.pieceAtPosition(Position(6, 8)).value shouldBe Piece(Black, Rook)
+  }
 }

@@ -90,8 +90,8 @@ object Board {
           case 1 | 8 => Rook //(a1,a8,h1,h8)
           case 2 | 7 => Knight //(b1,b8,g1,g8)
           case 3 | 6 => Bishop //(c1,c8,f1,f8)
-          case 5     => King //(d1,d8)
-          case 4     => Queen //(e1,e8)
+          case 5     => King //(e1,e8)
+          case 4     => Queen //(d1,d8)
         }
       case 2 | 7 => Pawn // (a2-h2, a7-h7)
     }

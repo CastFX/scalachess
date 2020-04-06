@@ -2,9 +2,9 @@ package it.scalachess.core.test
 
 import it.scalachess.core.{ Black, White }
 import it.scalachess.core.board.{ Board, Position }
-import it.scalachess.core.logic.moves.{ FullMove, ValidEnPassant, ValidSimpleMove }
+import it.scalachess.core.logic.moves.{ FullMove, KingSide, QueenSide, ValidCastling, ValidEnPassant, ValidSimpleMove }
 import it.scalachess.core.logic.moves.generators.MoveGenerator
-import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, Piece, Queen }
+import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, Piece, Queen, Rook }
 import org.scalatest.{ FlatSpec, Inspectors, Matchers, OptionValues }
 
 class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with OptionValues {
@@ -181,5 +181,69 @@ class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with Opt
     board = board(shouldEnPassant.boardChanges)
     board.pieceAtPosition(Position(6, 6)).value shouldEqual Piece(White, Pawn)
     board.pieceAtPosition(Position(6, 5)).isEmpty shouldBe true
+  }
+
+  "An QueenSide castling white" can "be adopted" in {
+    var board: Board = Board.defaultBoard()
+    val castling     = ValidCastling(Position(5, 1), Position(3, 1), White, Position(1, 1), Position(4, 1), QueenSide)
+    val validMoves   = new MoveGenerator(board, White, Seq()).allMoves()
+    validMoves.map(_.validMove).contains(castling) shouldBe false
+    val firstMove   = ValidSimpleMove(Position(2, 1), Position(1, 3), Knight, White, None)
+    val secondMove  = ValidSimpleMove(Position(1, 7), Position(1, 6), Pawn, Black, None)
+    val thirdMove   = ValidSimpleMove(Position(2, 2), Position(2, 3), Pawn, White, None)
+    val fourthMove  = ValidSimpleMove(Position(2, 7), Position(2, 6), Pawn, Black, None)
+    val fifthMove   = ValidSimpleMove(Position(3, 2), Position(3, 3), Pawn, White, None)
+    val sixthMove   = ValidSimpleMove(Position(3, 7), Position(3, 6), Pawn, Black, None)
+    val seventhMove = ValidSimpleMove(Position(4, 1), Position(3, 2), Queen, White, None)
+    val eighthMove  = ValidSimpleMove(Position(4, 7), Position(4, 6), Pawn, Black, None)
+    val ninthMove   = ValidSimpleMove(Position(3, 1), Position(2, 2), Bishop, White, None)
+    val tenthMove   = ValidSimpleMove(Position(5, 7), Position(5, 6), Pawn, Black, None)
+    val fullMove    = FullMove(tenthMove, resultsInCheck = false, resultsInCheckmate = false)
+    val moves = Seq(firstMove,
+                    secondMove,
+                    thirdMove,
+                    fourthMove,
+                    fifthMove,
+                    sixthMove,
+                    seventhMove,
+                    eighthMove,
+                    ninthMove,
+                    tenthMove)
+    moves.foreach(move => board = board(move.boardChanges))
+    val move = new MoveGenerator(board, White, Seq(fullMove)).allMoves()
+    move.map(_.validMove).contains(castling) shouldBe true
+    val rookMove      = ValidSimpleMove(Position(1, 1), Position(2, 1), Rook, White, None)
+    val blackMove     = ValidSimpleMove(Position(8, 7), Position(8, 6), Pawn, Black, None)
+    val fullMoveBlack = FullMove(blackMove, resultsInCheck = false, resultsInCheckmate = false)
+    Seq(rookMove, blackMove).foreach(move => board = board(move.boardChanges))
+    new MoveGenerator(board, White, Seq(fullMoveBlack)).allMoves().map(_.validMove).contains(castling) shouldBe false
+  }
+
+  "An KingSide castling black" can "be adopted" in {
+    var board: Board = Board.defaultBoard()
+    val castling     = ValidCastling(Position(5, 8), Position(7, 8), Black, Position(8, 8), Position(6, 8), KingSide)
+    val validMoves   = new MoveGenerator(board, White, Seq()).allMoves()
+    validMoves.map(_.validMove).contains(castling) shouldBe false
+    val firstMove   = ValidSimpleMove(Position(1, 2), Position(1, 3), Pawn, White, None)
+    val secondMove  = ValidSimpleMove(Position(7, 8), Position(8, 6), Knight, Black, None)
+    val thirdMove   = ValidSimpleMove(Position(2, 2), Position(2, 3), Pawn, White, None)
+    val fourthMove  = ValidSimpleMove(Position(7, 7), Position(7, 6), Pawn, Black, None)
+    val fifthMove   = ValidSimpleMove(Position(3, 2), Position(3, 3), Pawn, White, None)
+    val sixthMove   = ValidSimpleMove(Position(6, 7), Position(6, 6), Pawn, Black, None)
+    val seventhMove = ValidSimpleMove(Position(4, 2), Position(4, 3), Pawn, White, None)
+    val eighthMove  = ValidSimpleMove(Position(6, 8), Position(7, 7), Bishop, Black, None)
+    val ninthMove   = ValidSimpleMove(Position(5, 2), Position(5, 3), Pawn, White, None)
+    val fullMove    = FullMove(ninthMove, resultsInCheck = false, resultsInCheckmate = false)
+    val moves =
+      Seq(firstMove, secondMove, thirdMove, fourthMove, fifthMove, sixthMove, seventhMove, eighthMove, ninthMove)
+    moves.foreach(move => board = board(move.boardChanges))
+    val move = new MoveGenerator(board, Black, Seq(fullMove)).allMoves()
+    move.map(_.validMove).contains(castling) shouldBe true
+
+    val kingMove      = ValidSimpleMove(Position(5, 8), Position(6, 8), King, Black, None)
+    val whiteMove     = ValidSimpleMove(Position(7, 2), Position(7, 3), Pawn, Black, None)
+    val fullMoveWhite = FullMove(whiteMove, resultsInCheck = false, resultsInCheckmate = false)
+    Seq(kingMove, whiteMove).foreach(move => board = board(move.boardChanges))
+    new MoveGenerator(board, Black, Seq(fullMoveWhite)).allMoves().map(_.validMove).contains(castling) shouldBe false
   }
 }

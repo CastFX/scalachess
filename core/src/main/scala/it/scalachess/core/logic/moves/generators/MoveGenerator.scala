@@ -48,13 +48,15 @@ class MoveGenerator(board: Board, player: Color, history: Seq[FullMove]) {
 object PieceGenerators {
   implicit class PieceWithMoveGenerator(piece: Piece) {
     def validMoves(from: Position, board: Board, history: Seq[FullMove]): List[ValidMove] = piece.pieceType match {
-      case Knight => GenerateKnightMoves(piece.color, board, from)
+      case Knight =>
+        GenerateKnightMoves(piece.color, board, from)
       case Pawn =>
         GeneratePawnMoves(piece.color, board, from) ::: GeneratePawnSpecialMoves(piece.color, board, from, history)
       case Rook   => GenerateRookMoves(piece.color, board, from)
       case Bishop => GenerateBishopMoves(piece.color, board, from)
       case Queen  => GenerateQueenMoves(piece.color, board, from)
-      case King   => GenerateKingMoves(piece.color, board, from)
+      case King =>
+        GenerateKingMoves(piece.color, board, from) ::: GenerateKingSpecialMoves(piece.color, board, from, history)
     }
   }
 }
