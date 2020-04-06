@@ -53,10 +53,10 @@ private[generators] object GeneratePawnMoves extends GeneratePieceMoves {
       .filter(_.toOption.nonEmpty)
       .map(_.toOption.get)
       .flatMap(move => {
-        if (isWhitePromoting(move) || isBlackPromoting(move))
+        if (isPromoting(move))
           convertToPromotion(move)
         else
-          Seq(move)
+          List(move)
       })
   }
   private def generatePawnMovement(pieceType: PieceType,
@@ -98,7 +98,7 @@ private[generators] object GeneratePawnMoves extends GeneratePieceMoves {
       .toList
   }
 
-  private def isWhitePromoting(move: ValidSimpleMove): Boolean = move.color == White && move.to.row == 8
-  private def isBlackPromoting(move: ValidSimpleMove): Boolean = move.color == Black && move.to.row == 1
+  private def isPromoting(move: ValidSimpleMove): Boolean =
+    (move.color == White && move.to.row == 8) || (move.color == Black && move.to.row == 1)
 
 }

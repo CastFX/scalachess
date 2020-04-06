@@ -13,30 +13,26 @@ private[generators] object GenerateBishopMoves extends GeneratePieceMoves {
                                       from,
                                       Position.of(from.col + from.colRightMod, from.row + from.rowUpMod),
                                       from.colRightMod,
-                                      from.rowUpMod,
-                                      List()) ++
+                                      from.rowUpMod) ++
     generateLinearMovementSimpleMoves(Bishop,
                                       color,
                                       board,
                                       from,
                                       Position.of(from.col + from.colRightMod, from.row + from.rowDownMod),
                                       from.colRightMod,
-                                      from.rowDownMod,
-                                      List()) ++
+                                      from.rowDownMod) ++
     generateLinearMovementSimpleMoves(Bishop,
                                       color,
                                       board,
                                       from,
                                       Position.of(from.col + from.colLeftMod, from.row + from.rowDownMod),
                                       from.colLeftMod,
-                                      from.rowDownMod,
-                                      List()) ++
+                                      from.rowDownMod) ++
     generateLinearMovementSimpleMoves(Bishop,
                                       color,
                                       board,
                                       from,
                                       Position.of(from.col + from.colLeftMod, from.row + from.rowUpMod),
                                       from.colLeftMod,
-                                      from.rowUpMod,
-                                      List())
+                                      from.rowUpMod)
 }

@@ -73,7 +73,6 @@ object Parser {
   private def startingRow(rows: String): Option[Int]    = if (rows == null) None else Some(rows.toInt)
   private def promotionOf(promoted: String): Option[PieceType] =
     promoted match {
-      case "=K" => Some(King)
       case "=Q" => Some(Queen)
       case "=N" => Some(Knight)
       case "=B" => Some(Bishop)
@@ -82,12 +81,3 @@ object Parser {
     }
 
 }
-
-//object Main {
-//  def main(args: Array[String]): Unit = {
-//    val test: Seq[String] =
-//      Seq("Ra3", "e4", "Bb5", "0-0", "0-0-0", "Rae8", "Ra6+", "a4#", "Nb6d7", "xe4", "exe4", "Qxe4", "a3=Q", "Qa3=Q")
-//    for (elem <- AlgebraicParser.parseAll(test)) {
-//    }
-//  }
-//}

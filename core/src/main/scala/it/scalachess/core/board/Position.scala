@@ -14,15 +14,15 @@ final case class Position(col: Int, row: Int) {
   lazy val rowDownMod: Int  = -1
   lazy val rowUpMod: Int    = 1
 
-  lazy val posLeft: Option[Position]  = Position.ofCurr(col + colLeftMod)(row)
-  lazy val posRight: Option[Position] = Position.ofCurr(col + colRightMod)(row)
-  lazy val posDown: Option[Position]  = Position.ofCurr(col)(row + rowDownMod)
-  lazy val posUp: Option[Position]    = Position.ofCurr(col)(row + rowUpMod)
+  lazy val posLeft: Option[Position]  = Position.of(col + colLeftMod, row)
+  lazy val posRight: Option[Position] = Position.of(col + colRightMod, row)
+  lazy val posDown: Option[Position]  = Position.of(col, row + rowDownMod)
+  lazy val posUp: Option[Position]    = Position.of(col, row + rowUpMod)
 
-  lazy val posDownLeft: Option[Position]  = Position.ofCurr(col + colLeftMod)(row + rowDownMod)
-  lazy val posDownRight: Option[Position] = Position.ofCurr(col + colRightMod)(row + rowDownMod)
-  lazy val posUpLeft: Option[Position]    = Position.ofCurr(col + colLeftMod)(row + rowUpMod)
-  lazy val posUpRight: Option[Position]   = Position.ofCurr(col + colRightMod)(row + rowUpMod)
+  lazy val posDownLeft: Option[Position]  = Position.of(col + colLeftMod, row + rowDownMod)
+  lazy val posDownRight: Option[Position] = Position.of(col + colRightMod, row + rowDownMod)
+  lazy val posUpLeft: Option[Position]    = Position.of(col + colLeftMod, row + rowUpMod)
+  lazy val posUpRight: Option[Position]   = Position.of(col + colRightMod, row + rowUpMod)
 
   lazy val adjacentPositions: Set[Position] =
     Set(posLeft, posRight, posDown, posUp, posDownLeft, posDownRight, posUpLeft, posUpRight).flatten
@@ -68,10 +68,6 @@ object Position {
    * @param row numerical value of the position's row
    * @return Option of the new Position if it's inside the board, None otherwise
    */
-  def ofCurr(col: Int)(row: Int): Option[Position] =
-    if (Board.isInside(col, row)) Option(Position(col, row))
-    else None
-
   def of(col: Int, row: Int): Option[Position] =
     if (Board.isInside(col, row)) Option(Position(col, row))
     else None
@@ -89,7 +85,7 @@ object Position {
     if (notation.length == 2 && notation.charAt(0).isLetter && notation.charAt(1).isDigit) {
       val col: Int = colToInt(notation.charAt(0))
       val row: Int = notation.charAt(1).asDigit
-      Position.ofCurr(col)(row)
+      Position.of(col, row)
     } else None
 
   def colToInt(col: Char): Int =
