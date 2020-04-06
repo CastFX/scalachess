@@ -43,8 +43,8 @@ class ChessGameSpec extends FlatSpec with Matchers with OptionValues {
   }
 
   it should "apply a move correctly" in {
-    val whitePawnMove          = "a3"
-    val whitePawnFinalPosition = Position(1, 3)
+    val whitePawnMove          = "a4"
+    val whitePawnFinalPosition = Position(1, 4)
     simpleGame(whitePawnMove).toOption.value.board.pieceAtPosition(whitePawnFinalPosition).value should equal(
       Piece(White, Pawn))
   }
