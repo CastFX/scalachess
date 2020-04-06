@@ -5,12 +5,12 @@ import it.scalachess.core.logic.moves.{ FullMove, ValidEnPassant, ValidMove }
 import it.scalachess.core.Color
 import it.scalachess.core.pieces.Pawn
 
-private[generators] object GeneratePawnSpecialMoves extends GeneratePieceSpecialMoves {
+private[generators] object PawnSpecialMoves extends PieceSpecialMoves {
 
   override def apply(color: Color, board: Board, from: Position, history: Seq[FullMove]): List[ValidMove] =
-    generateEnPassant(color, board, from, history)
+    enPassant(color, board, from, history)
 
-  private def generateEnPassant(color: Color, board: Board, from: Position, history: Seq[FullMove]): List[ValidMove] =
+  private def enPassant(color: Color, board: Board, from: Position, history: Seq[FullMove]): List[ValidMove] =
     history.lastOption match {
       case None => List()
       case Some(move) =>

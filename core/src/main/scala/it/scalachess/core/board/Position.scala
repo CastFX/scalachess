@@ -9,10 +9,10 @@ import scala.math.abs
  */
 final case class Position(col: Int, row: Int) {
 
-  lazy val colLeftMod: Int  = -1
-  lazy val colRightMod: Int = 1
-  lazy val rowDownMod: Int  = -1
-  lazy val rowUpMod: Int    = 1
+  val colLeftMod: Int  = -1
+  val colRightMod: Int = 1
+  val rowDownMod: Int  = -1
+  val rowUpMod: Int    = 1
 
   lazy val posLeft: Option[Position]  = Position.of(col + colLeftMod, row)
   lazy val posRight: Option[Position] = Position.of(col + colRightMod, row)

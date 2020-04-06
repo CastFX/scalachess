@@ -4,15 +4,12 @@ import it.scalachess.core.{ Black, Color, White }
 import it.scalachess.core.board.{ Board, Position }
 import it.scalachess.core.logic.moves.{ CastlingType, FullMove, KingSide, QueenSide, ValidCastling, ValidMove }
 
-private[generators] object GenerateKingSpecialMoves extends GeneratePieceSpecialMoves {
+private[generators] object KingSpecialMoves extends PieceSpecialMoves {
 
   override def apply(color: Color, board: Board, from: Position, history: Seq[FullMove]): List[ValidMove] =
-    generateCastling(color, board, from, history)
+    castling(color, board, from, history)
 
-  private def generateCastling(color: Color,
-                               board: Board,
-                               position: Position,
-                               history: Seq[FullMove]): List[ValidMove] = {
+  private def castling(color: Color, board: Board, position: Position, history: Seq[FullMove]): List[ValidMove] = {
     val moves = history.map(_.validMove)
     if (history.lastOption.nonEmpty && history.last.resultsInCheck) List() //Cannot be done if king is in check
     else {
