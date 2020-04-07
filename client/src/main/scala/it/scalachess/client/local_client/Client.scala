@@ -32,5 +32,6 @@ object Client extends App {
 
   game.gameStatus match {
     case r: Result => view.showResult(r)
+    case _         => ()
   }
 }

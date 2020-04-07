@@ -63,7 +63,7 @@ class LobbyManager(logger: Logger) {
             case Some(room) if !room.full =>
               val updatedRoom = room.join(client)
               logger.info(s"Client ${client.hashCode} joined room $id")
-              context.spawn(GameManager(updatedRoom, context.self), s"GameManager$id")
+              val _ = context.spawn(GameManager(updatedRoom, context.self), s"GameManager$id")
               discover(rooms + (id -> updatedRoom))
             case Some(room) if room.full =>
               client ! RoomFull(id)

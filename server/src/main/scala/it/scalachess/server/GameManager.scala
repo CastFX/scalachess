@@ -73,6 +73,7 @@ class GameManager private (players: Map[Color, ActorRef[ClientMessage]],
               val forfeitedGame = game.end(result)
               players.values.foreach { _ ! GameEnd(result, forfeitedGame) }
               parent ! LobbyManager.TerminateGame(gameId, forfeitedGame, context.self)
+            case None => ()
           }
           game
 

@@ -24,9 +24,13 @@ object ListFullMoveExtension {
     def filterPositions(to: Position, fromCol: Option[Char], fromRow: Option[Int]): List[T] =
       list.filter {
         case FullMove(validMove, _, _) =>
-          val endEquals          = validMove.to == to
-          val colEqualsIfPresent = fromCol.fold(true) { validMove.from.col equals }
-          val rowEqualsIfPresent = fromRow.fold(true) { validMove.from.row equals }
+          val endEquals = validMove.to == to
+          val colEqualsIfPresent = fromCol.fold(true) { colChar =>
+            validMove.from.col.equals(Position.colToInt(colChar))
+          }
+          val rowEqualsIfPresent = fromRow.fold(true) { row =>
+            validMove.from.row.equals(row)
+          }
           endEquals && colEqualsIfPresent && rowEqualsIfPresent
       }
 

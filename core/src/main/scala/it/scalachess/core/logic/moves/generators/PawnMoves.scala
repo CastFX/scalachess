@@ -35,9 +35,7 @@ private[generators] object PawnMoves extends PieceMoves {
       pawnAttack(color, board, from, Position.of(from.col - from.colLeftMod, from.row + forwardRowMod))
     val rightAttack =
       pawnAttack(color, board, from, Position.of(from.col + from.colRightMod, from.row + forwardRowMod))
-    List(moveOnePosWithoutCapture, moveTwoPosWithoutCapture, leftAttack, rightAttack)
-      .filter(_.nonEmpty)
-      .map(_.get)
+    List(moveOnePosWithoutCapture, moveTwoPosWithoutCapture, leftAttack, rightAttack).flatten
       .flatMap(move => {
         if (isPromoting(move))
           convertToPromotion(move)
