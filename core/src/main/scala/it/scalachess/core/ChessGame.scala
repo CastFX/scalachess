@@ -21,7 +21,7 @@ final case class ChessGame(
     gameStatus: GameStatus,
     moveHistory: Seq[FullMove]
 ) {
-  lazy val isKingInCheck: Boolean = moveHistory.last.resultsInCheck
+  lazy val isKingInCheck: Boolean = moveHistory.lastOption.fold(false)(_.resultsInCheck)
 
   def apply(move: String): Validation[String, ChessGame] = gameStatus match {
     case Ongoing =>
@@ -30,14 +30,16 @@ final case class ChessGame(
         case Success(algebraicMove) =>
           MoveValidator(board, player, moveHistory)(algebraicMove) match {
             case Success(fullMove) =>
-              val nextBoard = board(fullMove.validMove.boardChanges)
-              val result    = if (fullMove.resultsInCheckmate) Win(player) else Ongoing
+              val nextBoard          = board(fullMove.validMove.boardChanges)
+              val result: GameStatus = if (fullMove.resultsInCheckmate) Win(player) else Ongoing
               Success(ChessGame(nextBoard, player.other, turn + 1, result, moveHistory :+ fullMove))
             case error: Failure[String] => error
           }
       }
     case _ => Failure("The game is not ongoing")
   }
+
+  def end(withResult: Result): ChessGame = ChessGame(board, player, turn, withResult, moveHistory)
 }
 
 object ChessGame {
