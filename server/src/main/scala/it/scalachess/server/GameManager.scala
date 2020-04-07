@@ -2,8 +2,7 @@ package it.scalachess.server
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ ActorRef, Behavior }
-import it.scalachess.core.colors.{ Black, Color, White }
-import it.scalachess.core.{ ChessGame, Ongoing, Result, WinByForfeit }
+import it.scalachess.core.{ Black, ChessGame, Color, Ongoing, Result, White, WinByForfeit }
 import it.scalachess.util.NetworkErrors.FailedMove
 import it.scalachess.util.NetworkMessages._
 import scalaz.{ Failure, Success }
@@ -70,9 +69,10 @@ class GameManager private (players: Map[Color, ActorRef[ClientMessage]],
         case ForfeitGame(client) =>
           colorOf(client) match {
             case Some(color) =>
-              val forfeit = WinByForfeit(color.other)
-              players.values.foreach { _ ! GameEnd(forfeit, s"FF(${color.name})") }
-              parent ! LobbyManager.TerminateGame(gameId, forfeit, context.self)
+              val result        = WinByForfeit(color.other)
+              val forfeitedGame = game.end(result)
+              players.values.foreach { _ ! GameEnd(result, forfeitedGame) }
+              parent ! LobbyManager.TerminateGame(gameId, forfeitedGame, context.self)
           }
           game
 
@@ -94,15 +94,15 @@ class GameManager private (players: Map[Color, ActorRef[ClientMessage]],
       case Success(updated) =>
         updated.gameStatus match {
           case Ongoing =>
-            players(updated.player) ! GameUpdate(updated.player, updated, Move, move)
-            players(updated.player.other) ! GameUpdate(updated.player.other, updated, Wait, move)
+            players(updated.player) ! GameUpdate(updated.player, updated, Move)
+            players(updated.player.other) ! GameUpdate(updated.player.other, updated, Wait)
           case result: Result =>
             players.foreach {
               case (color, client) =>
-                client ! GameUpdate(color, updated, Wait, move)
-                client ! GameEnd(result, move)
+                client ! GameUpdate(color, updated, Wait)
+                client ! GameEnd(result, updated)
             }
-            parent ! LobbyManager.TerminateGame(gameId, result, self)
+            parent ! LobbyManager.TerminateGame(gameId, updated, self)
         }
         updated
       case Failure(err) =>

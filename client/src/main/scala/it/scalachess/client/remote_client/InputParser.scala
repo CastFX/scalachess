@@ -1,8 +1,16 @@
-package it.scalachess.client.remoteClient
+package it.scalachess.client.remote_client
 
-import akka.actor.typed.{ ActorRef, Behavior }
 import akka.actor.typed.scaladsl.Behaviors
-import it.scalachess.client.remoteClient.Client.{ ClientCommand, Create, Forfeit, Join, ParsedMove }
+import akka.actor.typed.{ ActorRef, Behavior }
+import it.scalachess.client.remote_client.ClientCommands.{
+  ClientCommand,
+  Create,
+  Forfeit,
+  Help,
+  Join,
+  ParsedMove,
+  Quit
+}
 
 import scala.util.matching.Regex
 
@@ -11,10 +19,11 @@ import scala.util.matching.Regex
  */
 object InputParser {
 
-  val CreateCommand: String  = "/create"
-  val ForfeitCommand: String = "/forfeit"
-  val JoinCommand: Regex     = """/join ([0-9]+)""".r
-  val quitCommand: String    = "/quit"
+  val create: String  = "/create"
+  val join: Regex     = """/join ([0-9]+)""".r
+  val forfeit: String = "/forfeit"
+  val help: String    = "/help"
+  val quit: String    = "/quit"
 
   def apply(parent: ActorRef[ClientCommand]): Behavior[String] = Behaviors.receiveMessage { input =>
     parent ! inputToCommand(input)
@@ -29,9 +38,11 @@ object InputParser {
    */
   def inputToCommand(input: String): ClientCommand =
     input match {
-      case CreateCommand   => Create
-      case ForfeitCommand  => Forfeit
-      case JoinCommand(id) => Join(id)
-      case _               => ParsedMove(input)
+      case `create`  => Create
+      case join(id)  => Join(id)
+      case `forfeit` => Forfeit
+      case `help`    => Help
+      case `quit`    => Quit
+      case _         => ParsedMove(input)
     }
 }

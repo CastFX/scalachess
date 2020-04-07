@@ -1,4 +1,4 @@
-package it.scalachess.client.remoteClient
+package it.scalachess.client.remote_client
 
 import java.net.InetAddress
 
@@ -13,14 +13,15 @@ object ClientMain extends App {
   val customConf = ConfigFactory
     .parseString(s"""akka.remote.artery.canonicalHostname =  $privateAddress""")
     .withFallback(ConfigFactory.load())
-  val serverAddress = if (args.size >= 1) args(0) else "127.0.0.1:25555"
+  val serverAddress = if (args.length >= 1) args(0) else "127.0.0.1:25555"
   val client        = ActorSystem(Client(serverAddress), "Client", customConf)
   val inputParser   = client.systemActorOf[String](InputParser(client), "InputReader")
 
   //Stdin redirect to an actor, needs to be outside of the actor system because it is a blocking call
   Source.stdin
     .getLines()
-    .takeWhile(_ != InputParser.quitCommand)
+    .takeWhile(_ != InputParser.quit)
     .foreach { inputParser ! _ }
 
+  client.terminate()
 }

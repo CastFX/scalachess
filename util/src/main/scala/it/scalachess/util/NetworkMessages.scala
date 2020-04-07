@@ -2,8 +2,7 @@ package it.scalachess.util
 
 import akka.actor.typed.ActorRef
 import akka.actor.typed.receptionist.ServiceKey
-import it.scalachess.core.{ ChessGame, Result }
-import it.scalachess.core.colors.Color
+import it.scalachess.core.{ ChessGame, Color, Result }
 
 /**
  * A collection of messages passed between Client and Server
@@ -103,17 +102,15 @@ object NetworkMessages {
    * @param color The color of the client.
    * @param game The current state of the chess game
    * @param request The action requested to the Client
-   * @param lastMove the last move executed
    */
-  final case class GameUpdate(color: Color, game: ChessGame, request: ServerRequest, lastMove: String)
-      extends ClientMessage
+  final case class GameUpdate(color: Color, game: ChessGame, request: ServerRequest) extends ClientMessage
 
   /**
    * A message sent by the GameManager to notify the Clients about the end of the chess game.
    * @param result The result of the chess game
-   * @param finalMove The final move of the chess game
+   * @param chessGame The final state of the chess game
    */
-  final case class GameEnd(result: Result, finalMove: String) extends ClientMessage
+  final case class GameEnd(result: Result, chessGame: ChessGame) extends ClientMessage
 
   /**
    * The service key used by the Server to register its LobbyManager to the Receptionist of its ActorSystem

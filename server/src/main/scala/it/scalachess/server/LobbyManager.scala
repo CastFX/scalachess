@@ -3,7 +3,7 @@ package it.scalachess.server
 import akka.actor.typed.receptionist.Receptionist
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ ActorRef, Behavior }
-import it.scalachess.core.Result
+import it.scalachess.core.ChessGame
 import it.scalachess.server.LobbyManager.{ RoomMap, TerminateGame }
 import it.scalachess.util.NetworkErrors.{ RoomFull, RoomNotFound }
 import it.scalachess.util.NetworkMessages
@@ -20,10 +20,10 @@ object LobbyManager {
    * A message sent by the GameManager to this actor to notify about the game end result.
    *
    * @param roomId      Identifier of the ended game
-   * @param result      Final result of the ended game
+   * @param game        Final state of the ended game
    * @param gameManager GameManage in charge of the ended game
    */
-  case class TerminateGame(roomId: String, result: Result, gameManager: ActorRef[GameAction]) extends LobbyMessage
+  case class TerminateGame(roomId: String, game: ChessGame, gameManager: ActorRef[GameAction]) extends LobbyMessage
 
   /**
    * Creates the initial Behavior of this actor, with 0 rooms

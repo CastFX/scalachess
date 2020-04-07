@@ -1,23 +1,20 @@
 package it.scalachess.server.test
 
 import akka.actor.testkit.typed.scaladsl.ActorTestKit
-import it.scalachess.core.colors.{ Black, Color, White }
-import it.scalachess.core.{ ChessGame, Result, Win, WinByForfeit }
+import it.scalachess.core._
 import it.scalachess.server.LobbyManager.TerminateGame
 import it.scalachess.server.{ GameManager, Room }
 import it.scalachess.util.NetworkErrors.FailedMove
 import it.scalachess.util.NetworkMessages._
 import org.scalatest.{ BeforeAndAfterAll, FlatSpec, Matchers, OptionValues }
-import scalaz.Failure
 
 class GameManagerSpec extends FlatSpec with BeforeAndAfterAll with Matchers with OptionValues {
-  val testKit      = ActorTestKit()
-  val lobbyManager = testKit.createTestProbe[LobbyMessage]
-  val client1      = testKit.createTestProbe[ClientMessage]
-  val client2      = testKit.createTestProbe[ClientMessage]
-  val roomId       = "123"
-  val room         = Room(roomId, (client1.ref, client2.ref))
-  val players      = Map(White -> client1, Black -> client2)
+  private val testKit      = ActorTestKit()
+  private val lobbyManager = testKit.createTestProbe[LobbyMessage]
+  private val client1      = testKit.createTestProbe[ClientMessage]
+  private val client2      = testKit.createTestProbe[ClientMessage]
+  private val roomId       = "123"
+  private val room         = Room(roomId, (client1.ref, client2.ref))
 
   override def afterAll(): Unit = testKit.shutdownTestKit()
 
@@ -36,15 +33,15 @@ class GameManagerSpec extends FlatSpec with BeforeAndAfterAll with Matchers with
       client2.expectMessageType[GameStart].color -> client2.ref
     )
 
-    val initialMove = "f2 f3"
+    val initialMove = "f3"
     gameManager ! DoMove(initialMove, players(White))
     val expectedGame: ChessGame = ChessGame.standard().apply(initialMove).toOption.value
     assertClientsReceivesCorrectGame(expectedGame)
   }
 
   it should "terminate after checkmates" in {
-    assertGameFlow(Seq("f2 f3", "e7 e5", "g2 g4", "d8 h4"), Win(Black))
-    assertGameFlow(Seq("e2 e4", "f7 f6", "d2 d3", "g7 g5", "d1 h5"), Win(White))
+    assertGameFlow(Seq("f3", "e5", "g4", "Qh4#"), Win(Black))
+    assertGameFlow(Seq("e4", "f6", "d3", "g5", "Qh5#"), Win(White))
   }
 
   it should "terminate after a forfeit by either player" in {
@@ -55,14 +52,14 @@ class GameManagerSpec extends FlatSpec with BeforeAndAfterAll with Matchers with
         client2.expectMessageType[GameStart].color -> client2.ref
       )
       gameManager ! ForfeitGame(players(color).ref)
-      assertGameEnd(WinByForfeit(color.other), s"FF(${color.name})")
-      ()
+      val chessGame = ChessGame.standard().end(WinByForfeit(color.other))
+      assertGameEnd(WinByForfeit(color.other), chessGame)
     }
     assertForfeit(White)
     assertForfeit(Black)
   }
 
-  //Todo draw
+  //Todo result = draw
 
   "GameManager" should "send FailedMove if the client tries to make an illegal move" in {
     val gameManager = testKit.spawn(GameManager(room, lobbyManager.ref))
@@ -70,8 +67,8 @@ class GameManagerSpec extends FlatSpec with BeforeAndAfterAll with Matchers with
       client1.expectMessageType[GameStart].color -> client1,
       client2.expectMessageType[GameStart].color -> client2
     )
-    val wrongMove = "a1 a2"
-    gameManager ! DoMove("a1 a2", players(White).ref)
+    val wrongMove = "a2"
+    gameManager ! DoMove("a2", players(White).ref)
 
     val err = players(White).expectMessageType[FailedMove]
     err.move should equal(wrongMove)
@@ -85,14 +82,13 @@ class GameManagerSpec extends FlatSpec with BeforeAndAfterAll with Matchers with
     update1.color should equal(update2.color.other)
   }
 
-  private def assertGameEnd(expectedResult: Result, finalMove: String): Unit = {
-    client1.expectMessage(GameEnd(expectedResult, finalMove))
-    client2.expectMessage(GameEnd(expectedResult, finalMove))
+  private def assertGameEnd(expectedResult: Result, chessGame: ChessGame): Unit = {
+    client1.expectMessage(GameEnd(expectedResult, chessGame))
+    client2.expectMessage(GameEnd(expectedResult, chessGame))
 
     val terminateGame = lobbyManager.expectMessageType[TerminateGame]
-    terminateGame.result should equal(expectedResult)
+    terminateGame.game.gameStatus should equal(expectedResult)
     terminateGame.roomId should equal(roomId)
-    ()
   }
 
   private def assertGameFlow(moves: Seq[String], expectedResult: Result): Unit = {
@@ -107,8 +103,6 @@ class GameManagerSpec extends FlatSpec with BeforeAndAfterAll with Matchers with
       game = game(move).toOption.value
       assertClientsReceivesCorrectGame(game)
     }
-
-    assertGameEnd(expectedResult, moves.last)
-    ()
+    assertGameEnd(expectedResult, game)
   }
 }

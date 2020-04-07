@@ -32,12 +32,14 @@ final case class ChessGame(
             case Success(fullMove) =>
               val nextBoard = board(fullMove.validMove.boardChanges)
               val result    = if (fullMove.resultsInCheckmate) Win(player) else Ongoing
-              Success(ChessGame(nextBoard, player.other, turn + 1, result, moveHistory :+ fullMove))
+              Success(ChessGame(nextBoard, player.other, turn + 1, result, fullMove +: moveHistory))
             case error: Failure[String] => error
           }
       }
     case _ => Failure("The game is not ongoing")
   }
+
+  def end(withResult: Result): ChessGame = ChessGame(board, player, turn, withResult, moveHistory)
 }
 
 object ChessGame {
