@@ -8,7 +8,7 @@ import it.scalachess.client.remote_client.ClientCommands.{
   Forfeit,
   Help,
   Join,
-  ParsedMove,
+  InputMove,
   Quit
 }
 
@@ -20,7 +20,7 @@ import scala.util.matching.Regex
 object InputParser {
 
   val create: String  = "/create"
-  val join: Regex     = """/join ([0-9]+)""".r
+  val join: Regex     = """/join ([a-zA-Z0-9]+)""".r
   val forfeit: String = "/forfeit"
   val help: String    = "/help"
   val quit: String    = "/quit"
@@ -32,7 +32,7 @@ object InputParser {
 
   /**
    * Converts a String into the proper ClientCommand.
-   * It assumes that a non-matched input is Move
+   * It assumes that a non-matched input is an InputMove
    * @param input String to be parsed
    * @return A ClientCommand of the input
    */
@@ -43,6 +43,6 @@ object InputParser {
       case `forfeit` => Forfeit
       case `help`    => Help
       case `quit`    => Quit
-      case _         => ParsedMove(input)
+      case _         => InputMove(input)
     }
 }

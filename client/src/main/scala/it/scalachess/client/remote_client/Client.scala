@@ -32,7 +32,7 @@ object Client {
       val serverProxy = context.spawn(ServerProxy(serverAddress, context.self), "ServerProxy")
       Behaviors.receiveMessage {
         case ConnectedToServer =>
-          context.log.debug("Connected to server")
+          view.showMessage("Connected to server")
           new Client(serverProxy).inLobby()
         case Help =>
           showHelp()
@@ -127,7 +127,7 @@ class Client private (serverProxy: ActorRef[ClientMessage]) {
     case GameUpdate(_, game, request) =>
       Client.view.showBoard(game.board)
       behaviorForServerRequest(request, color, game)
-    case message @ (ParsedMove(_) | Forfeit) =>
+    case message @ (InputMove(_) | Forfeit) =>
       val _ = serverProxy ! message
       Behaviors.same
     case GameEnd(result, game) =>

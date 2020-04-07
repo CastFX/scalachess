@@ -10,7 +10,7 @@ object ClientCommands {
   trait ClientCommand                 extends ClientMessage
   case object Create                  extends ClientCommand
   case class Join(id: String)         extends ClientCommand
-  case class ParsedMove(move: String) extends ClientCommand
+  case class InputMove(move: String)  extends ClientCommand
   case object Forfeit                 extends ClientCommand
   case object Help                    extends ClientCommand
   case object Quit                    extends ClientCommand

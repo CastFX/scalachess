@@ -2,7 +2,7 @@ package it.scalachess.client.remote_client.test
 
 import akka.actor.testkit.typed.scaladsl.{ BehaviorTestKit, TestInbox }
 import it.scalachess.client.remote_client
-import it.scalachess.client.remote_client.ClientCommands.{ ClientCommand, Create, Forfeit, Help, Join, ParsedMove }
+import it.scalachess.client.remote_client.ClientCommands.{ ClientCommand, Create, Forfeit, Help, Join, InputMove }
 import it.scalachess.client.remote_client.InputParser
 import it.scalachess.util.NetworkMessages.ClientMessage
 import org.scalatest.{ FlatSpec, Inspectors, Matchers, OptionValues }
@@ -42,11 +42,11 @@ class InputParserSpec extends FlatSpec with Matchers with OptionValues with Insp
     val inputParser = BehaviorTestKit(remote_client.InputParser(clientInbox.ref))
     forAll(moves) { move =>
       inputParser run move
-      clientInbox expectMessage ParsedMove(move)
+      clientInbox expectMessage InputMove(move)
     }
 
     (Seq(create, forfeit) ++ joinCommands.keys) foreach inputParser.run
-    all(clientInbox.receiveAll()) should not be a[ParsedMove]
+    all(clientInbox.receiveAll()) should not be a[InputMove]
   }
 
   private def testSingleWordCommand(command: String, notCommands: Seq[String], result: ClientCommand): Unit = {

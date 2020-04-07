@@ -6,7 +6,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.adapter._
 import akka.actor.typed.{ ActorRef, Behavior }
 import it.scalachess.client.remote_client.Client.ConnectedToServer
-import it.scalachess.client.remote_client.ClientCommands.{ Create, Forfeit, Join, ParsedMove }
+import it.scalachess.client.remote_client.ClientCommands.{ Create, Forfeit, Join, InputMove }
 import it.scalachess.util.NetworkErrors.ClientError
 import it.scalachess.util.NetworkMessages
 import it.scalachess.util.NetworkMessages._
@@ -99,7 +99,7 @@ class ServerProxy(lobbyManager: ActorRef[LobbyMessage], parent: ActorRef[ClientM
     (context, message) =>
       message match {
         //To Server
-        case ParsedMove(move) =>
+        case InputMove(move) =>
           gameManager ! NetworkMessages.DoMove(move, context.self)
           Behaviors.same
         case Forfeit =>
