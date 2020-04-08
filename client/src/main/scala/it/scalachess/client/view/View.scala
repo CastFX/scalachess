@@ -1,7 +1,7 @@
 package it.scalachess.client.view
 
 import com.typesafe.scalalogging.Logger
-import it.scalachess.core.White
+import it.scalachess.core.{ Draw, Result, White, Win, WinByForfeit }
 import it.scalachess.core.board.Board
 import it.scalachess.core.pieces.{ Bishop, King, Knight, Piece, Queen, Rook }
 
@@ -24,6 +24,10 @@ trait View {
    * @return the representation of the board in a string
    */
   def getStringFromBoard(board: Board): String
+
+  def showMessage(message: String)
+
+  def showResult(result: Result)
 }
 
 /**
@@ -33,7 +37,15 @@ object CliView extends View {
   val logger: Logger  = Logger("ViewLogger")
   val newLine: String = "\n"
 
-  override def showBoard(board: Board): Unit = logger.debug(newLine + getStringFromBoard(board))
+  override def showBoard(board: Board): Unit = logger.info(newLine + getStringFromBoard(board))
+
+  def showMessage(message: String): Unit = logger.info(message)
+
+  def showResult(result: Result): Unit = result match {
+    case Win(player)          => logger.info(s"$player wins")
+    case WinByForfeit(player) => logger.info(s"$player wins by forfeit")
+    case Draw                 => logger.info("Draw")
+  }
 
   def cliVisualization(piece: Piece): String = {
     val result: String = piece.pieceType match {
