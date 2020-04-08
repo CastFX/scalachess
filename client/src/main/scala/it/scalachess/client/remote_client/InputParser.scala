@@ -2,15 +2,7 @@ package it.scalachess.client.remote_client
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ ActorRef, Behavior }
-import it.scalachess.client.remote_client.ClientCommands.{
-  ClientCommand,
-  Create,
-  Forfeit,
-  Help,
-  Join,
-  InputMove,
-  Quit
-}
+import it.scalachess.client.remote_client.ClientCommands.{ ClientCommand, Create, Forfeit, Help, InputMove, Join, Quit }
 
 import scala.util.matching.Regex
 
