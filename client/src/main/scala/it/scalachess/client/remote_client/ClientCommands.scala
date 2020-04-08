@@ -7,13 +7,13 @@ object ClientCommands {
   /**
    * Commands parsed by the InputParser actor
    */
-  trait ClientCommand                 extends ClientMessage
-  case object Create                  extends ClientCommand
-  case class Join(id: String)         extends ClientCommand
-  case class InputMove(move: String)  extends ClientCommand
-  case object Forfeit                 extends ClientCommand
-  case object Help                    extends ClientCommand
-  case object Quit                    extends ClientCommand
+  trait ClientCommand                extends ClientMessage
+  case object Create                 extends ClientCommand
+  case class Join(id: String)        extends ClientCommand
+  case class InputMove(move: String) extends ClientCommand
+  case object Forfeit                extends ClientCommand
+  case object Help                   extends ClientCommand
+  case object Quit                   extends ClientCommand
 
   val helpers: Seq[String] = Seq(
     "/create - Creates a room to play a chess game with another client",

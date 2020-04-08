@@ -5,8 +5,9 @@ import akka.actor.typed.{ ActorRef, Behavior }
 import it.scalachess.client.remote_client.ClientCommands._
 import it.scalachess.client.view.{ CLI, View, ViewFactory }
 import it.scalachess.core._
-import it.scalachess.util.NetworkErrors.{ RoomFull, RoomNotFound }
+import it.scalachess.util.NetworkErrors.{ FailedMove, RoomFull, RoomNotFound }
 import it.scalachess.util.NetworkMessages._
+import Client.view
 
 /**
  * Companion object of the Client Actor, used to setup the children actors
@@ -76,14 +77,14 @@ class Client private (serverProxy: ActorRef[ClientMessage]) {
         context.log.debug(id)
         Behaviors.same
       case GameStart(color, game, request, _) =>
-        Client.view.showBoard(game.board)
-        Client.view.showMessage(s"You're $color")
+        view.showBoard(game.board)
+        view.showMessage(s"You're $color")
         behaviorForServerRequest(request, color, game)
       case RoomFull(id) =>
-        Client.view.showMessage(s"Cannot join room $id, it is full")
+        view.showMessage(s"Cannot join room $id, it is full")
         inLobby()
       case RoomNotFound(id) =>
-        Client.view.showMessage(s"Cannot join room $id, id not found")
+        view.showMessage(s"Cannot join room $id, id not found")
         inLobby()
       case Help =>
         Client.showHelp()
@@ -101,15 +102,18 @@ class Client private (serverProxy: ActorRef[ClientMessage]) {
    */
   private def waitForOpponentMove(color: Color, game: ChessGame): Behavior[ClientMessage] = Behaviors.receiveMessage {
     case GameUpdate(color, game, request) =>
-      Client.view.showBoard(game.board)
+      view.showBoard(game.board)
       behaviorForServerRequest(request, color, game)
     case Forfeit =>
       serverProxy ! Forfeit
       inLobby()
     case GameEnd(result, game) =>
-      Client.view.showBoard(game.board)
-      Client.view.showResult(result)
+      view.showBoard(game.board)
+      view.showResult(result)
       inLobby()
+    case FailedMove(error, move) =>
+      view.showMessage(s"Move: $move failed because of error: $error")
+      Behaviors.same
     case Help =>
       Client.showHelp()
       Behaviors.same
@@ -125,15 +129,18 @@ class Client private (serverProxy: ActorRef[ClientMessage]) {
    */
   private def move(color: Color, game: ChessGame): Behavior[ClientMessage] = Behaviors.receiveMessage {
     case GameUpdate(_, game, request) =>
-      Client.view.showBoard(game.board)
+      view.showBoard(game.board)
       behaviorForServerRequest(request, color, game)
     case message @ (InputMove(_) | Forfeit) =>
       val _ = serverProxy ! message
       Behaviors.same
     case GameEnd(result, game) =>
-      Client.view.showBoard(game.board)
-      Client.view.showResult(result)
+      view.showBoard(game.board)
+      view.showResult(result)
       inLobby()
+    case FailedMove(error, move) =>
+      view.showMessage(s"Move: $move failed because of error: $error")
+      Behaviors.same
     case Help =>
       Client.showHelp()
       Behaviors.same
@@ -144,10 +151,10 @@ class Client private (serverProxy: ActorRef[ClientMessage]) {
   private def behaviorForServerRequest(request: ServerRequest, color: Color, game: ChessGame): Behavior[ClientMessage] =
     request match {
       case Move =>
-        Client.view.showMessage("It's your turn to move")
+        view.showMessage("It's your turn to move")
         move(color, game)
       case Wait =>
-        Client.view.showMessage("It's your opponent's turn to move")
+        view.showMessage("It's your opponent's turn to move")
         waitForOpponentMove(color, game)
       case _ => inLobby()
     }
