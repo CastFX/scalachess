@@ -6,7 +6,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.adapter._
 import akka.actor.typed.{ ActorRef, Behavior }
 import it.scalachess.client.remote_client.Client.ConnectedToServer
-import it.scalachess.client.remote_client.ClientCommands.{ Create, Forfeit, Join, InputMove }
+import it.scalachess.client.remote_client.ClientCommands.{ Create, Forfeit, InputMove, Join }
 import it.scalachess.util.NetworkErrors.ClientError
 import it.scalachess.util.NetworkMessages
 import it.scalachess.util.NetworkMessages._

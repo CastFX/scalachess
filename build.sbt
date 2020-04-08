@@ -24,7 +24,7 @@ lazy val core = project
 lazy val client = project
   .settings(
     name := "client",
-    mainClass := Some("it.scalachess.client.Client"),
+    mainClass := Some("it.scalachess.client.remote_client.ClientMain"),
     settings,
     assemblySettings,
     libraryDependencies ++= (commonDependencies ++ akkaDependencies)
@@ -37,6 +37,7 @@ lazy val client = project
 lazy val server = project
   .settings(
     name := "server",
+    mainClass := Some("it.scalachess.server.ServerMain"),
     settings,
     assemblySettings,
     libraryDependencies ++= (commonDependencies ++ akkaDependencies)
@@ -151,9 +152,8 @@ lazy val assemblySettings = Seq(
   assemblyJarName in assembly := name.value + ".jar",
   assemblyMergeStrategy in assembly := {
     case PathList("META-INF", xs @ _*) => MergeStrategy.discard
-    case "application.conf"            => MergeStrategy.concat
-    case x =>
-      val oldStrategy = (assemblyMergeStrategy in assembly).value
-      oldStrategy(x)
+    case PathList("application.conf")  => MergeStrategy.concat
+    case PathList("reference.conf")    => MergeStrategy.concat
+    case x                             => MergeStrategy.first
   }
 )
