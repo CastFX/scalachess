@@ -2,7 +2,7 @@ package it.scalachess.client.remote_client.test
 
 import akka.actor.testkit.typed.scaladsl.{ BehaviorTestKit, TestInbox }
 import it.scalachess.client.remote_client
-import it.scalachess.client.remote_client.ClientCommands.{ ClientCommand, Create, Forfeit, Help, Join, InputMove }
+import it.scalachess.client.remote_client.ClientCommands.{ ClientCommand, Create, Forfeit, Help, InputMove, Join }
 import it.scalachess.client.remote_client.InputParser
 import it.scalachess.util.NetworkMessages.ClientMessage
 import org.scalatest.{ FlatSpec, Inspectors, Matchers, OptionValues }
