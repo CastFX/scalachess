@@ -7,15 +7,15 @@ import scalaz.{ Failure, Success, Validation }
 import scala.util.matching.Regex
 
 object Parser {
-  abstract class Parser[T] {
-    def parse(t: T): Validation[String, AlgebraicMove]
-    def parseAll(seq: Seq[T]): Seq[Validation[String, AlgebraicMove]] = seq map parse
+  abstract class Parser[A, B] {
+    def parse(t: A): Validation[String, B]
+    def parseAll(seq: Seq[A]): Seq[Validation[String, B]] = seq map parse
   }
 
   /**
    * Can be used to parse a move that the player writes as input
    */
-  object AlgebraicParser extends Parser[String] {
+  object AlgebraicParser extends Parser[String, AlgebraicMove] {
     private val promotablePieces = "[N,B,R,Q]"
     private val pieces           = s"$promotablePieces|K"
     private val cols             = "[a-h]"
