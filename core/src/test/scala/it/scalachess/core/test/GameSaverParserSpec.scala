@@ -1,15 +1,59 @@
 package it.scalachess.core.test
 
-import it.scalachess.core.{ ChessGame, White, Win }
+import it.scalachess.core.board.Position
+import it.scalachess.core.logic.moves.{
+  FullMove,
+  KingSide,
+  QueenSide,
+  ValidCastling,
+  ValidEnPassant,
+  ValidPromotion,
+  ValidSimpleMove
+}
+import it.scalachess.core.{ Black, ChessGame, White, Win }
 import it.scalachess.core.parser.{ GameSaverParser, Parser }
 import it.scalachess.core.parser.Parser.AlgebraicParser
+import it.scalachess.core.pieces.{ Pawn, Piece, Rook }
 import org.scalatest.{ FlatSpec, Inspectors, Matchers, OptionValues }
 
 class GameSaverParserSpec extends FlatSpec with Matchers with Inspectors with OptionValues {
 
   val parser: Parser.AlgebraicParser.type = AlgebraicParser
 
-  "The GameSaver parser" should "be able to create a string of the game moves" in {
+  "The GameSaver parser " should "be able to parse full move into pgn format" in {
+    val simple    = ValidSimpleMove(Position(1, 2), Position(1, 3), Pawn, White, None)
+    val capture   = ValidSimpleMove(Position(1, 2), Position(1, 3), Pawn, White, Some(Position(1, 3)))
+    val enPassant = ValidEnPassant(Position(1, 2), Position(1, 3), White, Position(1, 3))
+    val kingSide  = ValidCastling(Position(5, 8), Position(7, 8), Black, Position(8, 8), Position(6, 8), KingSide)
+    val queenSide = ValidCastling(Position(5, 1), Position(3, 1), White, Position(1, 1), Position(4, 1), QueenSide)
+    val promotion = ValidPromotion(Position(1, 7), Position(1, 8), White, Piece(White, Rook), None)
+    GameSaverParser
+      .parse(FullMove(simple, resultsInCheck = true, resultsInCheckmate = true))
+      .toOption
+      .value shouldEqual "a2a3#"
+    GameSaverParser
+      .parse(FullMove(capture, resultsInCheck = true, resultsInCheckmate = true))
+      .toOption
+      .value shouldEqual "a2xa3#"
+    GameSaverParser
+      .parse(FullMove(enPassant, resultsInCheck = true, resultsInCheckmate = false))
+      .toOption
+      .value shouldEqual "a2xa3+"
+    GameSaverParser
+      .parse(FullMove(kingSide, resultsInCheck = false, resultsInCheckmate = false))
+      .toOption
+      .value shouldEqual "0-0"
+    GameSaverParser
+      .parse(FullMove(queenSide, resultsInCheck = false, resultsInCheckmate = true))
+      .toOption
+      .value shouldEqual "0-0-0#"
+    GameSaverParser
+      .parse(FullMove(promotion, resultsInCheck = false, resultsInCheckmate = true))
+      .toOption
+      .value shouldEqual "a7a8=R#"
+  }
+
+  it should "be able to create a string of the game moves" in {
     var game: ChessGame       = ChessGame.standard()
     val firstMoveWhitePawn    = "e4"
     val secondMoveBlackPawn   = "e5"
@@ -33,5 +77,4 @@ class GameSaverParserSpec extends FlatSpec with Matchers with Inspectors with Op
     game.isKingInCheck shouldBe true
     GameSaverParser.parseAndConvert(game.moveHistory) shouldEqual result
   }
-
 }
