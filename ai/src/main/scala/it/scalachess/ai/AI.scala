@@ -16,7 +16,7 @@ final case class AI(difficulty: Int) {
   }
 
   def generateSmartMove(board: Board, player: Color, history: Seq[FullMove]): Option[FullMove] = level match {
-    case Some(level) => Some(level.generateSmartMove(board, player, history))
+    case Some(level) => Some(level(board, player, history))
     case None        => None
   }
 

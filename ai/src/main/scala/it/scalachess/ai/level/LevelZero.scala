@@ -8,9 +8,8 @@ import scala.util.Random
 
 case class LevelZero() extends Level {
 
-  override def generateSmartMove(board: Board, player: Color, history: Seq[FullMove]): FullMove = {
+  override def apply(board: Board, player: Color, history: Seq[FullMove]): FullMove = {
     val moves = new MoveGenerator(board: Board, player: Color, history: Seq[FullMove]).allMoves()
-
     moves(Random.nextInt(moves.size))
   }
 
