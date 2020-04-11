@@ -14,19 +14,20 @@ trait View {
 
   /**
    * Shows the game board
-   * @param board a game board
+   * @param board the board to be shown
    */
   def showBoard(board: Board)
 
   /**
-   * Returns a representation in String of the board
-   * @param board a game board
-   * @return the representation of the board in a string
+   * Shows a message.
+   * @param message the message to be shown
    */
-  def getStringFromBoard(board: Board): String
-
   def showMessage(message: String)
 
+  /**
+   * Shows a result. (Win, Forfeit or Draw)
+   * @param result the result to be shown
+   */
   def showResult(result: Result)
 }
 
@@ -62,7 +63,7 @@ object CliView extends View {
   def isWhite(piece: Piece): Boolean =
     piece.color == White
 
-  override def getStringFromBoard(board: Board): String = {
+  private def getStringFromBoard(board: Board): String = {
     val lettersRange: NumericRange.Inclusive[Char] = 'A' to (Board.width + 64).toChar
     val emptyCell: String                          = " "
     val cell: String                               = "[ %s ]"
