@@ -1,3 +1,9 @@
 package it.scalachess.ai.level
 
-case class LevelThree() extends LevelTwo {}
+import it.scalachess.core.Color
+import it.scalachess.core.board.Board
+import it.scalachess.core.logic.moves.FullMove
+
+case class LevelThree() extends Level {
+  override def generateSmartMove(board: Board, player: Color, history: Seq[FullMove]): FullMove = ???
+}
