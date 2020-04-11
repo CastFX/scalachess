@@ -72,10 +72,10 @@ class Client private (serverProxy: ActorRef[ClientMessage], view: ActorRef[ViewM
    * Clients wait for the server notification that the Game has started
    * @return the Behavior of the client while it waits for the game start
    */
-  private def waitForGameStart(): Behavior[ClientMessage] = Behaviors.receive { (context, message) =>
+  private def waitForGameStart(): Behavior[ClientMessage] = Behaviors.receive { (_, message) =>
     message match {
       case RoomId(id) =>
-        context.log.debug(id)
+        view ! ShowMessage(id)
         Behaviors.same
       case GameStart(color, game, request, _) =>
         view ! ShowBoard(game.board)
