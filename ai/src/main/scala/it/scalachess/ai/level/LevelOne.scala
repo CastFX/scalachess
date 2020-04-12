@@ -7,18 +7,22 @@ import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, PieceType, Queen,
 
 case class LevelOne() extends Level {
 
-  override def apply(board: Board, player: Color, history: Seq[FullMove]): FullMove =
-    new MoveGenerator(board: Board, player: Color, history: Seq[FullMove])
+  override def apply(board: Board, player: Color, history: Seq[FullMove]): FullMove = {
+    val movesEvaluated = new MoveGenerator(board: Board, player: Color, history: Seq[FullMove])
       .allMoves()
-      .map(move => evaluateBoardByPieceValue(board(move.validMove.boardChanges), player) -> move)
-      .toMap
-      .max
-      ._2
+      .map(move => (move, evaluateBoardByPieceValue(board(move.validMove.boardChanges), player)))
+    movesEvaluated.find(_._2 == (movesEvaluated.map(_._2).max)) match {
+      case Some(moveEvaluated) => moveEvaluated._1
+      case _                   => movesEvaluated.head._1
+    }
+  }
 
   def evaluateBoardByPieceValue(board: Board, player: Color): Double =
     board.pieces
-      .filter(_._2.color == player)
-      .map(piece => pieceValue(piece._2.pieceType))
+      .map {
+        case piece @ player.other => -pieceValue(piece._2.pieceType)
+        case piece @ _            => pieceValue(piece._2.pieceType)
+      }
       .fold(0.0)(_ + _)
 
   def pieceValue(pieceType: PieceType): Double =
@@ -32,12 +36,11 @@ case class LevelOne() extends Level {
       case _      => 0
     }
 
-  // pieces' value estimated by Alan Turing
-  private val pawnValue   = 1
-  private val knightValue = 3
-  private val bishopValue = 3.5
-  private val rookValue   = 5
-  private val queenValue  = 10
+  private val pawnValue   = 10
+  private val knightValue = 30
+  private val bishopValue = 35
+  private val rookValue   = 50
+  private val queenValue  = 100
   private val kingValue   = 1000
 
 }
