@@ -2,7 +2,8 @@ package it.scalachess.core.test
 
 import it.scalachess.core.{ Black, ChessGame, Ongoing, White, Win }
 import it.scalachess.core.board.Position
-import it.scalachess.core.pieces.{ King, Pawn, Piece, Rook }
+import it.scalachess.core.logic.moves.{ FullMove, ValidSimpleMove }
+import it.scalachess.core.pieces.{ King, Knight, Pawn, Piece, Rook }
 import org.scalatest.{ FlatSpec, Matchers, OptionValues }
 import it.scalachess.core.test.ChessGameFailureMatcher.generateFailure
 
@@ -185,6 +186,26 @@ class ChessGameSpec extends FlatSpec with Matchers with OptionValues {
     val castlingQueen   = "0-0"
     game(castlingKing).toOption.isDefined shouldBe false
     game(castlingQueen).toOption.isDefined shouldBe false
+  }
+
+  "A correct move history" should "be created during a game" in {
+    var game: ChessGame = ChessGame.standard()
+    val validFirst      = ValidSimpleMove(Position(2, 1), Position(1, 3), Knight, White, None)
+    val validSecond     = ValidSimpleMove(Position(2, 7), Position(2, 6), Pawn, Black, None)
+    val validThird      = ValidSimpleMove(Position(4, 2), Position(4, 3), Pawn, White, None)
+    val validFourth     = ValidSimpleMove(Position(4, 7), Position(4, 6), Pawn, Black, None)
+    val validFifth      = ValidSimpleMove(Position(7, 2), Position(7, 3), Pawn, White, None)
+    val fullFifth       = FullMove(validFifth, resultsInCheck = false, resultsInCheckmate = false)
+    val history = Seq(
+      FullMove(validFirst, resultsInCheck = false, resultsInCheckmate = false),
+      FullMove(validSecond, resultsInCheck = false, resultsInCheckmate = false),
+      FullMove(validThird, resultsInCheck = false, resultsInCheckmate = false),
+      FullMove(validFourth, resultsInCheck = false, resultsInCheckmate = false)
+    )
+    Seq("Na3", "b6", "d3", "d6").foreach(move => game = game(move).toOption.value)
+    game.moveHistory shouldEqual history
+    game = game("g3").toOption.value
+    game.moveHistory shouldEqual (history :+ fullFifth)
   }
 
 }

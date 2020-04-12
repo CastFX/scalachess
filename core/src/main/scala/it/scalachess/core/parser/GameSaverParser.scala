@@ -38,6 +38,12 @@ object GameSaverParser extends Parser[FullMove, String] {
         Success(s"${getPiece(validMove.pieceType)}${validMove.from.toString}x${validMove.to.toString}$check")
     }
   }
+
+  /**
+   * Parse the input into a string representing the game
+   * @param seq the input to be parsed
+   * @return a representation of the game
+   */
   def parseAndConvert(seq: Seq[FullMove]): String =
     (for (group <- parseAll(seq).flatMap(_.toOption).grouped(2))
       yield group.mkString(nothing, " ", "\n")).zipWithIndex.map(elem => s"${elem._2 + 1}.${elem._1}").mkString
