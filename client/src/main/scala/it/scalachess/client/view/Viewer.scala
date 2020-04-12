@@ -13,9 +13,6 @@ import it.scalachess.util.NetworkMessages.ClientMessage
 object Viewer {
 
   def apply(parent: ActorRef[ClientMessage], viewType: ViewType): Behavior[ViewMessage] =
-    start(parent, viewType)
-
-  private def start(parent: ActorRef[ClientMessage], viewType: ViewType): Behavior[ViewMessage] =
     new Viewer(parent, ViewFactory(viewType)).working()
 }
 
@@ -24,19 +21,17 @@ object Viewer {
  */
 class Viewer(parent: ActorRef[ClientMessage], view: View) {
 
-  def working(): Behavior[ViewMessage] = Behaviors.receive { (_, message) =>
-    message match {
-      case ShowBoard(board: Board) =>
-        view.showBoard(board)
-        Behaviors.same
-      case ShowMessage(message: String) =>
-        view.showMessage(message)
-        Behaviors.same
-      case ShowResult(result: Result) =>
-        view.showResult(result)
-        Behaviors.same
-      case _ =>
-        Behaviors.same
-    }
+  def working(): Behavior[ViewMessage] = Behaviors.receiveMessage {
+    case ShowBoard(board: Board) =>
+      view.showBoard(board)
+      Behaviors.same
+    case ShowMessage(message: String) =>
+      view.showMessage(message)
+      Behaviors.same
+    case ShowResult(result: Result) =>
+      view.showResult(result)
+      Behaviors.same
+    case _ =>
+      Behaviors.same
   }
 }

@@ -24,18 +24,15 @@ object GameSaverParser extends Parser[FullMove, String] {
     t.validMove match {
       case ValidCastling(_, _, _, _, _, QueenSide) => Success(s"0-0-0$check")
       case ValidCastling(_, _, _, _, _, KingSide)  => Success(s"0-0$check")
-      case _: ValidSimpleMove =>
-        val validMove: ValidSimpleMove = t.validMove.asInstanceOf[ValidSimpleMove]
+      case simple: ValidSimpleMove =>
         Success(
-          s"${getPiece(validMove.pieceType)}${validMove.from.toString}${getCapture(validMove.capture)}${validMove.to.toString}$check")
-      case _: ValidPromotion =>
-        val validMove: ValidPromotion = t.validMove.asInstanceOf[ValidPromotion]
-        val promote                   = s"=${getPiece(validMove.promotesTo.pieceType)}"
+          s"${getPiece(simple.pieceType)}${simple.from.toString}${getCapture(simple.capture)}${simple.to.toString}$check")
+      case promotion: ValidPromotion =>
+        val promote = s"=${getPiece(promotion.promotesTo.pieceType)}"
         Success(
-          s"${getPiece(validMove.pieceType)}${validMove.from.toString}${getCapture(validMove.capture)}${validMove.to.toString}$promote$check")
-      case _: ValidEnPassant =>
-        val validMove: ValidEnPassant = t.validMove.asInstanceOf[ValidEnPassant]
-        Success(s"${getPiece(validMove.pieceType)}${validMove.from.toString}x${validMove.to.toString}$check")
+          s"${getPiece(promotion.pieceType)}${promotion.from.toString}${getCapture(promotion.capture)}${promotion.to.toString}$promote$check")
+      case enpassant: ValidEnPassant =>
+        Success(s"${getPiece(enpassant.pieceType)}${enpassant.from.toString}x${enpassant.to.toString}$check")
     }
   }
 
@@ -46,7 +43,9 @@ object GameSaverParser extends Parser[FullMove, String] {
    */
   def parseAndConvert(seq: Seq[FullMove]): String =
     (for (group <- parseAll(seq).flatMap(_.toOption).grouped(2))
-      yield group.mkString(nothing, " ", "\n")).zipWithIndex.map(elem => s"${elem._2 + 1}.${elem._1}").mkString
+      yield group.mkString(nothing, " ", "\n")).zipWithIndex.map {
+      case (moves: String, index: Int) => s"${index + 1}.$moves"
+    }.mkString
 
   private def getPiece(piece: PieceType): String =
     piece match {

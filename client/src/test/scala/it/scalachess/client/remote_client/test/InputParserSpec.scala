@@ -2,7 +2,7 @@ package it.scalachess.client.remote_client.test
 
 import akka.actor.testkit.typed.scaladsl.{ BehaviorTestKit, TestInbox }
 import it.scalachess.client.remote_client
-import it.scalachess.client.remote_client.ClientCommands.{ ClientCommand, Create, Forfeit, Help, InputMove, Join }
+import it.scalachess.client.remote_client.ClientCommands.{ ClientCommand, Create, Forfeit, Help, InputMove, Join, Save }
 import it.scalachess.client.remote_client.InputParser
 import it.scalachess.util.NetworkMessages.ClientMessage
 import org.scalatest.{ FlatSpec, Inspectors, Matchers, OptionValues }
@@ -11,12 +11,14 @@ class InputParserSpec extends FlatSpec with Matchers with OptionValues with Insp
   private val create: String              = "/create"
   private val forfeit: String             = "/forfeit"
   private val help: String                = "/help"
+  private val save: String                = "/save"
   private val joinCommands                = Map("/join 12423423" -> "12423423", "/join 1" -> "1", "/join 1242" -> "1242")
   private val moves: Seq[String]          = Seq("a3", "axa5", "bx")
   private lazy val invalidJoinCommands    = Seq("join", "/join", "/join ", create, forfeit, help) ++ moves
   private lazy val invalidCreateCommands  = Seq("/create 12", "create", "/creat", forfeit, help) ++ joinCommands.keys ++ moves
   private lazy val invalidForfeitCommands = Seq("/forfeit 12", "forfeit", "/forfei", "/join 1234", create, help) ++ joinCommands.keys ++ moves
   private lazy val invalidHelpCommands    = Seq("help", "help", "\\help", "/hel", create, forfeit) ++ joinCommands.keys ++ moves
+  private lazy val invalidSaveCommands    = Seq("save", "sav", "\\save", "/sav", create, forfeit) ++ joinCommands.keys ++ moves
 
   "Join commands" should "be parsed correctly" in {
     val clientInbox = TestInbox[ClientMessage]()
@@ -31,10 +33,11 @@ class InputParserSpec extends FlatSpec with Matchers with OptionValues with Insp
     all(clientInbox.receiveAll()) should not be a[Join]
   }
 
-  "Create, Forfeit and Help commands" should "be parsed correctly" in {
+  "Create, Forfeit, Save and Help commands" should "be parsed correctly" in {
     testSingleWordCommand(create, invalidCreateCommands, Create)
     testSingleWordCommand(forfeit, invalidForfeitCommands, Forfeit)
     testSingleWordCommand(help, invalidHelpCommands, Help)
+    testSingleWordCommand(save, invalidSaveCommands, Save)
   }
 
   "All other commands" should "be parsed as Move" in {

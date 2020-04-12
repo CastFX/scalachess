@@ -6,6 +6,7 @@ import it.scalachess.client.remote_client.ClientCommands._
 import it.scalachess.client.view.ViewCommands.{ ShowBoard, ShowMessage, ShowResult, ViewMessage }
 import it.scalachess.client.view.{ CLI, ViewType, Viewer }
 import it.scalachess.core._
+import it.scalachess.core.parser.GameSaverParser
 import it.scalachess.util.NetworkErrors.{ FailedMove, RoomFull, RoomNotFound }
 import it.scalachess.util.NetworkMessages._
 
@@ -118,6 +119,9 @@ class Client private (serverProxy: ActorRef[ClientMessage], view: ActorRef[ViewM
     case Help =>
       Client.showHelp(view)
       Behaviors.same
+    case Save =>
+      view ! ShowMessage(GameSaverParser.parseAndConvert(game.moveHistory))
+      Behaviors.same
     case _ =>
       Behaviors.same
   }
@@ -144,6 +148,9 @@ class Client private (serverProxy: ActorRef[ClientMessage], view: ActorRef[ViewM
       Behaviors.same
     case Help =>
       Client.showHelp(view)
+      Behaviors.same
+    case Save =>
+      view ! ShowMessage(GameSaverParser.parseAndConvert(game.moveHistory))
       Behaviors.same
     case _ =>
       Behaviors.same
