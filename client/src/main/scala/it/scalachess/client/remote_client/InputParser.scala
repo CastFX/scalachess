@@ -21,11 +21,12 @@ import scala.util.matching.Regex
 object InputParser {
 
   val create: String  = "/create"
-  val join: Regex     = """/join ([a-zA-Z0-9]+)""".r
+  val join: Regex     = "/join ([a-zA-Z0-9]+)".r
   val forfeit: String = "/forfeit"
   val help: String    = "/help"
   val quit: String    = "/quit"
   val save: String    = "/save"
+  val play: String    = "/play"
 
   def apply(parent: ActorRef[ClientCommand]): Behavior[String] = Behaviors.receiveMessage { input =>
     parent ! inputToCommand(input)
@@ -46,6 +47,7 @@ object InputParser {
       case `help`    => Help
       case `quit`    => Quit
       case `save`    => Save
+      case `play`    => Join
       case _         => InputMove(input)
     }
 }

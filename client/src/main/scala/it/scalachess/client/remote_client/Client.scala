@@ -7,7 +7,7 @@ import it.scalachess.client.view.ViewCommands.{ ShowBoard, ShowMessage, ShowResu
 import it.scalachess.client.view.{ CLI, ViewType, Viewer }
 import it.scalachess.core._
 import it.scalachess.core.parser.GameSaverParser
-import it.scalachess.util.NetworkErrors.{ FailedMove, RoomFull, RoomNotFound }
+import it.scalachess.util.NetworkErrors.{ FailedMove, MatchNotFound, RoomFull, RoomNotFound }
 import it.scalachess.util.NetworkMessages._
 
 /**
@@ -59,7 +59,7 @@ class Client private (serverProxy: ActorRef[ClientMessage], view: ActorRef[ViewM
    * @return the Behavior of the client while waiting to create/join a game
    */
   def inLobby(): Behavior[ClientMessage] = Behaviors.receiveMessage {
-    case cmd @ (Create | Join(_)) =>
+    case cmd @ (Create | Join(_) | Join) =>
       serverProxy ! cmd
       waitForGameStart()
     case Help =>
@@ -87,6 +87,9 @@ class Client private (serverProxy: ActorRef[ClientMessage], view: ActorRef[ViewM
         inLobby()
       case RoomNotFound(id) =>
         view ! ShowMessage(s"Cannot join room $id, id not found")
+        inLobby()
+      case MatchNotFound =>
+        view ! ShowMessage(s"There's not a match to join")
         inLobby()
       case Help =>
         Client.showHelp(view)

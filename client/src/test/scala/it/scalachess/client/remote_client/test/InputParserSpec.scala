@@ -12,6 +12,7 @@ class InputParserSpec extends FlatSpec with Matchers with OptionValues with Insp
   private val forfeit: String             = "/forfeit"
   private val help: String                = "/help"
   private val save: String                = "/save"
+  private val play: String                = "/play"
   private val joinCommands                = Map("/join 12423423" -> "12423423", "/join 1" -> "1", "/join 1242" -> "1242")
   private val moves: Seq[String]          = Seq("a3", "axa5", "bx")
   private lazy val invalidJoinCommands    = Seq("join", "/join", "/join ", create, forfeit, help) ++ moves
@@ -19,6 +20,7 @@ class InputParserSpec extends FlatSpec with Matchers with OptionValues with Insp
   private lazy val invalidForfeitCommands = Seq("/forfeit 12", "forfeit", "/forfei", "/join 1234", create, help) ++ joinCommands.keys ++ moves
   private lazy val invalidHelpCommands    = Seq("help", "help", "\\help", "/hel", create, forfeit) ++ joinCommands.keys ++ moves
   private lazy val invalidSaveCommands    = Seq("save", "sav", "\\save", "/sav", create, forfeit) ++ joinCommands.keys ++ moves
+  private lazy val invalidPlayCommands    = Seq("play", "pla", "\\play", "/pla", create, forfeit) ++ joinCommands.keys ++ moves
 
   "Join commands" should "be parsed correctly" in {
     val clientInbox = TestInbox[ClientMessage]()
@@ -33,11 +35,12 @@ class InputParserSpec extends FlatSpec with Matchers with OptionValues with Insp
     all(clientInbox.receiveAll()) should not be a[Join]
   }
 
-  "Create, Forfeit, Save and Help commands" should "be parsed correctly" in {
+  "Create, Forfeit, Save, Play and Help commands" should "be parsed correctly" in {
     testSingleWordCommand(create, invalidCreateCommands, Create)
     testSingleWordCommand(forfeit, invalidForfeitCommands, Forfeit)
     testSingleWordCommand(help, invalidHelpCommands, Help)
     testSingleWordCommand(save, invalidSaveCommands, Save)
+    testSingleWordCommand(play, invalidPlayCommands, Join)
   }
 
   "All other commands" should "be parsed as Move" in {

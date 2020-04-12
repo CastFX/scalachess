@@ -5,7 +5,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ ActorRef, Behavior }
 import it.scalachess.core.ChessGame
 import it.scalachess.server.LobbyManager.{ RoomMap, TerminateGame }
-import it.scalachess.util.NetworkErrors.{ RoomFull, RoomNotFound }
+import it.scalachess.util.NetworkErrors.{ MatchNotFound, RoomFull, RoomNotFound }
 import it.scalachess.util.NetworkMessages
 import it.scalachess.util.NetworkMessages._
 import org.slf4j.Logger
@@ -57,30 +57,42 @@ class LobbyManager(logger: Logger) {
           client ! RoomId(id)
           logger.info(s"Client ${client.hashCode} created room $id")
           discover(rooms + (id -> newRoom))
-
         case JoinRoom(id, client) =>
           rooms get id match {
-            case Some(room) if !room.full =>
-              val updatedRoom = room.join(client)
-              logger.info(s"Client ${client.hashCode} joined room $id")
-              val _ = context.spawn(GameManager(updatedRoom, context.self), s"GameManager$id")
-              discover(rooms + (id -> updatedRoom))
-            case Some(room) if room.full =>
-              client ! RoomFull(id)
-              Behaviors.same
+            case Some(room) =>
+              if (!room.full) {
+                val updatedRoom = room.join(client)
+                logger.info(s"Client ${client.hashCode} joined room $id")
+                val _ = context.spawn(GameManager(updatedRoom, context.self), s"GameManager$id")
+                discover(rooms + (id -> updatedRoom))
+              } else {
+                client ! RoomFull(id)
+                Behaviors.same
+              }
             case None =>
               logger.info(s"Client ${client.hashCode} failed to join room $id")
               client ! RoomNotFound(id)
               Behaviors.same
           }
-
+        case JoinMatch(client) =>
+          if (checkRooms(rooms)) {
+            val updatedRoom = rooms.last._2.join(client)
+            logger.info(s"Client ${client.hashCode} joined room ${rooms.last._1}")
+            val _ = context.spawn(GameManager(updatedRoom, context.self), s"GameManager${rooms.last._1}")
+            discover(rooms + (rooms.last._1 -> updatedRoom))
+          } else {
+            logger.info(s"Client ${client.hashCode} there are no rooms to join.")
+            client ! MatchNotFound
+            Behaviors.same
+          }
         case TerminateGame(id, _, manager) =>
           context stop manager
           logger.info(s"Removed room $id and stopped GameManager ${manager.hashCode}")
           discover(rooms - id)
-
         case _ =>
           Behaviors.same
       }
     }
+  private def checkRooms(rooms: Map[String, Room]): Boolean =
+    rooms.nonEmpty && rooms.count(room => !room._2.full) > 0
 }
