@@ -2,7 +2,16 @@ package it.scalachess.client.remote_client.test
 
 import akka.actor.testkit.typed.scaladsl.{ BehaviorTestKit, TestInbox }
 import it.scalachess.client.remote_client
-import it.scalachess.client.remote_client.ClientCommands.{ ClientCommand, Create, Forfeit, Help, InputMove, Join, Save }
+import it.scalachess.client.remote_client.ClientCommands.{
+  ClientCommand,
+  CommandNotFound,
+  Create,
+  Forfeit,
+  Help,
+  InputMove,
+  Join,
+  Save
+}
 import it.scalachess.client.remote_client.InputParser
 import it.scalachess.util.NetworkMessages.ClientMessage
 import org.scalatest.{ FlatSpec, Inspectors, Matchers, OptionValues }
@@ -63,5 +72,12 @@ class InputParserSpec extends FlatSpec with Matchers with OptionValues with Insp
 
     notCommands foreach inputParser.run
     all(clientInbox.receiveAll()) should not be a[result.type]
+  }
+
+  "All wrong /commands" should "return a CommandNotFound" in {
+    val clientInbox = TestInbox[ClientMessage]()
+    val inputParser = BehaviorTestKit(remote_client.InputParser(clientInbox.ref))
+    Seq("/creat", "/pla", "/jon", "/.", "/abc") foreach inputParser.run
+    all(clientInbox.receiveAll()) shouldBe CommandNotFound
   }
 }

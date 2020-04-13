@@ -16,6 +16,7 @@ object ClientCommands {
   case object Help                   extends ClientCommand
   case object Quit                   extends ClientCommand
   case object Save                   extends ClientCommand
+  case object CommandNotFound        extends ClientCommand
 
   val helpers: Seq[String] = Seq(
     "/create - Creates a room to play a chess game with another client",

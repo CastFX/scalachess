@@ -2,6 +2,7 @@ package it.scalachess.client.remote_client
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ ActorRef, Behavior }
+import it.scalachess.client.remote_client.Client.commandNotFound
 import it.scalachess.client.remote_client.ClientCommands._
 import it.scalachess.client.view.ViewCommands.{ ShowBoard, ShowMessage, ShowResult, ViewMessage }
 import it.scalachess.client.view.{ CLI, ViewType, Viewer }
@@ -20,7 +21,8 @@ object Client {
    */
   case object ConnectedToServer extends ClientMessage
 
-  private val viewType: ViewType = CLI
+  private val viewType: ViewType      = CLI
+  private val commandNotFound: String = "Command Not Found"
 
   /**
    * Initializes the Client actor by spawning a ServerProxy and waits for the connection to the server
@@ -39,6 +41,9 @@ object Client {
           new Client(serverProxy, view).inLobby()
         case Help =>
           showHelp(view)
+          Behaviors.same
+        case CommandNotFound =>
+          view ! ShowMessage(commandNotFound)
           Behaviors.same
         case _ =>
           Behaviors.same
@@ -64,6 +69,9 @@ class Client private (serverProxy: ActorRef[ClientMessage], view: ActorRef[ViewM
       waitForGameStart()
     case Help =>
       Client.showHelp(view)
+      Behaviors.same
+    case CommandNotFound =>
+      view ! ShowMessage(commandNotFound)
       Behaviors.same
     case _ =>
       Behaviors.same
@@ -93,6 +101,9 @@ class Client private (serverProxy: ActorRef[ClientMessage], view: ActorRef[ViewM
         inLobby()
       case Help =>
         Client.showHelp(view)
+        Behaviors.same
+      case CommandNotFound =>
+        view ! ShowMessage(commandNotFound)
         Behaviors.same
       case _ =>
         Behaviors.same
@@ -125,6 +136,9 @@ class Client private (serverProxy: ActorRef[ClientMessage], view: ActorRef[ViewM
     case Save =>
       view ! ShowMessage(GameSaverParser.parseAndConvert(game.moveHistory))
       Behaviors.same
+    case CommandNotFound =>
+      view ! ShowMessage(commandNotFound)
+      Behaviors.same
     case _ =>
       Behaviors.same
   }
@@ -151,6 +165,9 @@ class Client private (serverProxy: ActorRef[ClientMessage], view: ActorRef[ViewM
       Behaviors.same
     case Help =>
       Client.showHelp(view)
+      Behaviors.same
+    case CommandNotFound =>
+      view ! ShowMessage(commandNotFound)
       Behaviors.same
     case Save =>
       view ! ShowMessage(GameSaverParser.parseAndConvert(game.moveHistory))

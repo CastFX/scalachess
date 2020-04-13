@@ -4,6 +4,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ ActorRef, Behavior }
 import it.scalachess.client.remote_client.ClientCommands.{
   ClientCommand,
+  CommandNotFound,
   Create,
   Forfeit,
   Help,
@@ -41,13 +42,14 @@ object InputParser {
    */
   def inputToCommand(input: String): ClientCommand =
     input match {
-      case `create`  => Create
-      case join(id)  => Join(id)
-      case `forfeit` => Forfeit
-      case `help`    => Help
-      case `quit`    => Quit
-      case `save`    => Save
-      case `play`    => Join
-      case _         => InputMove(input)
+      case `create`                   => Create
+      case join(id)                   => Join(id)
+      case `forfeit`                  => Forfeit
+      case `help`                     => Help
+      case `quit`                     => Quit
+      case `save`                     => Save
+      case `play`                     => Join
+      case _ if input.startsWith("/") => CommandNotFound
+      case _                          => InputMove(input)
     }
 }
