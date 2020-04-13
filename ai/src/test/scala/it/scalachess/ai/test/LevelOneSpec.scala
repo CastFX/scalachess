@@ -5,13 +5,12 @@ import org.scalatest.{ FlatSpec, Inspectors, Matchers, OptionValues }
 import it.scalachess.core.{ Black, White }
 import it.scalachess.core.board.{ Board, Position }
 import it.scalachess.core.logic.moves.ValidSimpleMove
-import it.scalachess.core.logic.moves.generators.MoveGenerator
-import it.scalachess.core.pieces.{ Bishop, Knight, Pawn, Queen }
+import it.scalachess.core.pieces.{ Pawn, Queen }
 
 class LevelOneSpec extends FlatSpec with Matchers with Inspectors with OptionValues {
 
   /*
-   * FOOL'S MATE
+   * simulate a FOOL'S MATE
    * */
   "A level one chess A.I during a Fool's Mate" should "plays the move which capture king" in {
     val firstWhitePawnMove  = ValidSimpleMove(Position(6, 2), Position(6, 3), Pawn, White, None)
@@ -24,11 +23,11 @@ class LevelOneSpec extends FlatSpec with Matchers with Inspectors with OptionVal
     board = board(firstWhitePawnMove.boardChanges)
     board = board(blackPawnMove.boardChanges)
     board = board(secondWhitePawnMove.boardChanges)
-    // ai.generateSmartMove(board, Seq()) // note: it may generate the checkmate move: 1 possibility over 30 (moves generated)
+    // ai.generateSmartMove(board, Seq()) // note: at this point, the AI could generate the checkmate move: 1 possibility over 30 (moves generated)
     board = board(blackQueenMove.boardChanges)
-    ai.generateSmartMove(board, Seq()).value.validMove.capture.value should equal(whiteKingPosition)
+    ai.generateSmartMove(board, Seq()).toOption.value.validMove.capture.value should equal(whiteKingPosition)
   }
 
-  // TODO maybe add one test where the ai should choose to capture two pieces having different values
+  // TODO maybe add one test where the ai must choose to capture a piece between two having different values
 
 }

@@ -5,24 +5,22 @@ import it.scalachess.core.board.Board
 import it.scalachess.core.logic.moves.FullMove
 import it.scalachess.core.logic.moves.generators.MoveGenerator
 import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, PieceType, Queen, Rook }
+import scalaz.Validation
 
+/**
+ * The level one AI plays the move which capture the more important piece
+ */
 case class LevelOne() extends Level {
 
-  override def apply(board: Board, player: Color, history: Seq[FullMove]): FullMove =
-    moveWithMaxEvaluation(generateMovesEvaluated(board, player, history))
+  override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): Validation[String, FullMove] =
+    moveWithMaxEvaluation(generateMovesWithEvaluation(board, aiPlayer, history))
 
-  private[level] def moveWithMaxEvaluation(movesEvaluated: Map[FullMove, Double]): FullMove =
-    movesEvaluated.find(_._2 == movesEvaluated.values.max) match {
-      case Some(maxEvalEntry) => maxEvalEntry._1
-      case _                  => movesEvaluated.head._1
-    }
-
-  private[level] def generateMovesEvaluated(board: Board,
-                                            player: Color,
-                                            history: Seq[FullMove]): Map[FullMove, Double] =
-    new MoveGenerator(board: Board, player: Color, history: Seq[FullMove])
+  private[level] def generateMovesWithEvaluation(board: Board,
+                                                 aiPlayer: Color,
+                                                 history: Seq[FullMove]): Map[FullMove, Double] =
+    new MoveGenerator(board: Board, aiPlayer: Color, history: Seq[FullMove])
       .allMoves()
-      .map(move => move -> evaluateBoardByPieceValue(board(move.validMove.boardChanges), player))
+      .map(move => move -> evaluateBoardByPieceValue(board(move.validMove.boardChanges), aiPlayer))
       .toMap
 
   private[level] def evaluateBoardByPieceValue(board: Board, player: Color): Double =
