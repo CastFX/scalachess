@@ -1,4 +1,5 @@
 package it.scalachess.ai.level
+
 import it.scalachess.core.Color
 import it.scalachess.core.board.Board
 import it.scalachess.core.logic.moves.FullMove
@@ -7,25 +8,34 @@ import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, PieceType, Queen,
 
 case class LevelOne() extends Level {
 
-  override def apply(board: Board, player: Color, history: Seq[FullMove]): FullMove = {
-    val movesEvaluated = new MoveGenerator(board: Board, player: Color, history: Seq[FullMove])
-      .allMoves()
-      .map(move => (move, evaluateBoardByPieceValue(board(move.validMove.boardChanges), player)))
-    movesEvaluated.find(_._2 == (movesEvaluated.map(_._2).max)) match {
-      case Some(moveEvaluated) => moveEvaluated._1
-      case _                   => movesEvaluated.head._1
+  override def apply(board: Board, player: Color, history: Seq[FullMove]): FullMove =
+    moveWithMaxEvaluation(generateMovesEvaluated(board, player, history))
+
+  private[level] def moveWithMaxEvaluation(movesEvaluated: Map[FullMove, Double]): FullMove =
+    movesEvaluated.find(_._2 == movesEvaluated.values.max) match {
+      case Some(maxEvalEntry) => maxEvalEntry._1
+      case _                  => movesEvaluated.head._1
     }
-  }
 
-  def evaluateBoardByPieceValue(board: Board, player: Color): Double =
+  private[level] def generateMovesEvaluated(board: Board,
+                                            player: Color,
+                                            history: Seq[FullMove]): Map[FullMove, Double] =
+    new MoveGenerator(board: Board, player: Color, history: Seq[FullMove])
+      .allMoves()
+      .map(move => move -> evaluateBoardByPieceValue(board(move.validMove.boardChanges), player))
+      .toMap
+
+  private[level] def evaluateBoardByPieceValue(board: Board, player: Color): Double =
     board.pieces
-      .map {
-        case piece @ player.other => -pieceValue(piece._2.pieceType)
-        case piece @ _            => pieceValue(piece._2.pieceType)
-      }
-      .fold(0.0)(_ + _)
+      .map(piece =>
+        piece._2.color match {
+          case player.other => -pieceValue(piece._2.pieceType)
+          case _            => pieceValue(piece._2.pieceType)
+      })
+      .toList
+      .sum
 
-  def pieceValue(pieceType: PieceType): Double =
+  private def pieceValue(pieceType: PieceType): Double =
     pieceType match {
       case Pawn   => pawnValue
       case Knight => knightValue
@@ -33,9 +43,10 @@ case class LevelOne() extends Level {
       case Rook   => rookValue
       case Queen  => queenValue
       case King   => kingValue
-      case _      => 0
+      case _ =>
+        assert(assertion = false, s"The AI doesn't know the value of this piece: $pieceType")
+        0
     }
-
   private val pawnValue   = 10
   private val knightValue = 30
   private val bishopValue = 35
