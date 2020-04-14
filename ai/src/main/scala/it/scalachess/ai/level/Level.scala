@@ -5,6 +5,9 @@ import it.scalachess.core.board.Board
 import it.scalachess.core.logic.moves.FullMove
 import scalaz.{ Failure, Success, Validation }
 
+/**
+ * The interface which
+ */
 trait Level extends ((Board, Color, Seq[FullMove]) => Validation[String, FullMove]) {
 
   override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): Validation[String, FullMove]
@@ -17,5 +20,7 @@ trait Level extends ((Board, Color, Seq[FullMove]) => Validation[String, FullMov
         case _                  => movesEvaluated.head._1
       })
     }
+
   protected val AIinCheckmateFailMsg = "The AI player is on checkmate, the game should be already ended"
+
 }

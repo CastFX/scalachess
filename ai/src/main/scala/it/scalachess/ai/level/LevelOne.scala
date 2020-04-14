@@ -45,6 +45,7 @@ case class LevelOne() extends Level {
         assert(assertion = false, s"The AI doesn't know the value of this piece: $pieceType")
         0
     }
+
   private val pawnValue   = 10
   private val knightValue = 30
   private val bishopValue = 35

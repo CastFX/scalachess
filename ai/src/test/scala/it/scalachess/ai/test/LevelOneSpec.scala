@@ -28,6 +28,4 @@ class LevelOneSpec extends FlatSpec with Matchers with Inspectors with OptionVal
     ai.generateSmartMove(board, Seq()).toOption.value.validMove.capture.value should equal(whiteKingPosition)
   }
 
-  // TODO maybe add one test where the ai must choose to capture a piece between two having different values
-
 }
