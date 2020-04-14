@@ -8,7 +8,7 @@ import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, PieceType, Queen,
 import scalaz.Validation
 
 /**
- * The level one AI plays the move which capture the more important piece
+ * The level one AI plays the move which capture the more important piece.
  */
 case class LevelOne() extends Level {
 

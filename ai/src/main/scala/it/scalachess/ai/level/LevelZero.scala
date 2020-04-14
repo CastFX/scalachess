@@ -9,7 +9,7 @@ import scalaz.{ Failure, Success, Validation }
 import scala.util.Random
 
 /**
- * The level zero AI plays just random moves
+ * The level zero AI plays just random moves.
  */
 case class LevelZero() extends Level {
 

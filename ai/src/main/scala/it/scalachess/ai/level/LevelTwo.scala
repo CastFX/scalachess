@@ -6,6 +6,11 @@ import it.scalachess.core.logic.moves.FullMove
 import it.scalachess.core.logic.moves.generators.MoveGenerator
 import scalaz.Validation
 
+/**
+ * The level two AI plays the best move following two principles:
+ * [1] it cares about value based on piece importance (it uses the same evaluation of level one);
+ * [2] it analyse all the possible next moves, relying on the minimax algorithm.
+ */
 case class LevelTwo() extends Level {
 
   private val levelOne       = LevelOne()
