@@ -10,7 +10,7 @@ import scala.util.Random
 /**
  * The level zero AI plays random moves.
  */
-case class LevelZero() extends Level {
+final case class LevelZero() extends Level {
 
   override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): FullMove = {
     val moves = new MoveGenerator(board: Board, aiPlayer: Color, history: Seq[FullMove]).allMoves()

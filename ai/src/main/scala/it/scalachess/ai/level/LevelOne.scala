@@ -9,11 +9,18 @@ import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, PieceType, Queen,
 /**
  * The level one AI plays the move which capture the more important piece.
  */
-case class LevelOne() extends Level {
+final case class LevelOne() extends Level {
 
   override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): FullMove =
     moveWithMaxEvaluation(generateMovesWithEvaluation(board, aiPlayer, history))
 
+  /**
+   * Generates the moves and their evaluation.
+   * @param board the board on which computes the move generation and evaluation
+   * @param aiPlayer the color of the AI player
+   * @param history the moves history played on the board
+   * @return the map containing the moves and the relative evaluations
+   */
   private[level] def generateMovesWithEvaluation(board: Board,
                                                  aiPlayer: Color,
                                                  history: Seq[FullMove]): Map[FullMove, Double] =
@@ -22,6 +29,12 @@ case class LevelOne() extends Level {
       .map(move => move -> evaluateBoardByPieceValue(board(move.validMove.boardChanges), aiPlayer))
       .toMap
 
+  /**
+   * Evaluates a board relying on a player color
+   * @param board the board on which computes the evaluation
+   * @param player the color of the AI player
+   * @return the evaluation of the board
+   */
   private[level] def evaluateBoardByPieceValue(board: Board, player: Color): Double =
     board.pieces
       .map(piece =>
@@ -32,6 +45,11 @@ case class LevelOne() extends Level {
       .toList
       .sum
 
+  /**
+   * Evaluates a piece relying on his type
+   * @param pieceType the type of the piece to evaluate
+   * @return the evalutation of that piece type
+   */
   private def pieceValue(pieceType: PieceType): Double =
     pieceType match {
       case Pawn   => pawnValue

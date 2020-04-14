@@ -10,7 +10,7 @@ import it.scalachess.core.logic.moves.generators.MoveGenerator
  * [1] it cares about value based on piece importance (it uses the same evaluation of level one);
  * [2] it analyse all the possible next moves, relying on the minimax algorithm.
  */
-case class LevelTwo() extends Level {
+final case class LevelTwo() extends Level {
 
   private val levelOne       = LevelOne()
   private val minimaxDepth   = 3
@@ -19,6 +19,14 @@ case class LevelTwo() extends Level {
   override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): FullMove =
     moveWithMaxEvaluation(generateMovesWithMinimaxEval(board, aiPlayer, history, minimaxDepth))
 
+  /**
+   * Generates the moves and their evaluation using the minimax algorithm.
+   * @param board the board on which computes the move generation and evaluation
+   * @param aiPlayer the color of the AI player
+   * @param history the moves history played on the board
+   * @param depth the depth of the minimax algorithm
+   * @return the map containing the moves and the relative evaluations
+   */
   private[level] def generateMovesWithMinimaxEval(board: Board,
                                                   aiPlayer: Color,
                                                   history: Seq[FullMove],
@@ -36,6 +44,15 @@ case class LevelTwo() extends Level {
       .toMap
   }
 
+  /**
+   * Evaluates a board relying on the minimax algorithm.
+   * @param board the board to evaluate
+   * @param history the moves history played on the board
+   * @param depth the depth of the minimax algorithm
+   * @param activePlayer the active player during the current minimax turn simulation
+   * @param aiPlayerWhichMaximize the color of the player that want to maximize the minimax evaluation (AI player)
+   * @return the evaluation of the board
+   */
   def minimax(board: Board,
               history: Seq[FullMove],
               depth: Int,

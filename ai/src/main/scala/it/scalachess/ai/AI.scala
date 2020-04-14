@@ -5,6 +5,11 @@ import it.scalachess.core.Color
 import it.scalachess.core.board.Board
 import it.scalachess.core.logic.moves.FullMove
 
+/**
+ * The class representing the logic of the AI player.
+ * @param difficulty the AI level
+ * @param player the color of the AI player
+ */
 final case class AI(difficulty: Int, player: Color) {
 
   private val level = {
