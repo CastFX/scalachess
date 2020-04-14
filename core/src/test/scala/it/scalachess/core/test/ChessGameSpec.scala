@@ -108,20 +108,7 @@ class ChessGameSpec extends FlatSpec with Matchers with OptionValues {
    * SCHOLAR'S MATE
    * */
   "Build a Scholar's Check Mate in which the game " should " end in 7 turn," in {
-    val firstMoveWhitePawn    = "e4"
-    val secondMoveBlackPawn   = "e5"
-    val thirdMoveWhiteBishop  = "Bc4"
-    val fourthMoveBlackKnight = "Nc6"
-    val fifthMoveWhiteQueen   = "Qh5"
-    val sixthMoveBlackKnight  = "Nf6"
-    val seventhMoveWhiteQueen = "Qxf7#"
-    scholarMateGame = scholarMateGame(firstMoveWhitePawn).toOption.value
-    scholarMateGame = scholarMateGame(secondMoveBlackPawn).toOption.value
-    scholarMateGame = scholarMateGame(thirdMoveWhiteBishop).toOption.value
-    scholarMateGame = scholarMateGame(fourthMoveBlackKnight).toOption.value
-    scholarMateGame = scholarMateGame(fifthMoveWhiteQueen).toOption.value
-    scholarMateGame = scholarMateGame(sixthMoveBlackKnight).toOption.value
-    scholarMateGame = scholarMateGame(seventhMoveWhiteQueen).toOption.value
+    scholarMateGame = GameCreator.scholarGame
     scholarMateGame.gameStatus should equal(Win(White))
     scholarMateGame.isKingInCheck shouldBe true
   }

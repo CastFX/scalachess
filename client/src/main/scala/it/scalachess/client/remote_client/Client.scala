@@ -126,6 +126,7 @@ class Client private (serverProxy: ActorRef[ClientMessage], view: ActorRef[ViewM
     case GameEnd(result, game) =>
       view ! ShowBoard(game.board)
       view ! ShowResult(result)
+      view ! ShowMessage(GameSaverParser.parseAndConvert(game.moveHistory, Some(result)))
       inLobby()
     case FailedMove(error, move) =>
       view ! ShowMessage(s"Move: $move failed because of error: $error")
@@ -134,7 +135,7 @@ class Client private (serverProxy: ActorRef[ClientMessage], view: ActorRef[ViewM
       Client.showHelp(view)
       Behaviors.same
     case Save =>
-      view ! ShowMessage(GameSaverParser.parseAndConvert(game.moveHistory))
+      view ! ShowMessage(GameSaverParser.parseAndConvert(game.moveHistory, None))
       Behaviors.same
     case CommandNotFound =>
       view ! ShowMessage(commandNotFound)
@@ -159,6 +160,7 @@ class Client private (serverProxy: ActorRef[ClientMessage], view: ActorRef[ViewM
     case GameEnd(result, game) =>
       view ! ShowBoard(game.board)
       view ! ShowResult(result)
+      view ! ShowMessage(GameSaverParser.parseAndConvert(game.moveHistory, Some(result)))
       inLobby()
     case FailedMove(error, move) =>
       view ! ShowMessage(s"Move: $move failed because of error: $error")
@@ -170,7 +172,7 @@ class Client private (serverProxy: ActorRef[ClientMessage], view: ActorRef[ViewM
       view ! ShowMessage(commandNotFound)
       Behaviors.same
     case Save =>
-      view ! ShowMessage(GameSaverParser.parseAndConvert(game.moveHistory))
+      view ! ShowMessage(GameSaverParser.parseAndConvert(game.moveHistory, None))
       Behaviors.same
     case _ =>
       Behaviors.same
