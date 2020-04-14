@@ -4,7 +4,6 @@ import it.scalachess.ai.level.{ LevelOne, LevelTwo, LevelZero }
 import it.scalachess.core.Color
 import it.scalachess.core.board.Board
 import it.scalachess.core.logic.moves.FullMove
-import scalaz.{ Failure, Validation }
 
 final case class AI(difficulty: Int, player: Color) {
 
@@ -18,9 +17,8 @@ final case class AI(difficulty: Int, player: Color) {
     }
   }
 
-  def generateSmartMove(board: Board, history: Seq[FullMove]): Validation[String, FullMove] = level match {
+  def generateSmartMove(board: Board, history: Seq[FullMove]): FullMove = level match {
     case Some(level) => level(board, player, history)
-    case None        => Failure("Something went wrong during level initialization ...")
   }
 
 }

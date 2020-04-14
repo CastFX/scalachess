@@ -15,7 +15,7 @@ class LevelZeroSpec extends FlatSpec with OptionValues {
     val ai           = AI(0, player)
     new MoveGenerator(defaultBoard, player, history)
       .allMoves()
-      .contains(ai.generateSmartMove(defaultBoard, history).toOption.value)
+      .contains(ai.generateSmartMove(defaultBoard, history))
   }
 
 }

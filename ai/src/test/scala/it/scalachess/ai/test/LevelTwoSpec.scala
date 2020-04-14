@@ -5,7 +5,7 @@ import org.scalatest.{ FlatSpec, Inspectors, Matchers, OptionValues }
 import it.scalachess.core.{ Black, White }
 import it.scalachess.core.board.{ Board, Position }
 import it.scalachess.core.logic.moves.ValidSimpleMove
-import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, Queen }
+import it.scalachess.core.pieces.{ Bishop, Knight, Pawn, Queen }
 
 class LevelTwoSpec extends FlatSpec with Matchers with Inspectors with OptionValues {
 
@@ -17,19 +17,16 @@ class LevelTwoSpec extends FlatSpec with Matchers with Inspectors with OptionVal
     val blackPawnMove       = ValidSimpleMove(Position(5, 7), Position(5, 6), Pawn, Black, None)
     val secondWhitePawnMove = ValidSimpleMove(Position(7, 2), Position(7, 4), Pawn, White, None)
     val blackQueenMove      = ValidSimpleMove(Position(4, 8), Position(8, 4), Queen, Black, None)
-    val whiteKingPosition   = Position(5, 1)
     var board               = Board.defaultBoard()
     val ai                  = AI(2, Black)
     board = board(firstWhitePawnMove.boardChanges)
     board = board(blackPawnMove.boardChanges)
     board = board(secondWhitePawnMove.boardChanges)
     // move that cause checkmate
-    val aiMove = ai.generateSmartMove(board, Seq()).toOption.value
+    val aiMove = ai.generateSmartMove(board, Seq())
     aiMove.resultsInCheckmate should be(true)
     aiMove.validMove should equal(blackQueenMove)
     board = board(aiMove.validMove.boardChanges)
-    // move that capture the king
-    ai.generateSmartMove(board, Seq()).toOption.value.validMove.capture.value should equal(whiteKingPosition)
   }
 
   /*
@@ -43,8 +40,6 @@ class LevelTwoSpec extends FlatSpec with Matchers with Inspectors with OptionVal
     val fifthMoveWhiteQueen   = ValidSimpleMove(Position(4, 1), Position(8, 5), Queen, White, None)
     val sixthMoveBlackKnight  = ValidSimpleMove(Position(7, 8), Position(6, 6), Knight, Black, None)
     val seventhMoveWhiteQueen = ValidSimpleMove(Position(8, 5), Position(6, 7), Queen, White, Some(Position(6, 7)))
-    val eighthMoveBlackKing   = ValidSimpleMove(Position(5, 8), Position(6, 7), King, Black, Some(Position(6, 7)))
-    val finalKingPosition     = Position(6, 7)
     var board                 = Board.defaultBoard()
     val ai                    = AI(2, White)
     board = board(firstMoveWhitePawn.boardChanges)
@@ -54,11 +49,8 @@ class LevelTwoSpec extends FlatSpec with Matchers with Inspectors with OptionVal
     board = board(fifthMoveWhiteQueen.boardChanges)
     board = board(sixthMoveBlackKnight.boardChanges)
     // move that cause checkmate
-    val aiMove = ai.generateSmartMove(board, Seq()).toOption.value
+    val aiMove = ai.generateSmartMove(board, Seq())
     aiMove.validMove should equal(seventhMoveWhiteQueen)
-    board = board(eighthMoveBlackKing.boardChanges)
-    // move that capture the king
-    ai.generateSmartMove(board, Seq()).toOption.value.validMove.capture.value should equal(finalKingPosition)
   }
 
 }

@@ -5,14 +5,13 @@ import it.scalachess.core.board.Board
 import it.scalachess.core.logic.moves.FullMove
 import it.scalachess.core.logic.moves.generators.MoveGenerator
 import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, PieceType, Queen, Rook }
-import scalaz.Validation
 
 /**
  * The level one AI plays the move which capture the more important piece.
  */
 case class LevelOne() extends Level {
 
-  override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): Validation[String, FullMove] =
+  override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): FullMove =
     moveWithMaxEvaluation(generateMovesWithEvaluation(board, aiPlayer, history))
 
   private[level] def generateMovesWithEvaluation(board: Board,

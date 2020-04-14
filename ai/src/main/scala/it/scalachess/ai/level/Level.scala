@@ -3,24 +3,20 @@ package it.scalachess.ai.level
 import it.scalachess.core.Color
 import it.scalachess.core.board.Board
 import it.scalachess.core.logic.moves.FullMove
-import scalaz.{ Failure, Success, Validation }
 
 /**
- * The interface which
+ * The interface which manages level implementation.
  */
-trait Level extends ((Board, Color, Seq[FullMove]) => Validation[String, FullMove]) {
+trait Level extends ((Board, Color, Seq[FullMove]) => FullMove) {
 
-  override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): Validation[String, FullMove]
+  override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): FullMove
 
-  protected def moveWithMaxEvaluation(movesEvaluated: Map[FullMove, Double]): Validation[String, FullMove] =
-    if (movesEvaluated.isEmpty) Failure(AIinCheckmateFailMsg)
-    else {
-      Success(movesEvaluated.find(_._2 == movesEvaluated.values.max) match {
-        case Some(maxEvalEntry) => maxEvalEntry._1
-        case _                  => movesEvaluated.head._1
-      })
-    }
+  protected def moveWithMaxEvaluation(movesEvaluated: Map[FullMove, Double]): FullMove = {
+    assert(movesEvaluated.nonEmpty, aiPlayerInCheckmateFailMsg)
+    movesEvaluated.find(_._2 == movesEvaluated.values.max).get._1
+  }
 
-  protected val AIinCheckmateFailMsg = "The AI player is on checkmate, the game should be already ended"
+  protected val othePlayerInCheckmate      = "The other player is in checkmate: wrong usage of AI"
+  protected val aiPlayerInCheckmateFailMsg = "The AI player is in checkmate: the game should be already ended"
 
 }

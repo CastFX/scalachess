@@ -4,7 +4,6 @@ import it.scalachess.core.Color
 import it.scalachess.core.board.Board
 import it.scalachess.core.logic.moves.FullMove
 import it.scalachess.core.logic.moves.generators.MoveGenerator
-import scalaz.Validation
 
 /**
  * The level two AI plays the best move following two principles:
@@ -17,15 +16,8 @@ case class LevelTwo() extends Level {
   private val minimaxDepth   = 3
   private val checkmateValue = 9999.0
 
-  override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): Validation[String, FullMove] =
-    if (isPlayerInCheckMate(board, aiPlayer.other, history)) {
-      levelOne(board, aiPlayer, history)
-    } else {
-      moveWithMaxEvaluation(generateMovesWithMinimaxEval(board, aiPlayer, history, minimaxDepth))
-    }
-
-  private def isPlayerInCheckMate(board: Board, player: Color, history: Seq[FullMove]): Boolean =
-    new MoveGenerator(board, player, history).allMoves().isEmpty
+  override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): FullMove =
+    moveWithMaxEvaluation(generateMovesWithMinimaxEval(board, aiPlayer, history, minimaxDepth))
 
   private[level] def generateMovesWithMinimaxEval(board: Board,
                                                   aiPlayer: Color,

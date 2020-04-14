@@ -4,7 +4,6 @@ import it.scalachess.core.Color
 import it.scalachess.core.board.Board
 import it.scalachess.core.logic.moves.FullMove
 import it.scalachess.core.logic.moves.generators.MoveGenerator
-import scalaz.{ Failure, Success, Validation }
 
 import scala.util.Random
 
@@ -13,12 +12,10 @@ import scala.util.Random
  */
 case class LevelZero() extends Level {
 
-  override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): Validation[String, FullMove] = {
+  override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): FullMove = {
     val moves = new MoveGenerator(board: Board, aiPlayer: Color, history: Seq[FullMove]).allMoves()
-    if (moves.nonEmpty)
-      Success(moves(Random.nextInt(moves.size)))
-    else
-      Failure(AIinCheckmateFailMsg)
+    assert(moves.nonEmpty, aiPlayerInCheckmateFailMsg)
+    moves(Random.nextInt(moves.size))
   }
 
 }

@@ -23,9 +23,9 @@ class LevelOneSpec extends FlatSpec with Matchers with Inspectors with OptionVal
     board = board(firstWhitePawnMove.boardChanges)
     board = board(blackPawnMove.boardChanges)
     board = board(secondWhitePawnMove.boardChanges)
-    // ai.generateSmartMove(board, Seq()) // note: at this point, the AI could generate the checkmate move: 1 possibility over 30 (moves generated)
+    // ai.generateSmartMove(board, Seq()) // note: at this point, this AI could generate the checkmate move: 1 possibility over 30 (moves generated)
     board = board(blackQueenMove.boardChanges)
-    ai.generateSmartMove(board, Seq()).toOption.value.validMove.capture.value should equal(whiteKingPosition)
+    ai.generateSmartMove(board, Seq()).validMove.capture.value should equal(whiteKingPosition)
   }
 
 }
