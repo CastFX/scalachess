@@ -2,7 +2,7 @@ package it.scalachess.view.test
 
 import akka.actor.testkit.typed.scaladsl.{ ActorTestKit, LoggingTestKit }
 import akka.actor.typed.ActorRef
-import it.scalachess.client.remote_client.Client
+import it.scalachess.client.remote_client.{ Client, ClientCommands }
 import it.scalachess.client.view.ViewCommands.{ ShowBoard, ShowMessage, ShowResult }
 import it.scalachess.client.view.{ CLI, ViewCommands, Viewer }
 import it.scalachess.core.{ Draw, Result, White, Win, WinByForfeit }
@@ -42,6 +42,9 @@ class ViewerSpec extends FlatSpec with BeforeAndAfterAll with Matchers with Opti
   val viewer: ActorRef[ViewCommands.ViewMessage]      = spawn(Viewer(client, CLI))
 
   "A Viewer" should "be able to show what is requested" in {
+    ClientCommands.helpers.foreach { helper =>
+      loggingTest = loggingTest.withMessageContains(helper)
+    }
     loggingTest = loggingTest.withMessageContains(outputViewBoard)
     loggingTest.expect(viewer ! ShowBoard(board))
     loggingTest = loggingTest.withMessageContains(message)
