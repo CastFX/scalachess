@@ -41,17 +41,11 @@ class ViewerSpec extends FlatSpec with BeforeAndAfterAll with Matchers with Opti
   val client: ActorRef[NetworkMessages.ClientMessage] = spawn(Client(address))
   val viewer: ActorRef[ViewCommands.ViewMessage]      = spawn(Viewer(client, CLI))
 
-  "A Viewer" should "show the board when requested" in {
+  "A Viewer" should "be able to show what is requested" in {
     loggingTest = loggingTest.withMessageContains(outputViewBoard)
     loggingTest.expect(viewer ! ShowBoard(board))
-  }
-
-  it should "be able to show a message when requested" in {
     loggingTest = loggingTest.withMessageContains(message)
     loggingTest.expect(viewer ! ShowMessage(message))
-  }
-
-  it should "be able to show a result when request" in {
     loggingTest = loggingTest.withMessageContains(winResultMessage)
     loggingTest.expect(viewer ! ShowResult(win))
     loggingTest = loggingTest.withMessageContains(winForfeitMessage)
