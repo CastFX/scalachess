@@ -23,6 +23,8 @@ class LevelTwoSpec extends FlatSpec with Matchers with Inspectors with OptionVal
     var board               = Board.defaultBoard()
     val ai                  = AI(2, Black)
     board = board(firstWhitePawnMove.boardChanges)
+    //TODO verificare che non genera la mossa del fool's mate perchè pensa che l'avversario non sia un fool
+    //TODO però potrebbe generarla nel caso in cui i due pedini bianchi si siano già mossi
     board = board(blackPawnMove.boardChanges)
     board = board(secondWhitePawnMove.boardChanges)
     // move that cause checkmate
@@ -32,10 +34,11 @@ class LevelTwoSpec extends FlatSpec with Matchers with Inspectors with OptionVal
     println(start - end) // minimax non migliorato ci mette dai: 4.2 ai 5.6 secondi
     aiMove.resultsInCheckmate should be(true)
     aiMove.validMove should equal(blackQueenMove)
+    board = board(aiMove.validMove.boardChanges)
     // move that capture the king
-    board = board(blackQueenMove.boardChanges)
-    println(ai.generateSmartMove(board, Seq()))
-    //.value.validMove.capture.value should equal(whiteKingPosition)
+    ai.generateSmartMove(board, Seq()).toOption.value.validMove.capture.value should equal(whiteKingPosition)
   }
+
+  // todo testare la gen dello scacco scholar perchè in teoria dovrebbe funzionare solo con profondità 3 del minimax
 
 }

@@ -18,7 +18,7 @@ case class LevelZero() extends Level {
     if (moves.nonEmpty)
       Success(moves(Random.nextInt(moves.size)))
     else
-      Failure(aiInCheckmateFailMsg)
+      Failure(AIinCheckmateFailMsg)
   }
 
 }

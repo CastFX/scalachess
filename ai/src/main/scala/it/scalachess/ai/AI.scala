@@ -8,17 +8,20 @@ import scalaz.{ Failure, Validation }
 
 final case class AI(difficulty: Int, player: Color) {
 
-  private val level = difficulty match {
-    case 0 => Some(LevelZero())
-    case 1 => Some(LevelOne())
-    case 2 => Some(LevelTwo())
-    case 3 => Some(LevelThree())
-    case _ => None
+  private val level = {
+    require(difficulty >= 0 && difficulty <= 3, "The difficulty of this AI doesn't exists")
+    difficulty match {
+      case 0 => Some(LevelZero())
+      case 1 => Some(LevelOne())
+      case 2 => Some(LevelTwo())
+      case 3 => Some(LevelThree())
+      case _ => None
+    }
   }
 
   def generateSmartMove(board: Board, history: Seq[FullMove]): Validation[String, FullMove] = level match {
     case Some(level) => level(board, player, history)
-    case None        => Failure("The difficulty of this AI doesn't exists")
+    case None        => Failure("Something went wrong during level initialization ...")
   }
 
 }
