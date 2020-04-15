@@ -24,7 +24,8 @@ lazy val core = project
 lazy val client = project
   .settings(
     name := "client",
-    mainClass := Some("it.scalachess.client.remote_client.ClientMain"),
+    mainClass := Some("it.scalachess.client.local_client.Client"),
+//    mainClass := Some("it.scalachess.client.remote_client.ClientMain"),
     settings,
     assemblySettings,
     libraryDependencies ++= (commonDependencies ++ akkaDependencies)
