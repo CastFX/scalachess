@@ -23,7 +23,7 @@ object ListFullMoveExtension {
 
     def filterPositions(to: Position, fromCol: Option[Char], fromRow: Option[Int]): List[T] =
       list.filter {
-        case FullMove(validMove, _, _) =>
+        case FullMove(validMove, _, _, _) =>
           val endEquals = validMove.to == to
           val colEqualsIfPresent = fromCol.fold(true) { colChar =>
             validMove.from.col.equals(Position.colToInt(colChar))
@@ -36,21 +36,21 @@ object ListFullMoveExtension {
 
     def filterChecks(isKingInCheck: Boolean, isKingInCheckmate: Boolean): List[T] =
       list.filter {
-        case FullMove(_, check, checkMate) =>
+        case FullMove(_, check, checkMate, _) =>
           (isKingInCheckmate == checkMate && checkMate) || (isKingInCheck == check && isKingInCheckmate == checkMate)
       }
 
     def filterCaptures(capture: Boolean): List[T] =
       list.filter {
-        case FullMove(validMove, _, _) =>
+        case FullMove(validMove, _, _, _) =>
           (validMove.capture.isEmpty && !capture) || (validMove.capture.isDefined && capture)
       }
 
     def filterPromotions(promotion: Option[PieceType]): List[T] = promotion match {
       case Some(toPiece) =>
         list.filter {
-          case FullMove(ValidPromotion(_, _, _, promotesTo, _), _, _) => promotesTo.pieceType == toPiece
-          case _                                                      => false
+          case FullMove(ValidPromotion(_, _, _, promotesTo, _), _, _, _) => promotesTo.pieceType == toPiece
+          case _                                                         => false
         }
       case None => list
     }

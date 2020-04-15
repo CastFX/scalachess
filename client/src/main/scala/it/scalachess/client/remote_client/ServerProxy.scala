@@ -72,6 +72,9 @@ class ServerProxy(lobbyManager: ActorRef[LobbyMessage], parent: ActorRef[ClientM
       case Join(id) =>
         lobbyManager ! JoinRoom(id, context.self)
         Behaviors.same
+      case Join =>
+        lobbyManager ! JoinMatch(context.self)
+        Behaviors.same
 
       //From Server
       case RoomId(_) =>

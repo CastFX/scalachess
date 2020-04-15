@@ -58,6 +58,9 @@ final case class Position(col: Int, row: Int) {
    * @return true if the positions are in a straight path
    */
   def isStraightTo(pos: Position): Boolean = rowDistanceAbs(pos) == 0 || colDistanceAbs(pos) == 0
+
+  override def toString: String =
+    s"${(col + 96).toChar}$row"
 }
 
 object Position {
