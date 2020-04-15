@@ -14,7 +14,12 @@ class MoveGenerator(board: Board, player: Color, history: Seq[FullMove]) {
    */
   def allMoves(): List[FullMove] =
     validMovesWithoutCheck()
-      .map(move => FullMove(move, resultsInCheck(move, player.other), resultsInCheckmate(move, player.other)))
+      .map { move =>
+        val boardAfter = board.apply(move.boardChanges)
+        val check      = resultsInCheck(move, player.other)
+        val checkMate  = check && resultsInCheckmate(move, player.other)
+        FullMove(move, check, checkMate, boardAfter)
+      }
       .filter(move => !resultsInCheck(move.validMove, player))
 
   private def validMovesWithoutCheck(): List[ValidMove] =

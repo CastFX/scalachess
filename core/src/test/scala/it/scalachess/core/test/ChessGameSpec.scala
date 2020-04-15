@@ -1,7 +1,7 @@
 package it.scalachess.core.test
 
-import it.scalachess.core.{ Black, ChessGame, Ongoing, White, Win }
-import it.scalachess.core.board.Position
+import it.scalachess.core.{ Black, ChessGame, Draw, Ongoing, White, Win }
+import it.scalachess.core.board.{ Board, Position }
 import it.scalachess.core.logic.moves.{ FullMove, ValidSimpleMove }
 import it.scalachess.core.pieces.{ King, Knight, Pawn, Piece, Rook }
 import org.scalatest.{ FlatSpec, Matchers, OptionValues }
@@ -143,56 +143,52 @@ class ChessGameSpec extends FlatSpec with Matchers with OptionValues {
 
   "Build a game where the black player" should "be able to use a KingSide Castling" in {
     var castlingGame: ChessGame = ChessGame.standard()
-    val firstMove               = "a3"
-    val secondMove              = "Nh6"
-    val thirdMove               = "b3"
-    val fourthMove              = "g6"
-    val fifthMove               = "c3"
-    val sixthMove               = "f6"
-    val seventhMove             = "d3"
-    val eighthMove              = "Bg7"
-    val ninthMove               = "e3"
-    val castling                = "0-0"
-    Seq(firstMove,
-        secondMove,
-        thirdMove,
-        fourthMove,
-        fifthMove,
-        sixthMove,
-        seventhMove,
-        eighthMove,
-        ninthMove,
-        castling).foreach(move => castlingGame = castlingGame(move).toOption.value)
+    Seq("a3", "Nh6", "b3", "g6", "c3", "f6", "d3", "Bg7", "e3", "0-0").foreach(move =>
+      castlingGame = castlingGame(move).toOption.value)
     castlingGame.board.pieceAtPosition(Position(7, 8)).value shouldBe Piece(Black, King)
     castlingGame.board.pieceAtPosition(Position(6, 8)).value shouldBe Piece(Black, Rook)
   }
 
   "At the start of a game, a castling" should "not be allowed" in {
     val game: ChessGame = ChessGame.standard()
-    val castlingKing    = "0-0-0"
-    val castlingQueen   = "0-0"
-    game(castlingKing).toOption.isDefined shouldBe false
-    game(castlingQueen).toOption.isDefined shouldBe false
+    game("0-0-0").toOption.isDefined shouldBe false
+    game("0-0").toOption.isDefined shouldBe false
   }
 
   "A correct move history" should "be created during a game" in {
     var game: ChessGame = ChessGame.standard()
-    val validFirst      = ValidSimpleMove(Position(2, 1), Position(1, 3), Knight, White, None)
-    val validSecond     = ValidSimpleMove(Position(2, 7), Position(2, 6), Pawn, Black, None)
-    val validThird      = ValidSimpleMove(Position(4, 2), Position(4, 3), Pawn, White, None)
-    val validFourth     = ValidSimpleMove(Position(4, 7), Position(4, 6), Pawn, Black, None)
-    val validFifth      = ValidSimpleMove(Position(7, 2), Position(7, 3), Pawn, White, None)
-    val fullFifth       = FullMove(validFifth, resultsInCheck = false, resultsInCheckmate = false)
-    val history = Seq(
-      FullMove(validFirst, resultsInCheck = false, resultsInCheckmate = false),
-      FullMove(validSecond, resultsInCheck = false, resultsInCheckmate = false),
-      FullMove(validThird, resultsInCheck = false, resultsInCheckmate = false),
-      FullMove(validFourth, resultsInCheck = false, resultsInCheckmate = false)
+
+    val validMoves = Seq(
+      ValidSimpleMove(Position(2, 1), Position(1, 3), Knight, White, None),
+      ValidSimpleMove(Position(2, 7), Position(2, 6), Pawn, Black, None),
+      ValidSimpleMove(Position(4, 2), Position(4, 3), Pawn, White, None),
+      ValidSimpleMove(Position(4, 7), Position(4, 6), Pawn, Black, None),
+      ValidSimpleMove(Position(7, 2), Position(7, 3), Pawn, White, None)
     )
-    Seq("Na3", "b6", "d3", "d6").foreach(move => game = game(move).toOption.value)
+
+    val history = validMoves.map { v =>
+      val movesBefore = validMoves.span(_ != v)._1
+      val boardAfter =
+        movesBefore.foldLeft(Board.defaultBoard())((board, move) => board(move.boardChanges))(v.boardChanges)
+      FullMove(v, resultsInCheck = false, resultsInCheckmate = false, boardAfter)
+    }
+
+    Seq("Na3", "b6", "d3", "d6", "g3").foreach(move => game = game(move).toOption.value)
     game.moveHistory shouldEqual history
-    game = game("g3").toOption.value
-    game.moveHistory shouldEqual (history :+ fullFifth)
   }
 
+  "A Pawn on Position h4" should "be able to capture on g5" in {
+    val game = Seq("h4", "g5", "hxg5").foldLeft(ChessGame.standard())((game, move) => game(move).toOption.value)
+    game.board.pieces(Position(7, 5)).color shouldBe White
+  }
+
+  "A stalemate" should "result in a draw" in {
+    var drawGame = ChessGame.standard()
+    (Seq("e3", "a5", "Qh5", "Ra6", "Qxa5", "h5", "h4", "Rah6", "Qxc7", "f6")
+    ++ Seq("Qxd7+", "Kf7", "Qxb7", "Qd3", "Qxb8", "Qh7", "Qxc8", "Kg6", "Qe6"))
+      .foreach { move =>
+        drawGame = drawGame(move).toOption.value
+      }
+    drawGame.gameStatus shouldBe Draw
+  }
 }

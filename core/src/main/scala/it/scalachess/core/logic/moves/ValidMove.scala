@@ -2,7 +2,7 @@ package it.scalachess.core.logic.moves
 
 import it.scalachess.core.Color
 import it.scalachess.core.board.Board.BoardChanges
-import it.scalachess.core.board.Position
+import it.scalachess.core.board.{ Board, Position }
 import it.scalachess.core.pieces.{ King, Pawn, Piece, PieceType, Rook }
 
 /**
@@ -127,4 +127,4 @@ case object QueenSide extends CastlingType
  * @param resultsInCheck true if the move results in a check, false otherwise
  * @param resultsInCheckmate the if the move results in a checkmate, false otherwise
  */
-final case class FullMove(validMove: ValidMove, resultsInCheck: Boolean, resultsInCheckmate: Boolean)
+final case class FullMove(validMove: ValidMove, resultsInCheck: Boolean, resultsInCheckmate: Boolean, boardAfter: Board)

@@ -21,8 +21,11 @@ object GameManager {
    * @return the initial Behavior of this actor
    */
   def apply(room: Room, parent: ActorRef[LobbyMessage]): Behavior[GameAction] =
-    Behaviors.setup { _ =>
+    Behaviors.setup { context =>
       val players = randomizeRoles(room)
+      players.values.foreach { client =>
+        context.watchWith(client, ClientDisconnect(client))
+      }
       new GameManager(players, room.id, parent).setup()
     }
 
@@ -66,8 +69,8 @@ class GameManager private (players: Map[Color, ActorRef[ClientMessage]],
         case DoMove(move, player) if playerCanMove(game.player, player) =>
           tryMove(move, game, context.self)
 
-        case ForfeitGame(client) =>
-          colorOf(client) match {
+        case x @ (_: ForfeitGame | _: ClientDisconnect) =>
+          colorOf(x.asInstanceOf[Sender[ClientMessage]].sender) match {
             case Some(color) =>
               val result        = WinByForfeit(color.other)
               val forfeitedGame = game.end(result)
@@ -76,7 +79,6 @@ class GameManager private (players: Map[Color, ActorRef[ClientMessage]],
             case None => ()
           }
           game
-
         case _ => game
       }
       ongoingGame(updated)
