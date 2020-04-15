@@ -32,7 +32,7 @@ private[generators] object PawnMoves extends PieceMoves {
           None // can't move two position forward, because it's not located in the starting row")
       }
     val leftAttack =
-      pawnAttack(color, board, from, Position.of(from.col - from.colLeftMod, from.row + forwardRowMod))
+      pawnAttack(color, board, from, Position.of(from.col + from.colLeftMod, from.row + forwardRowMod))
     val rightAttack =
       pawnAttack(color, board, from, Position.of(from.col + from.colRightMod, from.row + forwardRowMod))
     List(moveOnePosWithoutCapture, moveTwoPosWithoutCapture, leftAttack, rightAttack).flatten

@@ -12,7 +12,7 @@ class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with Opt
   "Applying a moveGeneration on a standard board " should "create some specific legal moves" in {
     val moveGenerator = new MoveGenerator(Board.defaultBoard(), White, Seq())
     val knightsMoves = moveGenerator.allMoves().filter {
-      case FullMove(validMove, _, _) =>
+      case FullMove(validMove, _, _, _) =>
         validMove.pieceType match {
           case Knight => true
           case _      => false
@@ -21,7 +21,7 @@ class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with Opt
     knightsMoves.size should be(4)
 
     val pawnsMovesOnePosForward = moveGenerator.allMoves().filter {
-      case FullMove(validMove, _, _) =>
+      case FullMove(validMove, _, _, _) =>
         validMove.pieceType match {
           case Pawn =>
             validMove.to rowDistanceAbs validMove.from match {
@@ -34,7 +34,7 @@ class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with Opt
     pawnsMovesOnePosForward.size should be(8)
 
     val pawnsMovesTwoPosForward = moveGenerator.allMoves().filter {
-      case FullMove(validMove, _, _) =>
+      case FullMove(validMove, _, _, _) =>
         validMove.pieceType match {
           case Pawn =>
             validMove.to rowDistanceAbs validMove.from match {
@@ -47,7 +47,7 @@ class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with Opt
     pawnsMovesTwoPosForward.size should be(8)
 
     val kingMoves = moveGenerator.allMoves().filter {
-      case FullMove(validMove, _, _) =>
+      case FullMove(validMove, _, _, _) =>
         validMove.pieceType match {
           case King => true
           case _    => false
@@ -56,7 +56,7 @@ class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with Opt
     kingMoves.isEmpty should be(true)
 
     val queenMoves = moveGenerator.allMoves().filter {
-      case FullMove(validMove, _, _) =>
+      case FullMove(validMove, _, _, _) =>
         validMove.pieceType match {
           case King => true
           case _    => false
@@ -171,7 +171,7 @@ class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with Opt
     val thirdMoveWhitePawn        = ValidSimpleMove(Position(5, 4), Position(5, 5), Pawn, White, None)
     val blackPawnTriggerEnPassant = ValidSimpleMove(Position(6, 7), Position(6, 5), Pawn, Black, None)
     val blackPawnTriggerFullMove =
-      FullMove(blackPawnTriggerEnPassant, resultsInCheck = false, resultsInCheckmate = false)
+      FullMove(blackPawnTriggerEnPassant, resultsInCheck = false, resultsInCheckmate = false, Board.defaultBoard())
     val shouldEnPassant = ValidEnPassant(Position(5, 5), Position(6, 6), White, Position(6, 5))
     val moves           = Seq(firstMoveWhitePawn, secondMoveBlackPawn, thirdMoveWhitePawn, blackPawnTriggerEnPassant)
     var board: Board    = Board.defaultBoard()
@@ -198,7 +198,7 @@ class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with Opt
     val eighthMove  = ValidSimpleMove(Position(4, 7), Position(4, 6), Pawn, Black, None)
     val ninthMove   = ValidSimpleMove(Position(3, 1), Position(2, 2), Bishop, White, None)
     val tenthMove   = ValidSimpleMove(Position(5, 7), Position(5, 6), Pawn, Black, None)
-    val fullMove    = FullMove(tenthMove, resultsInCheck = false, resultsInCheckmate = false)
+    val fullMove    = FullMove(tenthMove, resultsInCheck = false, resultsInCheckmate = false, Board.defaultBoard())
     val moves = Seq(firstMove,
                     secondMove,
                     thirdMove,
@@ -214,7 +214,7 @@ class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with Opt
     move.map(_.validMove).contains(castling) shouldBe true
     val rookMove      = ValidSimpleMove(Position(1, 1), Position(2, 1), Rook, White, None)
     val blackMove     = ValidSimpleMove(Position(8, 7), Position(8, 6), Pawn, Black, None)
-    val fullMoveBlack = FullMove(blackMove, resultsInCheck = false, resultsInCheckmate = false)
+    val fullMoveBlack = FullMove(blackMove, resultsInCheck = false, resultsInCheckmate = false, Board.defaultBoard())
     Seq(rookMove, blackMove).foreach(move => board = board(move.boardChanges))
     new MoveGenerator(board, White, Seq(fullMoveBlack)).allMoves().map(_.validMove).contains(castling) shouldBe false
   }
@@ -233,7 +233,7 @@ class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with Opt
     val seventhMove = ValidSimpleMove(Position(4, 2), Position(4, 3), Pawn, White, None)
     val eighthMove  = ValidSimpleMove(Position(6, 8), Position(7, 7), Bishop, Black, None)
     val ninthMove   = ValidSimpleMove(Position(5, 2), Position(5, 3), Pawn, White, None)
-    val fullMove    = FullMove(ninthMove, resultsInCheck = false, resultsInCheckmate = false)
+    val fullMove    = FullMove(ninthMove, resultsInCheck = false, resultsInCheckmate = false, Board.defaultBoard())
     val moves =
       Seq(firstMove, secondMove, thirdMove, fourthMove, fifthMove, sixthMove, seventhMove, eighthMove, ninthMove)
     moves.foreach(move => board = board(move.boardChanges))
@@ -242,7 +242,7 @@ class MoveGenerationSpec extends FlatSpec with Matchers with Inspectors with Opt
 
     val kingMove      = ValidSimpleMove(Position(5, 8), Position(6, 8), King, Black, None)
     val whiteMove     = ValidSimpleMove(Position(7, 2), Position(7, 3), Pawn, Black, None)
-    val fullMoveWhite = FullMove(whiteMove, resultsInCheck = false, resultsInCheckmate = false)
+    val fullMoveWhite = FullMove(whiteMove, resultsInCheck = false, resultsInCheckmate = false, Board.defaultBoard())
     Seq(kingMove, whiteMove).foreach(move => board = board(move.boardChanges))
     new MoveGenerator(board, Black, Seq(fullMoveWhite)).allMoves().map(_.validMove).contains(castling) shouldBe false
   }

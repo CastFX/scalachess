@@ -58,6 +58,8 @@ object NetworkMessages {
    */
   final case class ForfeitGame(sender: ActorRef[ClientMessage]) extends Sender[ClientMessage] with GameAction
 
+  final case class ClientDisconnect(sender: ActorRef[ClientMessage]) extends Sender[ClientMessage] with GameAction
+
   /**
    * A trait for the messages sent to the Client
    */

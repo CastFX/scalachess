@@ -30,8 +30,8 @@ final case class ChessGame(
         case Success(algebraicMove) =>
           MoveValidator(board, player, moveHistory)(algebraicMove) match {
             case Success(fullMove) =>
-              val nextBoard          = board(fullMove.validMove.boardChanges)
-              val result: GameStatus = if (fullMove.resultsInCheckmate) Win(player) else Ongoing
+              val nextBoard = board(fullMove.validMove.boardChanges)
+              val result    = GameStatus.currentStatus(fullMove, this)
               Success(ChessGame(nextBoard, player.other, turn + 1, result, moveHistory :+ fullMove))
             case error: Failure[String] => error
           }
