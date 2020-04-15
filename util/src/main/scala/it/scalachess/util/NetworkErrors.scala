@@ -24,6 +24,11 @@ object NetworkErrors {
   final case class RoomNotFound(id: String) extends ClientError
 
   /**
+   * A message sent by the LobbyManager to a Client which tried to join a non-existing room
+   */
+  final case object MatchNotFound extends ClientError
+
+  /**
    * A message sent by the LobbyManager to a Client which tried to join a full room
    * @param id identifier of the room
    */

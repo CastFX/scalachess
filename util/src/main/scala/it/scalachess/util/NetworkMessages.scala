@@ -41,6 +41,12 @@ object NetworkMessages {
   final case class JoinRoom(id: String, sender: ActorRef[ClientMessage]) extends Sender[ClientMessage] with LobbyMessage
 
   /**
+   * A message by a Client sent to join an existing room. Sent to the LobbyManager
+   * @param sender The client who wants to join the room
+   */
+  final case class JoinMatch(sender: ActorRef[ClientMessage]) extends Sender[ClientMessage] with LobbyMessage
+
+  /**
    * A trait for the messages sent to the GameManager, in the Server. They represent the possible actions of a chess game
    */
   sealed trait GameAction extends ServerMessage

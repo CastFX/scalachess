@@ -11,7 +11,7 @@ class ParserSpec extends FlatSpec with Matchers with Inspectors with OptionValue
 
   val parser: Parser.AlgebraicParser.type = AlgebraicParser
 
-  "The parser" should "be able to parse moves in algebraic notations" in {
+  "The Algebraic parser" should "be able to parse moves in algebraic notations" in {
     val movesToBeParsed: Seq[String] =
       Seq("e4", "Re4", "0-0", "0-0-0", "Rae8", "Ra6+", "a4#", "Nb6d7", "exe4", "Qxe4")
     parser.parseAll(movesToBeParsed).foreach(move => move.toOption.isDefined shouldBe true)

@@ -46,6 +46,16 @@ lazy val server = project
     core,
     util
   )
+
+lazy val ai = project
+  .settings(
+    name := "ai",
+    settings,
+    libraryDependencies ++= commonDependencies
+  )
+  .dependsOn(
+    core
+  )
 // DEPENDENCIES
 
 lazy val util = project
