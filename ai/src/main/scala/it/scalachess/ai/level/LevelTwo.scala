@@ -36,60 +36,82 @@ final case class LevelTwo() extends Level {
       .allMoves()
       .map(fullMove => {
         fullMove -> minimax(board(fullMove.validMove.boardChanges),
-                            history :+ fullMove,
-                            depth - 1,
-                            aiPlayer.other,
-                            aiPlayer)
+          history :+ fullMove,
+          depth - 1,
+          aiPlayer.other,
+          aiPlayer,
+          -checkmateValue,
+          checkmateValue)
       })
       .toMap
   }
 
   /**
    * Evaluates a board relying on the minimax algorithm.
+   *
    * @param board the board to evaluate
    * @param history the moves history played on the board
    * @param depth the depth of the minimax algorithm
-   * @param activePlayer the active player during the current minimax turn simulation
-   * @param aiPlayerWhichMaximize the color of the player that want to maximize the minimax evaluation (AI player)
+   * @param currentPlayer the active player during the current minimax turn simulation
+   * @param maximizingPlayer the color of the player that want to maximize the minimax evaluation (AI player)
    * @return the evaluation of the board
    */
   def minimax(board: Board,
               history: Seq[FullMove],
               depth: Int,
-              activePlayer: Color,
-              aiPlayerWhichMaximize: Color): Double = {
-    def recallMinimax(possibleMoves: List[FullMove],
-                      board: Board,
-                      history: Seq[FullMove],
-                      depth: Int,
-                      activePlayer: Color,
-                      aiPlayerWhichMaximize: Color): List[Double] =
-      possibleMoves
-        .map(move => {
-          minimax(board(move.validMove.boardChanges),
+              currentPlayer: Color,
+              maximizingPlayer: Color,
+              alpha: Double,
+              beta: Double): Double =
+    depth match {
+      case 0 => levelOne.evaluateBoardByPieceValue(board, maximizingPlayer)
+      case _ =>
+        val allPossibleMoves = new MoveGenerator(board, currentPlayer, history).allMoves()
+        if (allPossibleMoves.isEmpty)
+          decideCurrentValue(currentPlayer, maximizingPlayer, checkmateValue, -checkmateValue)
+        else {
+          var bestMoveEval     = decideCurrentValue(currentPlayer, maximizingPlayer, -checkmateValue, checkmateValue)
+          var supportAlphaBeta = decideCurrentValue(currentPlayer, maximizingPlayer, beta, alpha)
+          for (move <- allPossibleMoves) {
+            bestMoveEval = decideCurrentValue(
+              currentPlayer,
+              maximizingPlayer,
+              math.min(bestMoveEval,
+                minimax(board(move.validMove.boardChanges),
                   history :+ move,
                   depth - 1,
-                  activePlayer.other,
-                  aiPlayerWhichMaximize)
-        })
-    depth match {
-      case 0 => levelOne.evaluateBoardByPieceValue(board, aiPlayerWhichMaximize)
-      case _ =>
-        val possibleMoves = new MoveGenerator(board, activePlayer, history).allMoves()
-        if (possibleMoves.isEmpty) {
-          activePlayer match {
-            case `aiPlayerWhichMaximize` => -checkmateValue // the move brings the ai player into checkmate
-            case _                       => checkmateValue
+                  currentPlayer.other,
+                  maximizingPlayer,
+                  alpha,
+                  beta)),
+              math.max(bestMoveEval,
+                minimax(board(move.validMove.boardChanges),
+                  history :+ move,
+                  depth - 1,
+                  currentPlayer.other,
+                  maximizingPlayer,
+                  alpha,
+                  beta))
+            )
+            supportAlphaBeta = decideCurrentValue(currentPlayer,
+              maximizingPlayer,
+              math.min(bestMoveEval, supportAlphaBeta),
+              math.max(bestMoveEval, supportAlphaBeta))
+            currentPlayer match {
+              case `maximizingPlayer` => if (supportAlphaBeta >= beta) bestMoveEval
+              case _                  => if (supportAlphaBeta <= beta) bestMoveEval
+            }
           }
-        } else {
-          activePlayer match {
-            case `aiPlayerWhichMaximize` =>
-              recallMinimax(possibleMoves, board, history, depth, activePlayer, aiPlayerWhichMaximize).max
-            case _ =>
-              recallMinimax(possibleMoves, board, history, depth, activePlayer, aiPlayerWhichMaximize).min
-          }
+          bestMoveEval
         }
     }
-  }
+  private def decideCurrentValue(currentPlayer: Color,
+                                 maximizingPlayer: Color,
+                                 minimizingValue: Double,
+                                 maximizingValue: Double): Double =
+    currentPlayer match {
+      case `maximizingPlayer` => maximizingValue
+      case _                  => minimizingValue
+    }
 
 }
