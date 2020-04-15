@@ -13,7 +13,7 @@ import it.scalachess.core.logic.moves.FullMove
 final case class AI(difficulty: Int, player: Color) {
 
   private val level = {
-    require(difficulty >= 0 && difficulty <= 2, "The AI difficulty inserted doesn't exists")
+    require(difficulty >= 0 && difficulty <= AI.maxDifficulty, "The AI difficulty inserted doesn't exists")
     difficulty match {
       case 0 => Some(LevelZero())
       case 1 => Some(LevelOne())
@@ -25,5 +25,8 @@ final case class AI(difficulty: Int, player: Color) {
   def generateSmartMove(board: Board, history: Seq[FullMove]): FullMove = level match {
     case Some(level) => level(board, player, history)
   }
+}
 
+object AI {
+  val maxDifficulty: Int = 2
 }

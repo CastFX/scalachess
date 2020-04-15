@@ -31,7 +31,8 @@ lazy val client = project
   )
   .dependsOn(
     core,
-    util
+    util,
+    ai
   )
 
 lazy val server = project

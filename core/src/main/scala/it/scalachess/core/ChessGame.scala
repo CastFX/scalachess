@@ -29,14 +29,17 @@ final case class ChessGame(
         case Failure(error) => Failure(error)
         case Success(algebraicMove) =>
           MoveValidator(board, player, moveHistory)(algebraicMove) match {
-            case Success(fullMove) =>
-              val nextBoard = board(fullMove.validMove.boardChanges)
-              val result    = GameStatus.currentStatus(fullMove, this)
-              Success(ChessGame(nextBoard, player.other, turn + 1, result, moveHistory :+ fullMove))
+            case Success(fullMove)      => Success(apply(fullMove))
             case error: Failure[String] => error
           }
       }
     case _ => Failure("The game is not ongoing")
+  }
+
+  def apply(fullMove: FullMove): ChessGame = {
+    val nextBoard = board(fullMove.validMove.boardChanges)
+    val result    = GameStatus.currentStatus(fullMove, this)
+    ChessGame(nextBoard, player.other, turn + 1, result, moveHistory :+ fullMove)
   }
 
   def end(withResult: Result): ChessGame = ChessGame(board, player, turn, withResult, moveHistory)

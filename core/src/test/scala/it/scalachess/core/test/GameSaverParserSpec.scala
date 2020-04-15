@@ -1,6 +1,6 @@
 package it.scalachess.core.test
 
-import it.scalachess.core.board.Position
+import it.scalachess.core.board.{ Board, Position }
 import it.scalachess.core.logic.moves.{
   FullMove,
   KingSide,
@@ -28,27 +28,27 @@ class GameSaverParserSpec extends FlatSpec with Matchers with Inspectors with Op
     val queenSide = ValidCastling(Position(5, 1), Position(3, 1), White, Position(1, 1), Position(4, 1), QueenSide)
     val promotion = ValidPromotion(Position(1, 7), Position(1, 8), White, Piece(White, Rook), None)
     GameSaverParser
-      .parse(FullMove(simple, resultsInCheck = true, resultsInCheckmate = true))
+      .parse(FullMove(simple, resultsInCheck = true, resultsInCheckmate = true, Board.defaultBoard()))
       .toOption
       .value shouldEqual "a2a3#"
     GameSaverParser
-      .parse(FullMove(capture, resultsInCheck = true, resultsInCheckmate = true))
+      .parse(FullMove(capture, resultsInCheck = true, resultsInCheckmate = true, Board.defaultBoard()))
       .toOption
       .value shouldEqual "a2xa3#"
     GameSaverParser
-      .parse(FullMove(enPassant, resultsInCheck = true, resultsInCheckmate = false))
+      .parse(FullMove(enPassant, resultsInCheck = true, resultsInCheckmate = false, Board.defaultBoard()))
       .toOption
       .value shouldEqual "a2xa3+"
     GameSaverParser
-      .parse(FullMove(kingSide, resultsInCheck = false, resultsInCheckmate = false))
+      .parse(FullMove(kingSide, resultsInCheck = false, resultsInCheckmate = false, Board.defaultBoard()))
       .toOption
       .value shouldEqual "0-0"
     GameSaverParser
-      .parse(FullMove(queenSide, resultsInCheck = false, resultsInCheckmate = true))
+      .parse(FullMove(queenSide, resultsInCheck = false, resultsInCheckmate = true, Board.defaultBoard()))
       .toOption
       .value shouldEqual "0-0-0#"
     GameSaverParser
-      .parse(FullMove(promotion, resultsInCheck = false, resultsInCheckmate = true))
+      .parse(FullMove(promotion, resultsInCheck = false, resultsInCheckmate = true, Board.defaultBoard()))
       .toOption
       .value shouldEqual "a7a8=R#"
   }
