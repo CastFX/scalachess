@@ -7,7 +7,7 @@ import it.scalachess.client.remote_client.ClientCommands._
 import it.scalachess.client.view.ViewCommands.{ ShowBoard, ShowMessage, ShowResult, ViewMessage }
 import it.scalachess.client.view.{ CLI, ViewType, Viewer }
 import it.scalachess.core._
-import it.scalachess.core.parser.GameSaverParser
+import it.scalachess.core.parser.NonAmbiguousGameSaver
 import it.scalachess.util.NetworkErrors.{ FailedMove, MatchNotFound, RoomFull, RoomNotFound }
 import it.scalachess.util.NetworkMessages._
 
@@ -126,7 +126,7 @@ class Client private (serverProxy: ActorRef[ClientMessage], view: ActorRef[ViewM
     case GameEnd(result, game) =>
       view ! ShowBoard(game.board)
       view ! ShowResult(result)
-      view ! ShowMessage(GameSaverParser.parseAndConvert(game.moveHistory, Some(result)))
+      view ! ShowMessage(NonAmbiguousGameSaver.convertAndFormat(game.moveHistory, Some(result)))
       inLobby()
     case FailedMove(error, move) =>
       view ! ShowMessage(s"Move: $move failed because of error: $error")
@@ -135,7 +135,7 @@ class Client private (serverProxy: ActorRef[ClientMessage], view: ActorRef[ViewM
       Client.showHelp(view)
       Behaviors.same
     case Save =>
-      view ! ShowMessage(GameSaverParser.parseAndConvert(game.moveHistory, None))
+      view ! ShowMessage(NonAmbiguousGameSaver.convertAndFormat(game.moveHistory, None))
       Behaviors.same
     case CommandNotFound =>
       view ! ShowMessage(commandNotFound)
@@ -160,7 +160,7 @@ class Client private (serverProxy: ActorRef[ClientMessage], view: ActorRef[ViewM
     case GameEnd(result, game) =>
       view ! ShowBoard(game.board)
       view ! ShowResult(result)
-      view ! ShowMessage(GameSaverParser.parseAndConvert(game.moveHistory, Some(result)))
+      view ! ShowMessage(NonAmbiguousGameSaver.convertAndFormat(game.moveHistory, Some(result)))
       inLobby()
     case FailedMove(error, move) =>
       view ! ShowMessage(s"Move: $move failed because of error: $error")
@@ -172,7 +172,7 @@ class Client private (serverProxy: ActorRef[ClientMessage], view: ActorRef[ViewM
       view ! ShowMessage(commandNotFound)
       Behaviors.same
     case Save =>
-      view ! ShowMessage(GameSaverParser.parseAndConvert(game.moveHistory, None))
+      view ! ShowMessage(NonAmbiguousGameSaver.convertAndFormat(game.moveHistory, None))
       Behaviors.same
     case _ =>
       Behaviors.same
