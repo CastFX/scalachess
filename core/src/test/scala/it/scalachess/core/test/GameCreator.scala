@@ -24,4 +24,14 @@ object GameCreator extends OptionValues {
     game
   }
 
+  val drawGame: ChessGame = {
+    var drawGame = ChessGame.standard()
+    (Seq("e3", "a5", "Qh5", "Ra6", "Qxa5", "h5", "h4", "Rah6", "Qxc7", "f6")
+    ++ Seq("Qxd7+", "Kf7", "Qxb7", "Qd3", "Qxb8", "Qh7", "Qxc8", "Kg6", "Qe6"))
+      .foreach { move =>
+        drawGame = drawGame(move).toOption.value
+      }
+    drawGame
+  }
+
 }

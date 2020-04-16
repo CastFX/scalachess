@@ -13,9 +13,16 @@ class GameSaverParserSpec extends FlatSpec with Matchers with Inspectors with Op
   "The GameSaver parser " should "be able to parse algebraic move into pgn format with ambiguity" in {
     saver
       .parse(
-        AlgebraicSimpleMove(Position(1, 3), Pawn, capture = false, check = false, checkmate = true, None, None, None))
+        AlgebraicSimpleMove(Position(1, 3),
+                            Pawn,
+                            capture = false,
+                            check = false,
+                            checkmate = true,
+                            Some('a'),
+                            Some(2),
+                            None))
       .toOption
-      .value shouldEqual "a3#"
+      .value shouldEqual "a2a3#"
   }
 
   it should "be able to parse a capture" in {
