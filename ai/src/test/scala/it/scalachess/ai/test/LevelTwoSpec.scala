@@ -1,11 +1,13 @@
 package it.scalachess.ai.test
 
+import java.util.Calendar
+
 import it.scalachess.ai.AI
-import org.scalatest.{ FlatSpec, Inspectors, Matchers, OptionValues }
-import it.scalachess.core.{ Black, White }
-import it.scalachess.core.board.{ Board, Position }
+import org.scalatest.{FlatSpec, Inspectors, Matchers, OptionValues}
+import it.scalachess.core.{Black, White}
+import it.scalachess.core.board.{Board, Position}
 import it.scalachess.core.logic.moves.ValidSimpleMove
-import it.scalachess.core.pieces.{ Bishop, Knight, Pawn, Queen }
+import it.scalachess.core.pieces.{Bishop, Knight, Pawn, Queen}
 
 class LevelTwoSpec extends FlatSpec with Matchers with Inspectors with OptionValues {
 
@@ -49,7 +51,10 @@ class LevelTwoSpec extends FlatSpec with Matchers with Inspectors with OptionVal
     board = board(fifthMoveWhiteQueen.boardChanges)
     board = board(sixthMoveBlackKnight.boardChanges)
     // move that cause checkmate
+    val start = Calendar.getInstance().getTime.getTime
     val aiMove = ai.generateSmartMove(board, Seq())
+    val end    = Calendar.getInstance().getTime.getTime
+    println(start - end) // minimax non migliorato ci mette dai: 4.2 ai 5.6 secondi => migliorato ci mette meno di 1 secondo
     aiMove.validMove should equal(seventhMoveWhiteQueen)
   }
 

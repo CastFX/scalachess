@@ -5,6 +5,8 @@ import it.scalachess.core.board.Board
 import it.scalachess.core.logic.moves.FullMove
 import it.scalachess.core.logic.moves.generators.MoveGenerator
 
+import scala.annotation.tailrec
+
 /**
  * The level two AI plays the best move following two principles:
  * [1] it cares about value based on piece importance (it uses the same evaluation of level one);
@@ -70,41 +72,12 @@ final case class LevelTwo() extends Level {
         if (allPossibleMoves.isEmpty)
           decideCurrentValue(currentPlayer, maximizingPlayer, checkmateValue, -checkmateValue)
         else {
-          var bestMoveEval     = decideCurrentValue(currentPlayer, maximizingPlayer, -checkmateValue, checkmateValue)
-          var supportAlphaBeta = decideCurrentValue(currentPlayer, maximizingPlayer, beta, alpha)
-          for (move <- allPossibleMoves) {
-            bestMoveEval = decideCurrentValue(
-              currentPlayer,
-              maximizingPlayer,
-              math.min(bestMoveEval,
-                minimax(board(move.validMove.boardChanges),
-                  history :+ move,
-                  depth - 1,
-                  currentPlayer.other,
-                  maximizingPlayer,
-                  alpha,
-                  beta)),
-              math.max(bestMoveEval,
-                minimax(board(move.validMove.boardChanges),
-                  history :+ move,
-                  depth - 1,
-                  currentPlayer.other,
-                  maximizingPlayer,
-                  alpha,
-                  beta))
-            )
-            supportAlphaBeta = decideCurrentValue(currentPlayer,
-              maximizingPlayer,
-              math.min(bestMoveEval, supportAlphaBeta),
-              math.max(bestMoveEval, supportAlphaBeta))
-            currentPlayer match {
-              case `maximizingPlayer` => if (supportAlphaBeta >= beta) bestMoveEval
-              case _                  => if (supportAlphaBeta <= beta) bestMoveEval
-            }
-          }
-          bestMoveEval
+          alphaBetaPruning(board, history,
+            depth, currentPlayer, maximizingPlayer, alpha, beta,
+            allPossibleMoves, decideCurrentValue(currentPlayer, maximizingPlayer, -checkmateValue, checkmateValue))
         }
     }
+
   private def decideCurrentValue(currentPlayer: Color,
                                  maximizingPlayer: Color,
                                  minimizingValue: Double,
@@ -114,4 +87,42 @@ final case class LevelTwo() extends Level {
       case _                  => minimizingValue
     }
 
+  @tailrec
+  private def alphaBetaPruning(board: Board, history: Seq[FullMove],
+                               depth: Int, currentPlayer: Color, maximizingPlayer: Color, alpha: Double, beta: Double,
+                               allPossibleMoves: List[FullMove], bestMoveEval: Double): Double = {
+    if(allPossibleMoves.isEmpty) bestMoveEval
+    else {
+      var bestMoveEvalUpdated = bestMoveEval
+      val move = allPossibleMoves.head
+      var supportAlphaBeta = decideCurrentValue(currentPlayer, maximizingPlayer, beta, alpha)
+      currentPlayer match {
+        case `maximizingPlayer` =>
+          bestMoveEvalUpdated = math.max(bestMoveEvalUpdated,
+              minimax(board(move.validMove.boardChanges),
+                      history :+ move,
+                      depth - 1,
+                      currentPlayer.other,
+                      maximizingPlayer,
+                      alpha,
+                      beta))
+        case _ =>
+          bestMoveEvalUpdated = math.min(bestMoveEvalUpdated,
+              minimax(board(move.validMove.boardChanges),
+              history :+ move,
+              depth - 1,
+              currentPlayer.other,
+              maximizingPlayer,
+              alpha,
+              beta))
+      }
+      supportAlphaBeta = decideCurrentValue(currentPlayer, maximizingPlayer, math.min(bestMoveEvalUpdated, supportAlphaBeta), math.max(bestMoveEvalUpdated, supportAlphaBeta))
+      currentPlayer match {
+        case `maximizingPlayer` => if (supportAlphaBeta >= beta) return bestMoveEval
+        case _                  => if (alpha >= supportAlphaBeta) return bestMoveEval
+      }
+      alphaBetaPruning(board, history, depth, currentPlayer, maximizingPlayer, alpha, beta,
+        allPossibleMoves, bestMoveEvalUpdated)
+    }
+  }
 }
