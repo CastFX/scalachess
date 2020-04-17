@@ -1,31 +1,74 @@
 package it.scalachess.ai.test
 
 import it.scalachess.ai.AI
-import org.scalatest.{ FlatSpec, Inspectors, Matchers, OptionValues }
-import it.scalachess.core.{ Black, White }
-import it.scalachess.core.board.{ Board, Position }
-import it.scalachess.core.logic.moves.ValidSimpleMove
-import it.scalachess.core.pieces.{ Pawn, Queen }
+import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
+import it.scalachess.core.{Black, White}
+import it.scalachess.core.board.{Board, Position}
+import it.scalachess.core.logic.moves.{FullMove, ValidSimpleMove}
+import it.scalachess.core.pieces.{King, Pawn, Piece, Queen}
 
-class LevelOneSpec extends FlatSpec with Matchers with Inspectors with OptionValues {
+class LevelOneSpec extends FeatureSpec with Matchers with GivenWhenThen {
 
-  /*
-   * simulate a FOOL'S MATE
-   * */
-  "A level one chess A.I during a Fool's Mate" should "plays the move which capture king" in {
-    val firstWhitePawnMove  = ValidSimpleMove(Position(6, 2), Position(6, 3), Pawn, White, None)
-    val blackPawnMove       = ValidSimpleMove(Position(5, 7), Position(5, 6), Pawn, Black, None)
-    val secondWhitePawnMove = ValidSimpleMove(Position(7, 2), Position(7, 4), Pawn, White, None)
-    val blackQueenMove      = ValidSimpleMove(Position(4, 8), Position(8, 4), Queen, Black, None)
-    val whiteKingPosition   = Position(5, 1)
-    var board               = Board.defaultBoard()
-    val ai                  = AI(1, Black)
-    board = board(firstWhitePawnMove.boardChanges)
-    board = board(blackPawnMove.boardChanges)
-    board = board(secondWhitePawnMove.boardChanges)
-    // ai.generateSmartMove(board, Seq()) // note: at this point, this AI could generate the checkmate move: 1 possibility over 30 (moves generated)
-    board = board(blackQueenMove.boardChanges)
-    ai.generateSmartMove(board, Seq()).validMove.capture.value should equal(whiteKingPosition)
+  feature("the level one AI plays the move which capture the more important piece") {
+
+    scenario("it generates the move which capture a piece, in a standard game simulation") {
+
+      Given("a board with the white player having the possibility to capture a piece")
+      var board = Board.defaultBoard()
+      val history = Seq() // the history doesn't need to be updated in this test
+      val firstWhitePawnMove = ValidSimpleMove(Position(2, 2), Position(2, 4), Pawn, White, None)
+      val blackPawnMove = ValidSimpleMove(Position(3, 7), Position(3, 5), Pawn, Black, None)
+      board = board(firstWhitePawnMove.boardChanges)
+      board = board(blackPawnMove.boardChanges)
+
+      Given("the white A.I. representing the player which can capture")
+      val whiteAI = AI(1, White)
+
+      When("the white A.I. generates the move, and it's applied to the board")
+      val whiteAIMove = whiteAI.generateSmartMove(board, history)
+      board = board(whiteAIMove.validMove.boardChanges)
+
+      Then("the board should contains the white piece instead of the black one (which has been captured)")
+      board.pieceAtPosition(blackPawnMove.to) should be(Some(Piece(firstWhitePawnMove.color, firstWhitePawnMove.pieceType)))
+    }
+
+    scenario("this A.I. can be tricked very easily: it lose a queen to capture a pawn!") {
+
+      info("The white player has only two pieces: the king and a queen")
+      info("The black player has only three pieces: the king and two pawn")
+      info("The kings are isolated: white is in right down corner; black is in the right up corner")
+      info("One of the black pawn protect the other, and this last one is exposed to the white queen attack")
+
+      Given("the specific board previously described")
+      val blackPawnExposedPosition = Position(5, 6)
+      val whiteQueen = Piece(White, Queen)
+      val blackPawn = Piece(Black, Pawn)
+      val pieceMap = Map(Position(8,1) -> Piece(White, King), Position(8,8) -> Piece(Black, King),
+        Position(3, 4) -> whiteQueen, blackPawnExposedPosition -> blackPawn, Position(6,7) -> blackPawn)
+      var board = Board(pieceMap)
+      val history = Seq(
+        FullMove(ValidSimpleMove(Position(1,1), Position(1,1), King, White, None), resultsInCheck = false, resultsInCheckmate = false, Board(Map())),
+        FullMove(ValidSimpleMove(Position(1,1), Position(1,1), King, Black, None), resultsInCheck = false, resultsInCheckmate = false, Board(Map()))
+      ) // the history needs to contains a move for each king, to prevent the castling move generation
+
+      Given("the white A.I. representing the player")
+      val whiteAI = AI(1, White)
+
+      When("the white A.I. generates the move, and it's applied to the board")
+      val whiteAIMove = whiteAI.generateSmartMove(board, history)
+      board = board(whiteAIMove.validMove.boardChanges)
+
+      Then("the board will contains the white queen instead of the black pawn exposed (which has been captured)")
+      board.pieceAtPosition(blackPawnExposedPosition) should be(Some(whiteQueen))
+
+      And("after that, on black turn, the white queen will be captured by the other black pawn")
+      board.pieces.values.exists(_ == whiteQueen) should be (true)
+      val blackAI = AI(1, Black)
+      val blackMove = blackAI.generateSmartMove(board, history)
+      board = board(blackMove.validMove.boardChanges)
+      board.pieceAtPosition(blackPawnExposedPosition) should be(Some(blackPawn))
+      board.pieces.values.exists(_ == whiteQueen) should be (false)
+    }
   }
 
 }
