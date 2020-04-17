@@ -15,7 +15,7 @@ trait PGNFormatter[B] {
 
   private def gameEnd(result: Option[Result]): String =
     result match {
-      case Some(Draw)                 => "1/2"
+      case Some(Draw)                 => "1/2\n"
       case Some(Win(player))          => winner(player)
       case Some(WinByForfeit(player)) => winner(player)
       case _                          => ""
@@ -23,7 +23,7 @@ trait PGNFormatter[B] {
 
   private def winner(color: Color): String =
     color match {
-      case White => "1-0"
-      case Black => "0-1"
+      case White => "1-0\n"
+      case Black => "0-1\n"
     }
 }

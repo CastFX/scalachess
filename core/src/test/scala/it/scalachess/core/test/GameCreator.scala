@@ -34,4 +34,21 @@ object GameCreator extends OptionValues {
     drawGame
   }
 
+  val enpassantWithAmbiguityGame: (ChessGame, ChessGame) = {
+    var enpassantGame = ChessGame.standard()
+    Seq("d4", "a6", "f4", "b6", "d5", "a5", "f5", "e5")
+      .foreach { move =>
+        enpassantGame = enpassantGame(move).toOption.value
+      }
+    (enpassantGame("dxe6").toOption.value, enpassantGame("fxe6").toOption.value)
+  }
+
+  val sameColCaptureAmbiguityGame: (ChessGame, ChessGame) = {
+    var captureAmbiguityGame = ChessGame.standard()
+    Seq("a4", "h5", "h4", "g5", "hxg5", "b5", "axb5", "f5", "Ra6", "f4", "Rh6", "f3")
+      .foreach { move =>
+        captureAmbiguityGame = captureAmbiguityGame(move).toOption.value
+      }
+    (captureAmbiguityGame("R6xh5").toOption.value, captureAmbiguityGame("R1xh5").toOption.value)
+  }
 }

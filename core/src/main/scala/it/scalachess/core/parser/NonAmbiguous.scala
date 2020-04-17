@@ -15,6 +15,7 @@ import it.scalachess.core.logic.moves.{
   ValidSimpleMove
 }
 import it.scalachess.core.parser.Parser.Parser
+import it.scalachess.core.pieces.Pawn
 import scalaz.Validation
 
 private case class Check(check: Boolean, checkmate: Boolean)
@@ -85,10 +86,16 @@ trait NonAmbiguous extends Parser[AlgebraicMove, String] with PGNFormatter[Strin
           .pieceSimpleValidMoves(pos, boardAfter)
           .filter(x => x.to == to && x.pieceType == pieceType && x.color == color)
     }
-
     moves.size match {
       case 1 =>
-        AlgebraicSimpleMove(to, pieceType, capture.isDefined, resultsInCheck, resultsInCheckmate, None, None, None)
+        AlgebraicSimpleMove(to,
+                            pieceType,
+                            capture.isDefined,
+                            resultsInCheck,
+                            resultsInCheckmate,
+                            if (capture.isDefined && pieceType == Pawn) Some((from.col + 96).toChar) else None,
+                            None,
+                            None)
       case 2 =>
         if (moves.head.from.col == moves.last.from.col) {
           AlgebraicSimpleMove(to,
