@@ -6,12 +6,12 @@ import scalaz.{ Failure, Success, Validation }
 
 import scala.util.matching.Regex
 
-
 /**
  *  Object used to parse an element of generic type A and return another of generic type B
  */
 object Parser {
   abstract class Parser[A, B] {
+
     /**
      * Parse a generic A.
      * @param t the A to be parsed

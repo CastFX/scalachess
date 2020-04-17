@@ -19,7 +19,8 @@ import it.scalachess.core.pieces.Pawn
 import scalaz.Validation
 
 /**
- * Mixin trait with a PGNFormatter, it uses the parent parse and parseAll methods.
+ * Mixin for a parser and with a PGNFormatter.
+ * It uses the parent parse and parseAll methods.
  * It add the possibility of converting a List of FullMove into AlgebraicMoves.
  */
 trait NonAmbiguous extends Parser[AlgebraicMove, String] with PGNFormatter[String] {

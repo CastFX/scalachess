@@ -8,6 +8,7 @@ import scalaz.Validation
  * @tparam B the type of the return of the parser
  */
 trait PGNFormatter[B] {
+
   /**
    * Given the input, it returns a representation of the game
    * @param moves the sequence of validation returned by the parser representing the moves of a game
