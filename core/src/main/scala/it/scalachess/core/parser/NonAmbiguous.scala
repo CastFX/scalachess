@@ -17,6 +17,7 @@ import it.scalachess.core.logic.moves.{
 import it.scalachess.core.parser.Parser.Parser
 import it.scalachess.core.pieces.Pawn
 import scalaz.Validation
+import it.scalachess.core.board.Position.colToChar
 
 /**
  * Mixin for a parser and with a PGNFormatter.
@@ -69,7 +70,7 @@ trait NonAmbiguous extends Parser[AlgebraicMove, String] with PGNFormatter[Strin
           capture.isDefined,
           resultsInCheck,
           resultsInCheckmate,
-          if (capture.isDefined) Some((from.col + 96).toChar) else None,
+          if (capture.isDefined) Some(colToChar(from.col)) else None,
           None,
           Some(promotesTo.pieceType)
         )
@@ -81,7 +82,7 @@ trait NonAmbiguous extends Parser[AlgebraicMove, String] with PGNFormatter[Strin
                             capture.isDefined,
                             resultsInCheck,
                             resultsInCheckmate,
-                            Some((from.col + 96).toChar),
+                            Some(colToChar(from.col)),
                             None,
                             None)
     }
@@ -109,7 +110,7 @@ trait NonAmbiguous extends Parser[AlgebraicMove, String] with PGNFormatter[Strin
                             capture.isDefined,
                             resultsInCheck,
                             resultsInCheckmate,
-                            if (capture.isDefined && pieceType == Pawn) Some((from.col + 96).toChar) else None,
+                            if (capture.isDefined && pieceType == Pawn) Some(colToChar(from.col)) else None,
                             None,
                             None)
       case 2 =>
@@ -128,7 +129,7 @@ trait NonAmbiguous extends Parser[AlgebraicMove, String] with PGNFormatter[Strin
                               capture.isDefined,
                               resultsInCheck,
                               resultsInCheckmate,
-                              Some((from.col + 96).toChar),
+                              Some(colToChar(from.col)),
                               None,
                               None)
         }
@@ -138,7 +139,7 @@ trait NonAmbiguous extends Parser[AlgebraicMove, String] with PGNFormatter[Strin
                             capture.isDefined,
                             resultsInCheck,
                             resultsInCheckmate,
-                            Some((from.col + 96).toChar),
+                            Some(colToChar(from.col)),
                             Some(from.row),
                             None)
     }
