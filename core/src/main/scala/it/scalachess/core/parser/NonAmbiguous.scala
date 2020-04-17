@@ -18,14 +18,17 @@ import it.scalachess.core.parser.Parser.Parser
 import it.scalachess.core.pieces.Pawn
 import scalaz.Validation
 
-private case class Check(check: Boolean, checkmate: Boolean)
-
+/**
+ * Mixin trait with a PGNFormatter, it uses the parent parse and parseAll methods.
+ * It add the possibility of converting a List of FullMove into AlgebraicMoves.
+ */
 trait NonAmbiguous extends Parser[AlgebraicMove, String] with PGNFormatter[String] {
   abstract override def parse(t: AlgebraicMove): Validation[String, String] =
     super.parse(t)
 
   /**
-   * Parse the input into a string representing the game
+   * Convert a list of FullMoves into disambiguate AlgebraicMove.
+   * Parse the AlgebraicMoves with the father parser and format with the PGNFormatter.
    * @param seq the input to be parsed
    * @return a representation of the game
    */
@@ -45,6 +48,11 @@ trait NonAmbiguous extends Parser[AlgebraicMove, String] with PGNFormatter[Strin
     format(parseAll(moves), result)
   }
 
+  /**
+   * Disambiguate a FullMove by converting it in an AlgebraicMove that refers to a single possible move on the board.
+   * @param move the move to be disambiguated
+   * @return the move without ambiguity
+   */
   private def disambiguate(move: FullMove): AlgebraicMove =
     move.validMove match {
       case ValidCastling(_, _, _, _, _, castling) =>
@@ -76,6 +84,13 @@ trait NonAmbiguous extends Parser[AlgebraicMove, String] with PGNFormatter[Strin
                             None,
                             None)
     }
+
+  /**
+   * Disambiguate a simple move and return the relative Algebraic Move.
+   * @param move the full move to be disambiguated
+   * @param simple the simple move to be disambiguated
+   * @return an AlgebraicSimpleMove without ambiguity
+   */
   private def validSimpleDisambiguation(move: FullMove, simple: ValidSimpleMove): AlgebraicSimpleMove = {
     import simple._
     import move._
@@ -127,4 +142,5 @@ trait NonAmbiguous extends Parser[AlgebraicMove, String] with PGNFormatter[Strin
                             None)
     }
   }
+  private case class Check(check: Boolean, checkmate: Boolean)
 }

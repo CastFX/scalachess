@@ -3,7 +3,17 @@ package it.scalachess.core.parser
 import it.scalachess.core.{ Black, Color, Draw, Result, White, Win, WinByForfeit }
 import scalaz.Validation
 
+/**
+ * Formatter that takes a sequence of Validation obtained from a parser and format it into a string representing the game
+ * @tparam B the type of the return of the parser
+ */
 trait PGNFormatter[B] {
+  /**
+   * Given the input, it returns a representation of the game
+   * @param moves the sequence of validation returned by the parser representing the moves of a game
+   * @param result the result of the game after applying the moves
+   * @return a string that represents the game
+   */
   def format(moves: Seq[Validation[String, B]], result: Option[Result]): String =
     (for (group <- moves.flatMap(_.toOption).grouped(2))
       yield group.mkString("", " ", "\n")).zipWithIndex

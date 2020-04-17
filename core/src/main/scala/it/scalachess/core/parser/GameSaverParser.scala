@@ -6,7 +6,7 @@ import it.scalachess.core.pieces.{ Bishop, King, Knight, PieceType, Queen, Rook 
 import scalaz.{ Success, Validation }
 
 /**
- * Can be used to parse the move of a game into a string that sum up the game.
+ * Parser that parse an Algebraic Move into the string that represents it.
  */
 case class GameSaverParser() extends Parser[AlgebraicMove, String] with PGNFormatter[String] {
   val nothing: String = ""
@@ -39,4 +39,8 @@ case class GameSaverParser() extends Parser[AlgebraicMove, String] with PGNForma
     if (checkmate) "#" else if (check) "+" else nothing
 }
 
+/**
+ * A GameSaverParser that uses the NonAmbiguous mixin to add the
+ * possibility to convert a List of FullMoves into a string representing the game.
+ */
 object NonAmbiguousGameSaver extends GameSaverParser with NonAmbiguous
