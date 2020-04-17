@@ -18,7 +18,7 @@ class LevelOne() extends LevelZero {
   }
 
   /**
-   * Returns the moves which have the highest evaluation
+   * Returns the moves which have the highest evaluation.
    * @param movesEvaluated the map containing all the possibles moves and the relative evaluations
    * @return the moves list having the highest evaluation
    */
@@ -35,30 +35,32 @@ class LevelOne() extends LevelZero {
    */
   protected def generateMovesWithEvaluation(board: Board,
                                                  aiPlayer: Color,
-                                                 history: Seq[FullMove]): Map[FullMove, Double] =
+                                                 history: Seq[FullMove]): Map[FullMove, Double] = {
+
     new MoveGenerator(board: Board, aiPlayer: Color, history: Seq[FullMove])
       .allMoves()
       .map(move => move -> evaluatePiecesInBoard(board(move.validMove.boardChanges), aiPlayer))
       .toMap
+  }
 
   /**
-   * Evaluates pieces in a board relying on a player's color
+   * Evaluates pieces in a board relying on a player's color.
    * @param board the board on which computes the evaluation
-   * @param player the color of the AI player
+   * @param aiPlayer the color of the AI player
    * @return the evaluation of the board
    */
-  protected def evaluatePiecesInBoard(board: Board, player: Color): Double =
+  protected def evaluatePiecesInBoard(board: Board, aiPlayer: Color): Double =
     board.pieces
       .map(piece =>
         piece._2.color match {
-          case player.other => -evaluatePiece(piece._2.pieceType)
+          case aiPlayer.other => -evaluatePiece(piece._2.pieceType)
           case _            => evaluatePiece(piece._2.pieceType)
       })
       .toList
       .sum
 
   /**
-   * Evaluates a piece relying on his type
+   * Evaluates a piece relying on his type.
    * @param pieceType the type of the piece to evaluate
    * @return the evalutation of that piece type
    */
