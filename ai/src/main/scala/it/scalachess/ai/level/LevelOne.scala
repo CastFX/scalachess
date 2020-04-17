@@ -7,12 +7,24 @@ import it.scalachess.core.logic.moves.generators.MoveGenerator
 import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, PieceType, Queen, Rook }
 
 /**
- * The level one AI plays the move which capture the more important piece.
+ * The level one AI plays the move which capture the more important piece
+ * (if two or more moves capture that piece, the move is choosen randomly).
  */
-final case class LevelOne() extends Level {
+class LevelOne() extends LevelZero {
 
-  override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): FullMove =
-    moveWithMaxEvaluation(generateMovesWithEvaluation(board, aiPlayer, history))
+  override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): FullMove = {
+    opponentNotInCheckmate(board, aiPlayer, history)
+    randomMove(movesWithMaxEvaluation(generateMovesWithEvaluation(board, aiPlayer, history)))
+  }
+
+  /**
+   * Returns the moves which have the highest evaluation
+   * @param movesEvaluated the map containing all the possibles moves and the relative evaluations
+   * @return the moves list having the highest evaluation
+   */
+  protected def movesWithMaxEvaluation(movesEvaluated: Map[FullMove, Double]): List[FullMove] = {
+    movesEvaluated.filter(_._2 == movesEvaluated.values.max).keys.toList
+  }
 
   /**
    * Generates the moves and their evaluation.
@@ -21,26 +33,26 @@ final case class LevelOne() extends Level {
    * @param history the moves history played on the board
    * @return the map containing the moves and the relative evaluations
    */
-  private[level] def generateMovesWithEvaluation(board: Board,
+  protected def generateMovesWithEvaluation(board: Board,
                                                  aiPlayer: Color,
                                                  history: Seq[FullMove]): Map[FullMove, Double] =
     new MoveGenerator(board: Board, aiPlayer: Color, history: Seq[FullMove])
       .allMoves()
-      .map(move => move -> evaluateBoardByPieceValue(board(move.validMove.boardChanges), aiPlayer))
+      .map(move => move -> evaluatePiecesInBoard(board(move.validMove.boardChanges), aiPlayer))
       .toMap
 
   /**
-   * Evaluates a board relying on a player color
+   * Evaluates pieces in a board relying on a player's color
    * @param board the board on which computes the evaluation
    * @param player the color of the AI player
    * @return the evaluation of the board
    */
-  private[level] def evaluateBoardByPieceValue(board: Board, player: Color): Double =
+  protected def evaluatePiecesInBoard(board: Board, player: Color): Double =
     board.pieces
       .map(piece =>
         piece._2.color match {
-          case player.other => -pieceValue(piece._2.pieceType)
-          case _            => pieceValue(piece._2.pieceType)
+          case player.other => -evaluatePiece(piece._2.pieceType)
+          case _            => evaluatePiece(piece._2.pieceType)
       })
       .toList
       .sum
@@ -50,7 +62,7 @@ final case class LevelOne() extends Level {
    * @param pieceType the type of the piece to evaluate
    * @return the evalutation of that piece type
    */
-  private def pieceValue(pieceType: PieceType): Double =
+  protected def evaluatePiece(pieceType: PieceType): Double =
     pieceType match {
       case Pawn   => pawnValue
       case Knight => knightValue
@@ -62,12 +74,11 @@ final case class LevelOne() extends Level {
         assert(assertion = false, s"The AI doesn't know the value of this piece: $pieceType")
         0
     }
-
-  private val pawnValue   = 10
-  private val knightValue = 30
-  private val bishopValue = 35
-  private val rookValue   = 50
-  private val queenValue  = 100
-  private val kingValue   = 1000
+  protected val pawnValue   = 10
+  protected val knightValue = 30
+  protected val bishopValue = 35
+  protected val rookValue   = 50
+  protected val queenValue  = 100
+  protected val kingValue   = 1000
 
 }

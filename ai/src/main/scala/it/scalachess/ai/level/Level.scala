@@ -3,25 +3,21 @@ package it.scalachess.ai.level
 import it.scalachess.core.Color
 import it.scalachess.core.board.Board
 import it.scalachess.core.logic.moves.FullMove
+import it.scalachess.core.logic.moves.generators.MoveGenerator
 
 /**
  * The interface which manages level implementation.
  */
 trait Level extends ((Board, Color, Seq[FullMove]) => FullMove) {
-
   override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): FullMove
 
-  /**
-   * Returns the move which has the highest evaluation
-   * @param movesEvaluated the map containing the moves and the relative evaluations
-   * @return the move having the highest evaluation
-   */
-  protected def moveWithMaxEvaluation(movesEvaluated: Map[FullMove, Double]): FullMove = {
-    assert(movesEvaluated.nonEmpty, aiPlayerInCheckmateFailMsg)
-    movesEvaluated.find(_._2 == movesEvaluated.values.max).get._1
+  protected def opponentNotInCheckmate(board: Board, aiPlayer: Color, history: Seq[FullMove]): Unit = {
+    require(new MoveGenerator(board, aiPlayer.other, history).allMoves().nonEmpty, Level.opponentIsInCheckmateErrorMsg)
   }
 
-  protected val otherPlayerInCheckmate     = "The other player is in checkmate: wrong usage of AI"
-  protected val aiPlayerInCheckmateFailMsg = "The AI player is in checkmate: the game should be already ended"
+}
 
+object Level {
+  val aiIsInCheckmateErrorMsg = "The AI's possible moves list is empty (probably is it in checkmate?): wrong usage of the AI"
+  val opponentIsInCheckmateErrorMsg = "The opponent player's possible moves list is empty (probably is it in checkmate?): wrong usage of AI"
 }
