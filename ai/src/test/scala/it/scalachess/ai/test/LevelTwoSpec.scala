@@ -18,6 +18,7 @@ final case class LevelTwoSpec() extends FlatSpec with Matchers with GivenWhenThe
   it should behave like willNotBeTrickedOnTheNextEnemyMove(whiteAI)
   it should behave like generateLastFoolsMateMove(blackAI)
   it should behave like generateLastScholarsMateMove(whiteAI)
+  // it should behave like willBeTrickedOnTheSecondNextEnemyMove(whiteAI, blackAI)
 
   it should behave like chessAICantBeUsedDuringCheckmate(whiteAI, blackAI)
 

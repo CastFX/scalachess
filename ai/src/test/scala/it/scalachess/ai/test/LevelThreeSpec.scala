@@ -1,11 +1,11 @@
 package it.scalachess.ai.test
 
 import it.scalachess.ai.AI
-import it.scalachess.ai.test.specifics.{LevelOne, LevelTwo, LevelZero}
+import it.scalachess.ai.test.specifics.{LevelOne, LevelTwo, LevelZero, LevelThree}
 import it.scalachess.core.{Black, White}
 import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
 
-final case class LevelThreeSpec() extends FlatSpec with Matchers with GivenWhenThen with LevelZero with LevelOne with LevelTwo {
+final case class LevelThreeSpec() extends FlatSpec with Matchers with GivenWhenThen with LevelZero with LevelOne with LevelTwo with LevelThree {
 
   private val level = 3
   private val whiteAI = AI(level, White)
@@ -18,6 +18,9 @@ final case class LevelThreeSpec() extends FlatSpec with Matchers with GivenWhenT
   it should behave like willNotBeTrickedOnTheNextEnemyMove(whiteAI)
   it should behave like generateLastFoolsMateMove(blackAI)
   it should behave like generateLastScholarsMateMove(whiteAI)
+  // it should behave like willBeTrickedOnTheSecondNextEnemyMove(whiteAI, blackAI)
+
+  it should behave like generateKnightMoveAtTheStart(whiteAI)
 
   it should behave like chessAICantBeUsedDuringCheckmate(whiteAI, blackAI)
 

@@ -89,9 +89,46 @@ trait LevelTwo {
     }
   }
 
-  // TODO
-  def willBeTrickedOnTheSecondNextEnemyMove(whiteAI: AI) {
+  /*
+  def willBeTrickedOnTheSecondNextEnemyMove(whiteAI: AI, blackAI: AI) {
+    it should "be tricked easily because the mini-max can't see anything after his depth (= 3)" in {
+      info("The white player has only three pieces: the king, the queen and a pawn")
+      info("The black player has only four pieces: the king and three pawn")
+      info("The kings are isolated: the white is in right down corner; the black is in the right up corner")
+      info("Two of the black pawn protect the other, and this last one is exposed to the white pawn attack")
+      info("Th")
+      info("To avoid this trap, it's necessary a minimax depth = 4, but level two has only depth = 3")
+      Given("the specific board previously described")
+      val blackPawnExposedPos = Position(5, 5)
+      val blackPawn = Piece(Black, Pawn)
+      val whiteKnight = Piece(White, Knight)
+      val pieceMap = Map(Position(1, 8) -> Piece(White, King), Position(8, 8) -> Piece(Black, King),
+        Position(4, 3) -> whiteKnight, Position(4, 5) -> whiteKnight,
+        blackPawnExposedPos -> blackPawn, Position(6, 6) -> blackPawn, Position(4, 6) -> blackPawn)
+      var board = Board(pieceMap)
+      val history = Seq( // the history needs to contains a move for each king, to prevent the castling move generation
+        FullMove(ValidSimpleMove(Position(1, 1), Position(1, 1), King, White, None), resultsInCheck = false, resultsInCheckmate = false, Board(Map())),
+        FullMove(ValidSimpleMove(Position(1, 1), Position(1, 1), King, Black, None), resultsInCheck = false, resultsInCheckmate = false, Board(Map()))
+      )
 
+      When("the white A.I. generates the move, and it's applied to the board")
+      val whiteAIMove = whiteAI.generateSmartMove(board, history)
+      board = board(whiteAIMove.validMove.boardChanges)
+
+      println(whiteAIMove)
+      Then("the board will contains the white rook instead of the black knight (which has been captured)")
+      board.pieceAtPosition(blackPawnExposedPos) should be(Some(whiteKnight))
+
+      And("after that, on black turn, the white rook will be captured by the other black rook! \n" +
+        "So the white A.I. loses a rook (value = 50) to capture a knight (value = 30)")
+      board.pieces.values.exists(_ == whiteKnight) should be (true)
+      val blackMove = blackAI.generateSmartMove(board, history)
+      println(blackMove)
+      board = board(blackMove.validMove.boardChanges)
+      board.pieceAtPosition(blackPawnExposedPos) should be(Some(blackPawn))
+      board.pieces.values.exists(_ == whiteKnight) should be (false)
+    }
   }
+  */
 
 }

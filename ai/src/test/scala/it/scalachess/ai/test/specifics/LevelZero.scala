@@ -20,10 +20,6 @@ trait LevelZero {
       val whitePlayer = White
       val blackPlayer = Black
 
-      Given("the A.I. representing the players")
-      val whiteAI = AI(0, White)
-      val blackAI = AI(0, Black)
-
       When("one of the two A.I. generate a move")
       val whiteMove = whiteAI.generateSmartMove(defaultBoard, history)
       val blackMove = blackAI.generateSmartMove(defaultBoard, history)
