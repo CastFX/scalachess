@@ -19,7 +19,7 @@ class LevelTwo() extends LevelOne {
 
   override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): FullMove = {
     opponentNotInCheckmate(board, aiPlayer, history)
-    randomMove(movesWithMaxEvaluation(generateMovesWithMinimaxEval(board, aiPlayer, history, minimaxDepth)))
+    randomMove(movesWithMaxEvaluation(generateMovesWithMinimaxEval(board, aiPlayer, history, minimaxDepth, evaluatePiecesInBoard)))
   }
 
   /**
@@ -33,7 +33,8 @@ class LevelTwo() extends LevelOne {
   protected def generateMovesWithMinimaxEval(board: Board,
                                                   aiPlayer: Color,
                                                   history: Seq[FullMove],
-                                                  depth: Int): Map[FullMove, Double] = {
+                                                  depth: Int,
+                                                  evaluationFunc: (Board, Color) => Double): Map[FullMove, Double] = {
     require(depth > 0, "The minimax algorithm should computes at least the consequences of his first future move")
     new MoveGenerator(board, aiPlayer, history)
       .allMoves()
@@ -43,6 +44,7 @@ class LevelTwo() extends LevelOne {
           depth - 1,
           aiPlayer.other,
           aiPlayer,
+          evaluationFunc,
           -checkmateValue,
           checkmateValue)
       })
@@ -63,38 +65,42 @@ class LevelTwo() extends LevelOne {
               depth: Int,
               currentPlayer: Color,
               maximizingPlayer: Color,
+              evaluationFunc: (Board, Color) => Double,
               alpha: Double,
               beta: Double): Double =
     depth match {
-      case 0 => evaluatePiecesInBoard(board, maximizingPlayer)
+      case 0 => evaluationFunc(board, maximizingPlayer)
       case _ =>
         val allPossibleMoves = new MoveGenerator(board, currentPlayer, history).allMoves()
         if (allPossibleMoves.isEmpty) // this move leads one of the 2 player in checkmate
-          decideCurrentPlayerValue(currentPlayer, maximizingPlayer, checkmateValue, -checkmateValue)
+          currentPlayerValue(currentPlayer, maximizingPlayer, checkmateValue, -checkmateValue)
         else {
-          alphaBetaPruning(board, history, depth, currentPlayer, maximizingPlayer,
+          alphaBetaPruning(board, history, depth, currentPlayer, maximizingPlayer, evaluationFunc,
             alpha, beta, allPossibleMoves,
-            decideCurrentPlayerValue(currentPlayer, maximizingPlayer, checkmateValue, -checkmateValue))
+            currentPlayerValue(currentPlayer, maximizingPlayer, checkmateValue, -checkmateValue))
         }
     }
-  protected def decideCurrentPlayerValue(currentPlayer: Color,
-                                         maximizingPlayer: Color,
-                                         minimizingPlayerValue: Double,
-                                         maximizingPlayerValue: Double): Double =
+
+  protected def currentPlayerValue(currentPlayer: Color,
+                                   maximizingPlayer: Color,
+                                   minimizingPlayerValue: Double,
+                                   maximizingPlayerValue: Double): Double =
     currentPlayer match {
       case `maximizingPlayer` => maximizingPlayerValue
       case _                  => minimizingPlayerValue
     }
+
   @tailrec
-  private def alphaBetaPruning(board: Board, history: Seq[FullMove], depth: Int, currentPlayer: Color, maximizingPlayer: Color,
+  private def alphaBetaPruning(board: Board, history: Seq[FullMove], depth: Int, currentPlayer: Color, maximizingPlayer: Color, evaluationFunc: (Board, Color) => Double,
                                alpha: Double, beta: Double, allPossibleMoves: List[FullMove], bestMoveEval: Double): Double = {
-    def recallMinimax(board: Board, history: Seq[FullMove], depth: Int, currentPlayer: Color, maximizingPlayer: Color,
+    def recallMinimax(board: Board, history: Seq[FullMove], depth: Int, currentPlayer: Color, maximizingPlayer: Color, evaluationFunc: (Board, Color) => Double,
                       alpha: Double, beta: Double, move: FullMove): Double = {
       minimax(board(move.validMove.boardChanges),
         history :+ move,
         depth - 1,
         currentPlayer.other,
         maximizingPlayer,
+        evaluationFunc,
         alpha,
         beta)
     }
@@ -105,20 +111,20 @@ class LevelTwo() extends LevelOne {
       currentPlayer match {
         case `maximizingPlayer` =>
           bestMoveEvalUpdated = math.max(bestMoveEvalUpdated,
-            recallMinimax(board, history, depth, currentPlayer, maximizingPlayer, alpha, beta, move))
+            recallMinimax(board, history, depth, currentPlayer, maximizingPlayer, evaluationFunc, alpha, beta, move))
         case _ =>
           bestMoveEvalUpdated = math.min(bestMoveEvalUpdated,
-            recallMinimax(board, history, depth, currentPlayer, maximizingPlayer, alpha, beta, move))
+            recallMinimax(board, history, depth, currentPlayer, maximizingPlayer, evaluationFunc, alpha, beta, move))
       }
-      val alphaOrBeta = decideCurrentPlayerValue(currentPlayer, maximizingPlayer, math.min(bestMoveEvalUpdated, beta), math.max(bestMoveEvalUpdated, alpha))
+      val alphaOrBeta = currentPlayerValue(currentPlayer, maximizingPlayer, math.min(bestMoveEvalUpdated, beta), math.max(bestMoveEvalUpdated, alpha))
       currentPlayer match {
         case `maximizingPlayer` =>
           if (alphaOrBeta >= beta) bestMoveEvalUpdated
-          else alphaBetaPruning(board, history, depth, currentPlayer, maximizingPlayer, alphaOrBeta, beta,
+          else alphaBetaPruning(board, history, depth, currentPlayer, maximizingPlayer, evaluationFunc, alphaOrBeta, beta,
             allPossibleMoves.drop(1), bestMoveEvalUpdated)
         case _                  =>
           if (alpha >= alphaOrBeta) bestMoveEvalUpdated
-          else alphaBetaPruning(board, history, depth, currentPlayer, maximizingPlayer, alpha, alphaOrBeta,
+          else alphaBetaPruning(board, history, depth, currentPlayer, maximizingPlayer, evaluationFunc, alpha, alphaOrBeta,
             allPossibleMoves.drop(1), bestMoveEvalUpdated)
       }
     }

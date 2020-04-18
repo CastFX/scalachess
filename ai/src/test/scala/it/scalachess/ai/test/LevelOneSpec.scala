@@ -7,9 +7,9 @@ import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
 
 final case class LevelOneSpec() extends FlatSpec with Matchers with GivenWhenThen with LevelZero with LevelOne {
 
-  private val levelZero = 1
-  private val whiteAI = AI(levelZero, White)
-  private val blackAI = AI(levelZero, Black)
+  private val level = 1
+  private val whiteAI = AI(level, White)
+  private val blackAI = AI(level, Black)
 
   "The level one chess A.I." should behave like generateAMove(whiteAI, blackAI)
   it should behave like generateSimpleCapture(whiteAI)

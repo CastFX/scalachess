@@ -12,7 +12,7 @@ import it.scalachess.core.logic.moves.FullMove
  */
 final case class AI(difficulty: Int, player: Color) {
 
-  private val level: Level = {
+  val level: Level = {
     require(difficulty >= 0 && difficulty <= AI.maxDifficulty, "The AI difficulty inserted doesn't exists")
     difficulty match {
       case 0 => new LevelZero()
@@ -27,5 +27,5 @@ final case class AI(difficulty: Int, player: Color) {
 }
 
 object AI {
-  val maxDifficulty: Int = 2
+  val maxDifficulty: Int = 3
 }
