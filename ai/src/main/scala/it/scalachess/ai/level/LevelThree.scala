@@ -11,7 +11,7 @@ import scala.util.Random
 /**
  * The level Three AI plays TODO
  */
-final case class LevelThree() extends LevelTwo {
+class LevelThree() extends LevelTwo {
 
   override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): FullMove = {
     val moves = new MoveGenerator(board: Board, aiPlayer: Color, history: Seq[FullMove]).allMoves()

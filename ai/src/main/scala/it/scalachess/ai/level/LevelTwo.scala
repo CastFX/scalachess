@@ -12,14 +12,15 @@ import scala.annotation.tailrec
  * [1] it cares about value based on piece importance (it uses the same evaluation of level one);
  * [2] it analyse all the possible next moves, relying on the minimax algorithm.
  */
-final case class LevelTwo() extends Level {
+class LevelTwo() extends LevelOne {
 
-  private val levelOne       = LevelOne()
-  private val minimaxDepth   = 3
-  private val checkmateValue = 9999.0
+  protected val minimaxDepth   = 3
+  protected val checkmateValue = 9999.0
 
-  override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): FullMove =
-    moveWithMaxEvaluation(generateMovesWithMinimaxEval(board, aiPlayer, history, minimaxDepth))
+  override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): FullMove = {
+    opponentNotInCheckmate(board, aiPlayer, history)
+    randomMove(movesWithMaxEvaluation(generateMovesWithMinimaxEval(board, aiPlayer, history, minimaxDepth)))
+  }
 
   /**
    * Generates the moves and their evaluation using the minimax algorithm.
@@ -29,7 +30,7 @@ final case class LevelTwo() extends Level {
    * @param depth the depth of the minimax algorithm
    * @return the map containing the moves and the relative evaluations
    */
-  private[level] def generateMovesWithMinimaxEval(board: Board,
+  protected def generateMovesWithMinimaxEval(board: Board,
                                                   aiPlayer: Color,
                                                   history: Seq[FullMove],
                                                   depth: Int): Map[FullMove, Double] = {
@@ -47,18 +48,17 @@ final case class LevelTwo() extends Level {
       })
       .toMap
   }
-
   /**
-   * Evaluates a board relying on the minimax algorithm.
+   * Evaluates a board relying on the minimax algorithm with alpha-beta pruning.
    *
    * @param board the board to evaluate
    * @param history the moves history played on the board
    * @param depth the depth of the minimax algorithm
-   * @param currentPlayer the active player during the current minimax turn simulation
+   * @param currentPlayer the active player color during the current minimax turn simulation
    * @param maximizingPlayer the color of the player that want to maximize the minimax evaluation (AI player)
    * @return the evaluation of the board
    */
-  def minimax(board: Board,
+  protected def minimax(board: Board,
               history: Seq[FullMove],
               depth: Int,
               currentPlayer: Color,
@@ -66,63 +66,65 @@ final case class LevelTwo() extends Level {
               alpha: Double,
               beta: Double): Double =
     depth match {
-      case 0 => levelOne.evaluateBoardByPieceValue(board, maximizingPlayer)
+      case 0 => evaluatePiecesInBoard(board, maximizingPlayer)
       case _ =>
         val allPossibleMoves = new MoveGenerator(board, currentPlayer, history).allMoves()
-        if (allPossibleMoves.isEmpty)
-          decideCurrentValue(currentPlayer, maximizingPlayer, checkmateValue, -checkmateValue)
+        if (allPossibleMoves.isEmpty) // this move leads one of the 2 player in checkmate
+          decideCurrentPlayerValue(currentPlayer, maximizingPlayer, checkmateValue, -checkmateValue)
         else {
-          alphaBetaPruning(board, history,
-            depth, currentPlayer, maximizingPlayer, alpha, beta,
-            allPossibleMoves, decideCurrentValue(currentPlayer, maximizingPlayer, -checkmateValue, checkmateValue))
+          alphaBetaPruning(board, history, depth, currentPlayer, maximizingPlayer,
+            alpha, beta, allPossibleMoves,
+            decideCurrentPlayerValue(currentPlayer, maximizingPlayer, checkmateValue, -checkmateValue))
         }
     }
-
-  private def decideCurrentValue(currentPlayer: Color,
-                                 maximizingPlayer: Color,
-                                 minimizingValue: Double,
-                                 maximizingValue: Double): Double =
+  protected def decideCurrentPlayerValue(currentPlayer: Color,
+                                         maximizingPlayer: Color,
+                                         minimizingPlayerValue: Double,
+                                         maximizingPlayerValue: Double): Double =
     currentPlayer match {
-      case `maximizingPlayer` => maximizingValue
-      case _                  => minimizingValue
+      case `maximizingPlayer` => maximizingPlayerValue
+      case _                  => minimizingPlayerValue
     }
-
   @tailrec
-  private def alphaBetaPruning(board: Board, history: Seq[FullMove],
-                               depth: Int, currentPlayer: Color, maximizingPlayer: Color, alpha: Double, beta: Double,
-                               allPossibleMoves: List[FullMove], bestMoveEval: Double): Double = {
+  private def alphaBetaPruning(board: Board, history: Seq[FullMove], depth: Int, currentPlayer: Color, maximizingPlayer: Color,
+                               alpha: Double, beta: Double, allPossibleMoves: List[FullMove], bestMoveEval: Double): Double = {
+    def recallMinimax(board: Board, history: Seq[FullMove], depth: Int, currentPlayer: Color, maximizingPlayer: Color,
+                      alpha: Double, beta: Double, move: FullMove): Double = {
+      minimax(board(move.validMove.boardChanges),
+        history :+ move,
+        depth - 1,
+        currentPlayer.other,
+        maximizingPlayer,
+        alpha,
+        beta)
+    }
     if(allPossibleMoves.isEmpty) bestMoveEval
     else {
       var bestMoveEvalUpdated = bestMoveEval
       val move = allPossibleMoves.head
-      var supportAlphaBeta = decideCurrentValue(currentPlayer, maximizingPlayer, beta, alpha)
       currentPlayer match {
         case `maximizingPlayer` =>
           bestMoveEvalUpdated = math.max(bestMoveEvalUpdated,
-              minimax(board(move.validMove.boardChanges),
-                      history :+ move,
-                      depth - 1,
-                      currentPlayer.other,
-                      maximizingPlayer,
-                      alpha,
-                      beta))
+            recallMinimax(board, history, depth, currentPlayer, maximizingPlayer, alpha, beta, move))
         case _ =>
           bestMoveEvalUpdated = math.min(bestMoveEvalUpdated,
-              minimax(board(move.validMove.boardChanges),
-              history :+ move,
-              depth - 1,
-              currentPlayer.other,
-              maximizingPlayer,
-              alpha,
-              beta))
+            recallMinimax(board, history, depth, currentPlayer, maximizingPlayer, alpha, beta, move))
       }
-      supportAlphaBeta = decideCurrentValue(currentPlayer, maximizingPlayer, math.min(bestMoveEvalUpdated, supportAlphaBeta), math.max(bestMoveEvalUpdated, supportAlphaBeta))
+      val alphaOrBeta = decideCurrentPlayerValue(currentPlayer, maximizingPlayer, math.min(bestMoveEvalUpdated, beta), math.max(bestMoveEvalUpdated, alpha))
       currentPlayer match {
-        case `maximizingPlayer` => if (supportAlphaBeta >= beta) return bestMoveEval
-        case _                  => if (alpha >= supportAlphaBeta) return bestMoveEval
+        case `maximizingPlayer` =>
+          if (alphaOrBeta >= beta) bestMoveEvalUpdated
+          else alphaBetaPruning(board, history, depth, currentPlayer, maximizingPlayer, alphaOrBeta, beta,
+            allPossibleMoves.drop(1), bestMoveEvalUpdated)
+        case _                  =>
+          if (alpha >= alphaOrBeta) bestMoveEvalUpdated
+          else alphaBetaPruning(board, history, depth, currentPlayer, maximizingPlayer, alpha, alphaOrBeta,
+            allPossibleMoves.drop(1), bestMoveEvalUpdated)
       }
-      alphaBetaPruning(board, history, depth, currentPlayer, maximizingPlayer, alpha, beta,
-        allPossibleMoves, bestMoveEvalUpdated)
     }
   }
+
+
+
+
 }

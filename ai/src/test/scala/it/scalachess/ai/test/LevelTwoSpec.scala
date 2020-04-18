@@ -1,61 +1,24 @@
 package it.scalachess.ai.test
 
-import java.util.Calendar
-
 import it.scalachess.ai.AI
-import org.scalatest.{FlatSpec, Inspectors, Matchers, OptionValues}
+import it.scalachess.ai.test.specifics.{LevelOne, LevelTwo, LevelZero}
 import it.scalachess.core.{Black, White}
-import it.scalachess.core.board.{Board, Position}
-import it.scalachess.core.logic.moves.ValidSimpleMove
-import it.scalachess.core.pieces.{Bishop, Knight, Pawn, Queen}
+import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
 
-class LevelTwoSpec extends FlatSpec with Matchers with Inspectors with OptionValues {
+final case class LevelTwoSpec() extends FlatSpec with Matchers with GivenWhenThen with LevelZero with LevelOne with LevelTwo {
 
-  /*
-   * simulate a FOOL'S MATE
-   * */
-  "A level two chess A.I during a Fool's Mate" should "plays the move which cause checkmate" in {
-    val firstWhitePawnMove  = ValidSimpleMove(Position(6, 2), Position(6, 3), Pawn, White, None)
-    val blackPawnMove       = ValidSimpleMove(Position(5, 7), Position(5, 6), Pawn, Black, None)
-    val secondWhitePawnMove = ValidSimpleMove(Position(7, 2), Position(7, 4), Pawn, White, None)
-    val blackQueenMove      = ValidSimpleMove(Position(4, 8), Position(8, 4), Queen, Black, None)
-    var board               = Board.defaultBoard()
-    val ai                  = AI(2, Black)
-    board = board(firstWhitePawnMove.boardChanges)
-    board = board(blackPawnMove.boardChanges)
-    board = board(secondWhitePawnMove.boardChanges)
-    // move that cause checkmate
-    val aiMove = ai.generateSmartMove(board, Seq())
-    aiMove.resultsInCheckmate should be(true)
-    aiMove.validMove should equal(blackQueenMove)
-    board = board(aiMove.validMove.boardChanges)
-  }
+  private val levelZero = 2
+  private val whiteAI = AI(levelZero, White)
+  private val blackAI = AI(levelZero, Black)
 
-  /*
-   * simulate a SCHOLAR'S MATE
-   * */
-  "A level two chess A.I during a Scholar's Mate" should "plays the move which cause checkmate" in {
-    val firstMoveWhitePawn    = ValidSimpleMove(Position(5, 2), Position(5, 4), Pawn, White, None)
-    val secondMoveBlackPawn   = ValidSimpleMove(Position(5, 7), Position(5, 5), Pawn, Black, None)
-    val thirdMoveWhiteBishop  = ValidSimpleMove(Position(6, 1), Position(3, 4), Bishop, White, None)
-    val fourthMoveBlackKnight = ValidSimpleMove(Position(2, 8), Position(3, 6), Knight, Black, None)
-    val fifthMoveWhiteQueen   = ValidSimpleMove(Position(4, 1), Position(8, 5), Queen, White, None)
-    val sixthMoveBlackKnight  = ValidSimpleMove(Position(7, 8), Position(6, 6), Knight, Black, None)
-    val seventhMoveWhiteQueen = ValidSimpleMove(Position(8, 5), Position(6, 7), Queen, White, Some(Position(6, 7)))
-    var board                 = Board.defaultBoard()
-    val ai                    = AI(2, White)
-    board = board(firstMoveWhitePawn.boardChanges)
-    board = board(secondMoveBlackPawn.boardChanges)
-    board = board(thirdMoveWhiteBishop.boardChanges)
-    board = board(fourthMoveBlackKnight.boardChanges)
-    board = board(fifthMoveWhiteQueen.boardChanges)
-    board = board(sixthMoveBlackKnight.boardChanges)
-    // move that cause checkmate
-    val start = Calendar.getInstance().getTime.getTime
-    val aiMove = ai.generateSmartMove(board, Seq())
-    val end    = Calendar.getInstance().getTime.getTime
-    println(start - end) // minimax non migliorato ci mette dai: 4.2 ai 5.6 secondi => migliorato ci mette meno di 1 secondo
-    aiMove.validMove should equal(seventhMoveWhiteQueen)
-  }
+  "The level two chess A.I." should behave like generateAMove(whiteAI, blackAI)
+  it should behave like generateSimpleCapture(whiteAI)
+  it should behave like generateTheMostValuedCapture(whiteAI)
+  // it should behave like willBeTrickedOnTheNextEnemyMove(whiteAI, blackAI) // this test will fail at level two
+  it should behave like willNotBeTrickedOnTheNextEnemyMove(whiteAI)
+  it should behave like generateLastFoolsMateMove(blackAI)
+  it should behave like generateLastScholarsMateMove(whiteAI)
+
+  it should behave like chessAICantBeUsedDuringCheckmate(whiteAI, blackAI)
 
 }
