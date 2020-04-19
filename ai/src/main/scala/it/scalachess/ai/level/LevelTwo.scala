@@ -5,132 +5,89 @@ import it.scalachess.core.board.Board
 import it.scalachess.core.logic.moves.FullMove
 import it.scalachess.core.logic.moves.generators.MoveGenerator
 
-import scala.annotation.tailrec
 
 /**
- * The level two AI plays the best move following two principles:
- * [1] it cares about value based on piece importance (it uses the same evaluation of level one);
- * [2] it analyse all the possible next moves, relying on the minimax algorithm.
+* The level two A.I.'s strategy is try to play the move which capture the more important piece,
+ * but before proceed with capture it will consider the opponent next move.
  */
 class LevelTwo() extends LevelOne {
 
-  protected val minimaxDepth   = 3
-  protected val checkmateValue = 9999.0
+  protected val quiescenceSearchActive = true
+  protected val minimaxDepth = 1
+  protected val nodeNotQuietValue = 10 // it must be a significant value
 
   override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): FullMove = {
-    opponentNotInCheckmate(board, aiPlayer, history)
-    randomMove(movesWithMaxEvaluation(generateMovesWithMinimaxEval(board, aiPlayer, history, minimaxDepth, evaluatePiecesInBoard)))
+    verifyGameIsPlayable(board, aiPlayer, history)
+    moveWithMaxEval(minimax(board, history, aiPlayer, minimaxDepth, evaluatePiecesInBoard))
   }
 
   /**
-   * Generates the moves and their evaluation using the minimax algorithm.
-   * @param board the board on which computes the move generation and evaluation
-   * @param aiPlayer the color of the AI player
-   * @param history the moves history played on the board
-   * @param depth the depth of the minimax algorithm
-   * @return the map containing the moves and the relative evaluations
+   * Calls the minimax quiescence algorithm decreasing the depth.
+   * @return the result of the minimax quiescence evaluation
    */
-  protected def generateMovesWithMinimaxEval(board: Board,
-                                                  aiPlayer: Color,
-                                                  history: Seq[FullMove],
-                                                  depth: Int,
-                                                  evaluationFunc: (Board, Color) => Double): Map[FullMove, Double] = {
-    require(depth > 0, "The minimax algorithm should computes at least the consequences of his first future move")
-    new MoveGenerator(board, aiPlayer, history)
-      .allMoves()
-      .map(fullMove => {
-        fullMove -> minimax(board(fullMove.validMove.boardChanges),
-          history :+ fullMove,
-          depth - 1,
-          aiPlayer.other,
-          aiPlayer,
-          evaluationFunc,
-          -checkmateValue,
-          checkmateValue)
-      })
-      .toMap
+  final override protected def minimaxGoesDeep(board: Board, history: Seq[FullMove], depth: Int, currentPlayer: Color, maximizingPlayer: Color,
+                                         evaluationFunc: (Board, Color) => Double, alpha: Double, beta: Double, fullMove: FullMove): Double = {
+    require(depth > 0, "Error: the minimax can't be called with a depth <= 0!")
+    minimaxQuiescenceEval(board(fullMove.validMove.boardChanges),
+      history :+ fullMove,
+      depth - 1,
+      currentPlayer.other,
+      maximizingPlayer,
+      evaluationFunc,
+      alpha,
+      beta,
+      board,
+      fullMove)
   }
+
   /**
-   * Evaluates a board relying on the minimax algorithm with alpha-beta pruning.
-   *
-   * @param board the board to evaluate
-   * @param history the moves history played on the board
+   * Evaluates a board relying on the minimax algorithm with alpha-beta pruning and quiescence search.
+   * @param board the board to evaluate (is a node of the minimax search)
+   * @param history the moves history played on the board (it completes the node informations of the minimax search)
    * @param depth the depth of the minimax algorithm
-   * @param currentPlayer the active player color during the current minimax turn simulation
+   * @param currentPlayer the active player color during the current minimax iteration
    * @param maximizingPlayer the color of the player that want to maximize the minimax evaluation (AI player)
    * @return the evaluation of the board
    */
-  protected def minimax(board: Board,
-              history: Seq[FullMove],
-              depth: Int,
-              currentPlayer: Color,
-              maximizingPlayer: Color,
-              evaluationFunc: (Board, Color) => Double,
-              alpha: Double,
-              beta: Double): Double =
-    depth match {
-      case 0 => evaluationFunc(board, maximizingPlayer)
-      case _ =>
-        val allPossibleMoves = new MoveGenerator(board, currentPlayer, history).allMoves()
-        if (allPossibleMoves.isEmpty) // this move leads one of the 2 player in checkmate
-          currentPlayerValue(currentPlayer, maximizingPlayer, checkmateValue, -checkmateValue)
-        else {
-          alphaBetaPruning(board, history, depth, currentPlayer, maximizingPlayer, evaluationFunc,
-            alpha, beta, allPossibleMoves,
-            currentPlayerValue(currentPlayer, maximizingPlayer, checkmateValue, -checkmateValue))
-        }
-    }
-
-  protected def currentPlayerValue(currentPlayer: Color,
-                                   maximizingPlayer: Color,
-                                   minimizingPlayerValue: Double,
-                                   maximizingPlayerValue: Double): Double =
-    currentPlayer match {
-      case `maximizingPlayer` => maximizingPlayerValue
-      case _                  => minimizingPlayerValue
-    }
-
-  @tailrec
-  private def alphaBetaPruning(board: Board, history: Seq[FullMove], depth: Int, currentPlayer: Color, maximizingPlayer: Color, evaluationFunc: (Board, Color) => Double,
-                               alpha: Double, beta: Double, allPossibleMoves: List[FullMove], bestMoveEval: Double): Double = {
-    def recallMinimax(board: Board, history: Seq[FullMove], depth: Int, currentPlayer: Color, maximizingPlayer: Color, evaluationFunc: (Board, Color) => Double,
-                      alpha: Double, beta: Double, move: FullMove): Double = {
-      minimax(board(move.validMove.boardChanges),
-        history :+ move,
-        depth - 1,
-        currentPlayer.other,
-        maximizingPlayer,
-        evaluationFunc,
-        alpha,
-        beta)
-    }
-    if(allPossibleMoves.isEmpty) bestMoveEval
-    else {
-      var bestMoveEvalUpdated = bestMoveEval
-      val move = allPossibleMoves.head
-      currentPlayer match {
-        case `maximizingPlayer` =>
-          bestMoveEvalUpdated = math.max(bestMoveEvalUpdated,
-            recallMinimax(board, history, depth, currentPlayer, maximizingPlayer, evaluationFunc, alpha, beta, move))
+  private def minimaxQuiescenceEval(board: Board,
+                               history: Seq[FullMove],
+                               depth: Int,
+                               currentPlayer: Color,
+                               maximizingPlayer: Color,
+                               evaluationFunc: (Board, Color) => Double,
+                               alpha: Double,
+                               beta: Double,
+                               oldBoard: Board,
+                               fullMove: FullMove): Double =
+      depth match {
+        case 0 => // an horizon node of minimax search
+          if(quiescenceSearchActive) quiescenceSearchOneDepth(board, history, maximizingPlayer, evaluationFunc, oldBoard)
+          else evaluationFunc(board, maximizingPlayer)
         case _ =>
-          bestMoveEvalUpdated = math.min(bestMoveEvalUpdated,
-            recallMinimax(board, history, depth, currentPlayer, maximizingPlayer, evaluationFunc, alpha, beta, move))
+          val allPossibleMoves = new MoveGenerator(board, currentPlayer, history).allMoves()
+          if (allPossibleMoves.isEmpty) { // a terminal node of minimax search - this move leads one of the 2 player in checkmate
+            currentPlayerValue(currentPlayer, maximizingPlayer, checkmateValue, -checkmateValue)
+          } else { // an intermediate node of minimax
+            alphaBetaPruning(board, history, depth, currentPlayer, maximizingPlayer, evaluationFunc, alpha, beta,
+              allPossibleMoves, currentPlayerValue(currentPlayer, maximizingPlayer, checkmateValue, -checkmateValue))
+          }
       }
-      val alphaOrBeta = currentPlayerValue(currentPlayer, maximizingPlayer, math.min(bestMoveEvalUpdated, beta), math.max(bestMoveEvalUpdated, alpha))
-      currentPlayer match {
-        case `maximizingPlayer` =>
-          if (alphaOrBeta >= beta) bestMoveEvalUpdated
-          else alphaBetaPruning(board, history, depth, currentPlayer, maximizingPlayer, evaluationFunc, alphaOrBeta, beta,
-            allPossibleMoves.drop(1), bestMoveEvalUpdated)
-        case _                  =>
-          if (alpha >= alphaOrBeta) bestMoveEvalUpdated
-          else alphaBetaPruning(board, history, depth, currentPlayer, maximizingPlayer, evaluationFunc, alpha, alphaOrBeta,
-            allPossibleMoves.drop(1), bestMoveEvalUpdated)
-      }
+
+  final protected def quiescenceSearchOneDepth(board: Board, history: Seq[FullMove], maximizingPlayer: Color,
+                                         evaluationFunc: (Board, Color) => Double, oldBoard: Board): Double =
+    minimaxDepth % 2 match {
+      case 0 =>
+        // the minimax ends the evaluation on the minimizing player's moves: no needs to verify the opponent's quiescence
+        evaluationFunc(board, maximizingPlayer)
+      case _ =>
+        val currentEvaluation = evaluationFunc(board, maximizingPlayer)
+        if (currentEvaluation - evaluationFunc(oldBoard, maximizingPlayer) >= nodeNotQuietValue) {
+          val minimizingPlayerMovesEval = new MoveGenerator(board, maximizingPlayer.other, history)
+            .allMoves()
+            .map(fullMove => evaluationFunc(board(fullMove.validMove.boardChanges), maximizingPlayer))
+          if (minimizingPlayerMovesEval.isEmpty) checkmateValue
+          else minimizingPlayerMovesEval.min
+        } else currentEvaluation
     }
-  }
-
-
-
 
 }

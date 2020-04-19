@@ -35,6 +35,8 @@ trait LevelOne {
       info("The black player has a rook and a bishop, plus his king")
       info("The kings are isolated: the white is in right down corner; the black is in the right up corner")
       info("The black rook and the black bishop are exposed to the white queen attack")
+      info("The A.I. white player will move")
+      info("The rook has a major value respect the bishop")
       Given("the specific board previously described")
       val whiteQueen = Piece(White, Queen)
       val blackRook = Piece(Black, Rook)
@@ -51,17 +53,19 @@ trait LevelOne {
       val whiteAIMove = whiteAI.generateSmartMove(board, history)
       board = board(whiteAIMove.validMove.boardChanges)
 
+      println(whiteAIMove)
       Then("the board will contains the white queen instead of the black rook (which has been captured)")
       board.pieceAtPosition(blackRookPos) should be(Some(whiteQueen))
     }
   }
 
-  def willBeTrickedOnTheNextEnemyMove(whiteAI: AI, blackAI: AI) {
-    it should "be tricked very easily: it should lose a queen to capture a pawn" in {
+  def willBeTrickedOnTheVeryNextOpponentMove(whiteAI: AI, blackAI: AI) {
+    it should "cares only to capture a piece, so: it should lose a queen to capture a pawn" in {
       info("The white player has only two pieces: the king and a queen")
       info("The black player has only three pieces: the king and two pawn")
       info("The kings are isolated: the white is in right down corner; the black is in the right up corner")
       info("One of the black pawn protect the other, and this last one is exposed to the white queen attack")
+      info("The A.I. white player will move")
       Given("the specific board previously described")
       val blackPawnExposedPosition = Position(5, 6)
       val whiteQueen = Piece(White, Queen)

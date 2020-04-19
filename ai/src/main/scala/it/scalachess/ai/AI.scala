@@ -1,6 +1,6 @@
 package it.scalachess.ai
 
-import it.scalachess.ai.level.{Level, LevelOne, LevelThree, LevelTwo, LevelZero}
+import it.scalachess.ai.level.{Level, LevelFive, LevelFour, LevelOne, LevelSix, LevelThree, LevelTwo, LevelZero}
 import it.scalachess.core.Color
 import it.scalachess.core.board.Board
 import it.scalachess.core.logic.moves.FullMove
@@ -19,6 +19,9 @@ final case class AI(difficulty: Int, player: Color) {
       case 1 => new LevelOne()
       case 2 => new LevelTwo()
       case 3 => new LevelThree()
+      case 4 => new LevelFour()
+      case 5 => new LevelFive()
+      case 6 => new LevelSix()
     }
   }
 
@@ -27,5 +30,5 @@ final case class AI(difficulty: Int, player: Color) {
 }
 
 object AI {
-  val maxDifficulty: Int = 3
+  val maxDifficulty: Int = 6
 }
