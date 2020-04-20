@@ -28,7 +28,7 @@ trait WrongUsage {
       When("the white A.I. in checkmate tries to generate the move")
       var whiteAIComputationResult = "success"
       try {
-        whiteAI.apply(board, history)
+        whiteAI.generateSmartMove(board, history)
       } catch {
         case e: IllegalArgumentException => whiteAIComputationResult = e.getMessage
       }
@@ -39,7 +39,7 @@ trait WrongUsage {
       When("the black A.I. tries to generate the move, against his opponent in checkmate")
       var blackAIResult = "success"
       try {
-        blackAI.apply(board, history)
+        blackAI.generateSmartMove(board, history)
       } catch {
         case e: IllegalArgumentException => blackAIResult = e.getMessage
       }

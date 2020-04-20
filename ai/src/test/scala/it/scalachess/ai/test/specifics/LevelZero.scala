@@ -18,8 +18,8 @@ trait LevelZero {
       val blackPlayer = Black
 
       When("one of the two A.I. generate a move")
-      val whiteMove = whiteAI.apply(defaultBoard, history)
-      val blackMove = blackAI.apply(defaultBoard, history)
+      val whiteMove = whiteAI.generateSmartMove(defaultBoard, history)
+      val blackMove = blackAI.generateSmartMove(defaultBoard, history)
 
       Then("the move should be contained in all the relative possible moves " +
         "(note: the A.I. doesn't know the concept of the turns or the fact that whites move first" +
