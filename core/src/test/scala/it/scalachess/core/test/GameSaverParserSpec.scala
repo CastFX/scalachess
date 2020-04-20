@@ -1,6 +1,7 @@
 package it.scalachess.core.test
 
 import it.scalachess.core.board.{ Board, Position }
+import it.scalachess.core.logic.Win
 import it.scalachess.core.logic.moves.{
   FullMove,
   KingSide,
@@ -10,7 +11,7 @@ import it.scalachess.core.logic.moves.{
   ValidPromotion,
   ValidSimpleMove
 }
-import it.scalachess.core.{ Black, White, Win }
+import it.scalachess.core.{ Black, White }
 import it.scalachess.core.parser.{ GameSaverParser, Parser }
 import it.scalachess.core.parser.Parser.AlgebraicParser
 import it.scalachess.core.pieces.{ Pawn, Piece, Rook }

@@ -1,11 +1,12 @@
 package it.scalachess.core.test
 
-import it.scalachess.core.{ Black, ChessGame, Draw, Ongoing, White, Win, WinByForfeit }
 import it.scalachess.core.board.{ Board, Position }
 import it.scalachess.core.logic.moves.{ FullMove, ValidSimpleMove }
-import it.scalachess.core.pieces.{ King, Knight, Pawn, Piece, Rook }
-import org.scalatest.{ FlatSpec, Matchers, OptionValues }
+import it.scalachess.core.logic.{ Draw, Ongoing, Win, WinByForfeit }
+import it.scalachess.core.pieces._
 import it.scalachess.core.test.ChessGameFailureMatcher.generateFailure
+import it.scalachess.core.{ Black, ChessGame, White }
+import org.scalatest.{ FlatSpec, Matchers, OptionValues }
 
 class ChessGameSpec extends FlatSpec with Matchers with OptionValues {
   val standardGame: ChessGame = ChessGame.standard()

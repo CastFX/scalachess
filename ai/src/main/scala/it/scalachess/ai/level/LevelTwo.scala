@@ -58,12 +58,12 @@ final case class LevelTwo() extends Level {
               depth: Int,
               activePlayer: Color,
               aiPlayerWhichMaximize: Color): Double = {
-    def recallMinimax(possibleMoves: List[FullMove],
+    def recallMinimax(possibleMoves: Seq[FullMove],
                       board: Board,
                       history: Seq[FullMove],
                       depth: Int,
                       activePlayer: Color,
-                      aiPlayerWhichMaximize: Color): List[Double] =
+                      aiPlayerWhichMaximize: Color): Seq[Double] =
       possibleMoves
         .map(move => {
           minimax(board(move.validMove.boardChanges),

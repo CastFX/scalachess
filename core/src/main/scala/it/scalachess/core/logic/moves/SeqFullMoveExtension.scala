@@ -6,23 +6,23 @@ import it.scalachess.core.pieces.PieceType
 /**
  * An extension of a list of full move to implement the possibility of having specific filters
  */
-object ListFullMoveExtension {
-  def apply[T <: FullMove](implicit a: ListFullMove[T]): ListFullMove[T] = a
+object SeqFullMoveExtension {
+  def apply[T <: FullMove](implicit a: SeqFullMove[T]): SeqFullMove[T] = a
 
-  implicit class ListFullMove[T <: FullMove](list: List[T]) {
-    def filterCastlings(byType: CastlingType): List[T] =
-      list.filter { fm =>
+  implicit class SeqFullMove[T <: FullMove](seq: Seq[T]) {
+    def filterCastlings(byType: CastlingType): Seq[T] =
+      seq.filter { fm =>
         fm.validMove match {
           case castling: ValidCastling => castling.castlingType == byType
           case _                       => false
         }
       }
 
-    def filterPieces(pieceType: PieceType): List[T] =
-      list.filter(_.validMove.pieceType == pieceType)
+    def filterPieces(pieceType: PieceType): Seq[T] =
+      seq.filter(_.validMove.pieceType == pieceType)
 
-    def filterPositions(to: Position, fromCol: Option[Char], fromRow: Option[Int]): List[T] =
-      list.filter {
+    def filterPositions(to: Position, fromCol: Option[Char], fromRow: Option[Int]): Seq[T] =
+      seq.filter {
         case FullMove(validMove, _, _, _) =>
           val endEquals = validMove.to == to
           val colEqualsIfPresent = fromCol.fold(true) { colChar =>
@@ -34,25 +34,25 @@ object ListFullMoveExtension {
           endEquals && colEqualsIfPresent && rowEqualsIfPresent
       }
 
-    def filterChecks(isKingInCheck: Boolean, isKingInCheckmate: Boolean): List[T] =
-      list.filter {
+    def filterChecks(isKingInCheck: Boolean, isKingInCheckmate: Boolean): Seq[T] =
+      seq.filter {
         case FullMove(_, check, checkMate, _) =>
           (isKingInCheckmate == checkMate && checkMate) || (isKingInCheck == check && isKingInCheckmate == checkMate)
       }
 
-    def filterCaptures(capture: Boolean): List[T] =
-      list.filter {
+    def filterCaptures(capture: Boolean): Seq[T] =
+      seq.filter {
         case FullMove(validMove, _, _, _) =>
           (validMove.capture.isEmpty && !capture) || (validMove.capture.isDefined && capture)
       }
 
-    def filterPromotions(promotion: Option[PieceType]): List[T] = promotion match {
+    def filterPromotions(promotion: Option[PieceType]): Seq[T] = promotion match {
       case Some(toPiece) =>
-        list.filter {
+        seq.filter {
           case FullMove(ValidPromotion(_, _, _, promotesTo, _), _, _, _) => promotesTo.pieceType == toPiece
           case _                                                         => false
         }
-      case None => list
+      case None => seq
     }
   }
 }

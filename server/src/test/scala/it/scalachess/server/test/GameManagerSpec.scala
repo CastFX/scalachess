@@ -2,6 +2,7 @@ package it.scalachess.server.test
 
 import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import it.scalachess.core._
+import it.scalachess.core.logic.{ Result, Win, WinByForfeit }
 import it.scalachess.server.LobbyManager.TerminateGame
 import it.scalachess.server.{ GameManager, Room }
 import it.scalachess.util.NetworkErrors.FailedMove

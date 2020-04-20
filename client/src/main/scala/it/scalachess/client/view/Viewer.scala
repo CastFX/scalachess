@@ -3,8 +3,8 @@ package it.scalachess.client.view
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ ActorRef, Behavior }
 import it.scalachess.client.view.ViewCommands.{ ShowBoard, ShowMessage, ShowResult, ViewMessage }
-import it.scalachess.core.Result
 import it.scalachess.core.board.Board
+import it.scalachess.core.logic.Result
 import it.scalachess.util.NetworkMessages.ClientMessage
 
 /**

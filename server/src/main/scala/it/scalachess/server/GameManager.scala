@@ -2,7 +2,8 @@ package it.scalachess.server
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ ActorRef, Behavior }
-import it.scalachess.core.{ Black, ChessGame, Color, Ongoing, Result, White, WinByForfeit }
+import it.scalachess.core.logic.{ Ongoing, Result, WinByForfeit }
+import it.scalachess.core.{ Black, ChessGame, Color, White }
 import it.scalachess.util.NetworkErrors.FailedMove
 import it.scalachess.util.NetworkMessages._
 import scalaz.{ Failure, Success }

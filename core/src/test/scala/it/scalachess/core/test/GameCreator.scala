@@ -28,7 +28,5 @@ object GameCreator extends OptionValues {
     ++ Seq("Rd7", "Rxd7", "Bxc4", "bxc4", "Qxh8", "Rd3", "Qa8", "c3", "Qa4+", "Ke1", "f4", "f5", "Kc1", "Rd2", "Qa7"))
 
   def movesToGame(moves: Seq[String]): ChessGame =
-    moves.foldLeft(ChessGame.standard()) { (game, move) =>
-      game(move).toOption.value
-    }
+    moves.foldLeft(ChessGame.standard())((game, move) => game(move).toOption.value)
 }
