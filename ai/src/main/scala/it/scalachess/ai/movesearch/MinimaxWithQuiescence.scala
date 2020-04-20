@@ -33,7 +33,7 @@ trait MinimaxWithQuiescence extends Minimax {
   /**
    * Evaluates a board relying on the minimax algorithm with alpha-beta pruning and quiescence search.
    * @param fatherNode the parent node that must be passed to the quiescence search function
-   * @return the evaluation of the board
+   * @return the evaluation of the node
    */
   private def minimaxQuiescenceEval(node: MinimaxNode, depth: Int, currentPlayer: Color, maximizingPlayer: Color,
                                     evaluationFunc: (Board, Color) => Double, alphaBeta: AlphaBeta,
@@ -60,7 +60,7 @@ trait MinimaxWithQuiescence extends Minimax {
    * as last move. The quiescence search consists in evaluating all the possibles next nodes.
    * @param node the current node
    * @param fatherNode the parent node
-   * @return
+   * @return the evaluation of the node
    */
   final protected def quiescenceSearchOneDepth(node: MinimaxNode, maximizingPlayer: Color,
                                                evaluationFunc: (Board, Color) => Double, fatherNode: MinimaxNode): Double =

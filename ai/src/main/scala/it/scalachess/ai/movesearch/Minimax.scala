@@ -65,7 +65,7 @@ trait Minimax {
    * @param maximizingPlayer the color of the player that want to maximize the minimax evaluation (AI player)
    * @param evaluationFunc this function will be used to evaluate a node located on the minimax horizon
    * @param alphaBeta alpha-beta pruning values
-   * @return the evaluation of the board
+   * @return the evaluation of the node
    */
   private def minimaxEval(node: MinimaxNode, depth: Int, currentPlayer: Color, maximizingPlayer: Color,
                           evaluationFunc: (Board, Color) => Double, alphaBeta: AlphaBeta): Double = {
