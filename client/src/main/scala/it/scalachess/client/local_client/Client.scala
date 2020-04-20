@@ -3,6 +3,7 @@ package it.scalachess.client.local_client
 import it.scalachess.ai.AI
 import it.scalachess.client.view.{ CLI, View, ViewFactory }
 import it.scalachess.core._
+import it.scalachess.core.logic.{ Ongoing, Result, WinByForfeit }
 import it.scalachess.core.logic.moves.FullMove
 import scalaz.{ Failure, Success }
 

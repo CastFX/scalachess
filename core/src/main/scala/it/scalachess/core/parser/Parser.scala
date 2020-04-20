@@ -1,6 +1,6 @@
 package it.scalachess.core.parser
 import it.scalachess.core.board.Position
-import it.scalachess.core.logic.moves.{ AlgebraicCastling, AlgebraicMove, AlgebraicSimpleMove, KingSide, QueenSide }
+import it.scalachess.core.logic.moves.{ KingSide, QueenSide }
 import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, PieceType, Queen, Rook }
 import scalaz.{ Failure, Success, Validation }
 

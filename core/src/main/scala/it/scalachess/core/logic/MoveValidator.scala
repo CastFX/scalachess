@@ -3,8 +3,9 @@ package it.scalachess.core.logic
 import it.scalachess.core.Color
 import it.scalachess.core.board.Board
 import it.scalachess.core.logic.moves.generators.MoveGenerator
-import it.scalachess.core.logic.moves.{ AlgebraicCastling, AlgebraicMove, AlgebraicSimpleMove, FullMove }
-import it.scalachess.core.logic.moves.ListFullMoveExtension.ListFullMove
+import it.scalachess.core.logic.moves.FullMove
+import it.scalachess.core.logic.moves.SeqFullMoveExtension.SeqFullMove
+import it.scalachess.core.parser.{ AlgebraicCastling, AlgebraicMove, AlgebraicSimpleMove }
 import scalaz.{ Failure, Success, Validation }
 
 /**
@@ -21,10 +22,10 @@ object MoveValidator {
    * @return a Failure if the move is not valid, a FullMove otherwise
    */
   def apply(board: Board, player: Color, history: Seq[FullMove])(move: AlgebraicMove): Validation[String, FullMove] = {
-    val fullMoves: List[FullMove] = new MoveGenerator(board, player, history)
+    val fullMoves: Seq[FullMove] = new MoveGenerator(board, player, history)
       .allMoves()
 
-    val equivalentMoves: List[FullMove] = move match {
+    val equivalentMoves: Seq[FullMove] = move match {
       case AlgebraicCastling(castlingType, check, checkmate) =>
         fullMoves
           .filterCastlings(castlingType)

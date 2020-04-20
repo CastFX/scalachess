@@ -1,6 +1,7 @@
 package it.scalachess.core.parser
 
-import it.scalachess.core.{ Black, Color, Draw, Result, White, Win, WinByForfeit }
+import it.scalachess.core.logic.{ Draw, Result, Win, WinByForfeit }
+import it.scalachess.core.{ Black, Color, White }
 import scalaz.Validation
 
 /**

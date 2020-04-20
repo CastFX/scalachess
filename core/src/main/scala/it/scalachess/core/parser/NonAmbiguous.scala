@@ -1,12 +1,8 @@
 package it.scalachess.core.parser
 
-import it.scalachess.core.Result
 import it.scalachess.core.board.Board
 import it.scalachess.core.logic.moves.generators.PieceGenerators
 import it.scalachess.core.logic.moves.{
-  AlgebraicCastling,
-  AlgebraicMove,
-  AlgebraicSimpleMove,
   FullMove,
   ValidCastling,
   ValidEnPassant,
@@ -18,6 +14,7 @@ import it.scalachess.core.parser.Parser.Parser
 import it.scalachess.core.pieces.Pawn
 import scalaz.Validation
 import it.scalachess.core.board.Position.colToChar
+import it.scalachess.core.logic.Result
 
 /**
  * Mixin for a parser and with a PGNFormatter.

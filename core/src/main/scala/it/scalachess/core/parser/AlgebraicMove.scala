@@ -1,6 +1,7 @@
-package it.scalachess.core.logic.moves
+package it.scalachess.core.parser
 
 import it.scalachess.core.board.Position
+import it.scalachess.core.logic.moves.CastlingType
 import it.scalachess.core.pieces.PieceType
 
 /**

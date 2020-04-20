@@ -1,8 +1,8 @@
 package it.scalachess.core.test
 
+import it.scalachess.core.parser.{ AlgebraicCastling, AlgebraicSimpleMove, GameSaverParser }
 import it.scalachess.core.board.Position
-import it.scalachess.core.logic.moves.{ AlgebraicCastling, AlgebraicSimpleMove, KingSide, QueenSide }
-import it.scalachess.core.parser.GameSaverParser
+import it.scalachess.core.logic.moves.{ KingSide, QueenSide }
 import it.scalachess.core.pieces.{ Pawn, Rook }
 import org.scalatest.{ FlatSpec, Inspectors, Matchers, OptionValues }
 

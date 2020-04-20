@@ -1,6 +1,7 @@
 package it.scalachess.core.test
 
-import it.scalachess.core.{ ChessGame, Draw, White, Win }
+import it.scalachess.core.logic.{ Draw, Win }
+import it.scalachess.core.{ ChessGame, White }
 import org.scalatest.{ FlatSpec, Inspectors, Matchers, OptionValues }
 import it.scalachess.core.parser.NonAmbiguousGameSaver
 
