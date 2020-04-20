@@ -2,11 +2,12 @@ package it.scalachess.view.test
 
 import akka.actor.testkit.typed.scaladsl.{ ActorTestKit, LoggingTestKit }
 import akka.actor.typed.ActorRef
-import it.scalachess.client.remote_client.{ Client, ClientCommands }
+import it.scalachess.client.remote_client.Client
 import it.scalachess.client.view.ViewCommands.{ ShowBoard, ShowMessage, ShowResult }
 import it.scalachess.client.view.{ CLI, ViewCommands, Viewer }
-import it.scalachess.core.{ Draw, Result, White, Win, WinByForfeit }
+import it.scalachess.core.White
 import it.scalachess.core.board.Board
+import it.scalachess.core.logic.{ Draw, Result, Win, WinByForfeit }
 import it.scalachess.util.NetworkMessages
 import org.scalatest._
 import org.slf4j.event.Level

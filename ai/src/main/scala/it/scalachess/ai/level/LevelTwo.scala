@@ -17,6 +17,4 @@ class LevelTwo() extends LevelOne with MinimaxWithQuiescence {
     moveWithMaxEval(minimax(board, history, aiPlayer, evaluateBoardByPieces))
   }
 
-
-
 }

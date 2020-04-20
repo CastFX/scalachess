@@ -1,7 +1,8 @@
-package it.scalachess.core
+package it.scalachess.core.logic
 
 import it.scalachess.core.logic.moves.FullMove
 import it.scalachess.core.logic.moves.generators.MoveGenerator
+import it.scalachess.core.{ ChessGame, Color }
 
 /**
  * The status of a chess game

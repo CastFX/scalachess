@@ -60,7 +60,6 @@ class BoardSpec extends FlatSpec with Matchers with Inspectors with OptionValues
       .map { _.pieceType }
 
     all(pieceTypesInRow2_7) should be(Pawn)
-
   }
 
   it should "have row 1 and 8 as Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook" in {
@@ -75,7 +74,6 @@ class BoardSpec extends FlatSpec with Matchers with Inspectors with OptionValues
     val pieceTypesInRow8 = rows_1_8._2.map(_._2.pieceType)
     pieceTypesInRow1 should equal(correctRow)
     pieceTypesInRow8 should equal(correctRow)
-
   }
 
   it should "have all white pieces in row 1-2 and black pieces in row 7-8" in {

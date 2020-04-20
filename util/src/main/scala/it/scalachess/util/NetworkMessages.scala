@@ -2,7 +2,8 @@ package it.scalachess.util
 
 import akka.actor.typed.ActorRef
 import akka.actor.typed.receptionist.ServiceKey
-import it.scalachess.core.{ ChessGame, Color, Result }
+import it.scalachess.core.logic.Result
+import it.scalachess.core.{ ChessGame, Color }
 
 /**
  * A collection of messages passed between Client and Server
