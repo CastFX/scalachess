@@ -18,71 +18,63 @@ trait MinimaxWithQuiescence extends Minimax {
    * Calls the minimax algorithm with alpha-beta pruning and quiescence search, decreasing the depth.
    * @return the result of the evaluation
    */
-  final override protected def minimaxGoesDeep(board: Board, history: Seq[FullMove], depth: Int, currentPlayer: Color, maximizingPlayer: Color,
-                                               evaluationFunc: (Board, Color) => Double, alpha: Double, beta: Double, fullMove: FullMove): Double = {
+  final override protected def minimaxGoesDeep(fatherNode: MinimaxNode, fullMove: FullMove, depth: Int, currentPlayer: Color, maximizingPlayer: Color,
+                                               evaluationFunc: (Board, Color) => Double, alphaBeta: AlphaBeta): Double = {
     require(depth > 0, "Error: the minimax can't be called with a depth <= 0!")
-    minimaxQuiescenceEval(board(fullMove.validMove.boardChanges),
-      history :+ fullMove,
+    minimaxQuiescenceEval(MinimaxNode(fatherNode.board(fullMove.validMove.boardChanges), fatherNode.history :+ fullMove),
       depth - 1,
       currentPlayer.other,
       maximizingPlayer,
       evaluationFunc,
-      alpha,
-      beta,
-      board)
+      alphaBeta,
+      fatherNode)
   }
 
   /**
    * Evaluates a board relying on the minimax algorithm with alpha-beta pruning and quiescence search.
-   * @param oldBoard the parent node that must be passed to the quiescence search function
+   * @param fatherNode the parent node that must be passed to the quiescence search function
    * @return the evaluation of the board
    */
-  private def minimaxQuiescenceEval(board: Board,
-                                    history: Seq[FullMove],
-                                    depth: Int,
-                                    currentPlayer: Color,
-                                    maximizingPlayer: Color,
-                                    evaluationFunc: (Board, Color) => Double,
-                                    alpha: Double,
-                                    beta: Double,
-                                    oldBoard: Board): Double =
+  private def minimaxQuiescenceEval(node: MinimaxNode, depth: Int, currentPlayer: Color, maximizingPlayer: Color,
+                                    evaluationFunc: (Board, Color) => Double, alphaBeta: AlphaBeta,
+                                    fatherNode: MinimaxNode): Double =
     depth match {
       case 0 =>
         // an horizon node of the minimax search
-        if(quiescenceSearchActive) quiescenceSearchOneDepth(board, history, maximizingPlayer, evaluationFunc, oldBoard)
-        else evaluationFunc(board, maximizingPlayer)
+        if(quiescenceSearchActive) quiescenceSearchOneDepth(node, maximizingPlayer, evaluationFunc, fatherNode)
+        else evaluationFunc(node.board, maximizingPlayer)
       case _ =>
-        val allPossibleMoves = new MoveGenerator(board, currentPlayer, history).allMoves()
+        val allPossibleMoves = new MoveGenerator(node.board, currentPlayer, node.history).allMoves()
         if (allPossibleMoves.isEmpty) {
           // a terminal node of minimax search: one of the two player is in checkmate
           currentPlayerValue(currentPlayer, maximizingPlayer, checkmateValue, -checkmateValue)
         } else {
           // an intermediate node of the minimax search
-          alphaBetaPruningSearch(board, history, depth, currentPlayer, maximizingPlayer, evaluationFunc, alpha, beta,
-            allPossibleMoves, currentPlayerValue(currentPlayer, maximizingPlayer, checkmateValue, -checkmateValue))
+          alphaBetaPruningSearch(node, depth, currentPlayer, maximizingPlayer, evaluationFunc, allPossibleMoves,
+            alphaBeta, currentPlayerValue(currentPlayer, maximizingPlayer, checkmateValue, -checkmateValue))
         }
     }
 
   /**
    * Executes the quiescence search when founds a 'non quiet' node. A 'non quiet' node is a node where a capture happen
    * as last move. The quiescence search consists in evaluating all the possibles next nodes.
-   * @param board the current node
-   * @param oldBoard the father node
+   * @param node the current node
+   * @param fatherNode the parent node
    * @return
    */
-  final protected def quiescenceSearchOneDepth(board: Board, history: Seq[FullMove], maximizingPlayer: Color,
-                                               evaluationFunc: (Board, Color) => Double, oldBoard: Board): Double =
+  final protected def quiescenceSearchOneDepth(node: MinimaxNode, maximizingPlayer: Color,
+                                               evaluationFunc: (Board, Color) => Double, fatherNode: MinimaxNode): Double =
     minimaxDepth % 2 match {
       case 0 =>
         // the minimax ends the evaluation on the minimizing player's moves: no needs to verify the opponent's quiescence
-        evaluationFunc(board, maximizingPlayer)
+        evaluationFunc(node.board, maximizingPlayer)
       case _ =>
         // checks if the node is quiet and acts accordingly
-        val currentEvaluation = evaluationFunc(board, maximizingPlayer)
-        if (currentEvaluation - evaluationFunc(oldBoard, maximizingPlayer) >= nodeNotQuietValue) {
-          val minimizingPlayerMovesEval = new MoveGenerator(board, maximizingPlayer.other, history)
+        val currentEvaluation = evaluationFunc(node.board, maximizingPlayer)
+        if (currentEvaluation - evaluationFunc(fatherNode.board, maximizingPlayer) >= nodeNotQuietValue) {
+          val minimizingPlayerMovesEval = new MoveGenerator(node.board, maximizingPlayer.other, node.history)
             .allMoves()
-            .map(fullMove => evaluationFunc(board(fullMove.validMove.boardChanges), maximizingPlayer))
+            .map(fullMove => evaluationFunc(node.board(fullMove.validMove.boardChanges), maximizingPlayer))
           if (minimizingPlayerMovesEval.isEmpty) checkmateValue
           else minimizingPlayerMovesEval.min
         } else currentEvaluation

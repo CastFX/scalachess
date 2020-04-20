@@ -1,5 +1,6 @@
 package it.scalachess.ai.level
 
+import it.scalachess.ai.movesearch.MinimaxNode
 import it.scalachess.core.{Black, Color, White}
 import it.scalachess.core.board.{Board, Position}
 import it.scalachess.core.logic.moves.FullMove
@@ -12,7 +13,7 @@ class LevelFour() extends LevelThree {
 
   override def apply(board: Board, history: Seq[FullMove], aiPlayer: Color): FullMove = {
     verifyGameIsPlayable(board, history, aiPlayer)
-    moveWithMaxEval(minimax(board, history, aiPlayer, evaluatePiecesAndTheirPosInBoard))
+    moveWithMaxEval(minimax(MinimaxNode(board, history), aiPlayer, evaluatePiecesAndTheirPosInBoard))
   }
 
   /**

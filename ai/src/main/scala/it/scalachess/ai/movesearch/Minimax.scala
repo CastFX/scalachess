@@ -17,88 +17,71 @@ trait Minimax {
 
   /**
    * Generates the moves with the relative evaluation, calculated using the minimax algorithm.
-   * @param board the board to evaluate (is the root node where the minimax search starts)
-   * @param history the moves history played on the board (it completes the root node informations of the minimax search)
+   * @param rootNode is the root node where the minimax search starts
    * @param aiPlayer the color of the AI player
-   * @param evaluationFunc the minimax will use this function to evaluate a node
+   * @param evaluationFunc the minimax will use this function to evaluate a node located on the minimax horizon
    * @return the map containing the next possible moves and their relative valuation
    */
-  final protected def minimax(board: Board,
-                          history: Seq[FullMove],
-                          aiPlayer: Color,
-                          evaluationFunc: (Board, Color) => Double): Map[FullMove, Double] = {
+  final protected def minimax(rootNode: MinimaxNode, aiPlayer: Color, evaluationFunc: (Board, Color) => Double): Map[FullMove, Double] = {
     /**
      * The first minimax call on the root node.
      * @param depth the depth used by the minimax algorithm
-     * @return
      */
-    def minimaxRoot(board: Board,
-                    history: Seq[FullMove],
-                    aiPlayer: Color,
-                    evaluationFunc: (Board, Color) => Double,
-                    depth: Int): Map[FullMove, Double] = {
+    def minimaxRoot(rootNode: MinimaxNode, aiPlayer: Color, evaluationFunc: (Board, Color) => Double, depth: Int): Map[FullMove, Double] = {
       require(depth > 0, "The minimax algorithm should computes at least the consequences of his first future move")
-      new MoveGenerator(board, aiPlayer, history)
+      new MoveGenerator(rootNode.board, aiPlayer, rootNode.history)
         .allMoves()
         .map(fullMove => {
           fullMove ->
-            minimaxGoesDeep(board, history, depth, aiPlayer, aiPlayer, evaluationFunc, -checkmateValue, checkmateValue, fullMove)
+            minimaxGoesDeep(rootNode, fullMove, depth, aiPlayer, aiPlayer, evaluationFunc, AlphaBeta(-checkmateValue, checkmateValue))
         })
         .toMap
     }
-    minimaxRoot(board, history, aiPlayer, evaluationFunc, minimaxDepth)
+    minimaxRoot(rootNode, aiPlayer, evaluationFunc, minimaxDepth)
   }
 
   /**
    * Calls the minimax algorithm with alpha-beta pruning, decreasing the depth.
+   * @param fatherNode the node father of the next minimax call
+   * @param fullMove the move that will generate the son node
    * @return the result of the evaluation
    */
-  protected def minimaxGoesDeep(board: Board, history: Seq[FullMove], depth: Int, currentPlayer: Color, maximizingPlayer: Color,
-                                evaluationFunc: (Board, Color) => Double, alpha: Double, beta: Double, fullMove: FullMove): Double = {
+  protected def minimaxGoesDeep(fatherNode: MinimaxNode, fullMove: FullMove, depth: Int, currentPlayer: Color, maximizingPlayer: Color,
+                                evaluationFunc: (Board, Color) => Double, alphaBeta: AlphaBeta): Double = {
     require(depth > 0, "Error: the minimax can't be called with a depth <= 0!")
-    minimaxEval(board(fullMove.validMove.boardChanges),
-      history :+ fullMove,
+    minimaxEval(MinimaxNode(fatherNode.board(fullMove.validMove.boardChanges), fatherNode.history :+ fullMove),
       depth - 1,
       currentPlayer.other,
       maximizingPlayer,
       evaluationFunc,
-      alpha,
-      beta)
+      alphaBeta)
   }
 
   /**
    * Evaluates a board relying on the minimax algorithm with alpha-beta pruning.
-   * @param board the board to evaluate (is a node of the minimax search)
-   * @param history the moves history played on the board (it completes the node informations of the minimax search)
-   * @param depth the depth of the minimax algorithm
+   * @param node the node to evaluate
+   * @param depth the current depth of the minimax algorithm
    * @param currentPlayer the active player color during the current minimax iteration
    * @param maximizingPlayer the color of the player that want to maximize the minimax evaluation (AI player)
    * @param evaluationFunc this function will be used to evaluate a node located on the minimax horizon
-   * @param alpha alpha-beta pruning value
-   * @param beta alpha-beta pruning value
+   * @param alphaBeta alpha-beta pruning values
    * @return the evaluation of the board
    */
-  private def minimaxEval(board: Board,
-                        history: Seq[FullMove],
-                        depth: Int,
-                        currentPlayer: Color,
-                        maximizingPlayer: Color,
-                        evaluationFunc: (Board, Color) => Double,
-                        alpha: Double,
-                        beta: Double): Double = {
+  private def minimaxEval(node: MinimaxNode, depth: Int, currentPlayer: Color, maximizingPlayer: Color,
+                          evaluationFunc: (Board, Color) => Double, alphaBeta: AlphaBeta): Double = {
     depth match {
       case 0 =>
         // an horizon node of the minimax search
-        evaluationFunc(board, maximizingPlayer)
+        evaluationFunc(node.board, maximizingPlayer)
       case _ =>
-        val allPossibleMoves = new MoveGenerator(board, currentPlayer, history).allMoves()
+        val allPossibleMoves = new MoveGenerator(node.board, currentPlayer, node.history).allMoves()
         if (allPossibleMoves.isEmpty) {
           // a terminal node of minimax search: one of the two player is in checkmate
           currentPlayerValue(currentPlayer, maximizingPlayer, checkmateValue, -checkmateValue)
         } else {
           // an intermediate node of the minimax search
-          alphaBetaPruningSearch(board, history, depth, currentPlayer, maximizingPlayer, evaluationFunc, alpha, beta,
-            allPossibleMoves, currentPlayerValue(currentPlayer, maximizingPlayer, checkmateValue, -checkmateValue))
+          alphaBetaPruningSearch(node, depth, currentPlayer, maximizingPlayer, evaluationFunc, allPossibleMoves,
+            alphaBeta, currentPlayerValue(currentPlayer, maximizingPlayer, checkmateValue, -checkmateValue))
         }
     }
   }
@@ -111,10 +94,8 @@ trait Minimax {
    * @param maximizingPlayerValue the value corresponding to the maximizing player
    * @return the value corresponding to the current player
    */
-  final protected def currentPlayerValue(currentPlayer: Color,
-                                   maximizingPlayer: Color,
-                                   minimizingPlayerValue: Double,
-                                   maximizingPlayerValue: Double): Double =
+  final protected def currentPlayerValue(currentPlayer: Color, maximizingPlayer: Color,
+                                         minimizingPlayerValue: Double, maximizingPlayerValue: Double): Double =
     currentPlayer match {
       case `maximizingPlayer` => maximizingPlayerValue
       case _                  => minimizingPlayerValue
@@ -122,19 +103,19 @@ trait Minimax {
 
   /**
    * A unique procedure used to perform alpha-beta pruning, both for the minimizing player and for the maximizing player.
+   * @param fatherNode the father node on which the alpha-beta pruning search is working
    * @param depth the current depth of minimax algorithm
    * @param currentPlayer the active player color during the current minimax iteration
    * @param maximizingPlayer the color of the player that want to maximize the minimax evaluation (AI player)
-   * @param alpha alpha-beta pruning value: it is the current best move value calculated by the maximizing player
-   * @param beta alpha-beta pruning value: it is the current worst move value calculated by the minimizing player
    * @param allPossibleMoves all playable moves that needs to be considered during this alpha-beta pruning iteration. Each one will lead to a new node
-   * @param bestMoveEval the current best move value
-   * @return
+   * @param alphaBeta the alpha-beta values used by the pruning search
+   * @param bestMoveEval the current best move evaluation found so far by the alpha-beta pruning search
+   * @return the evaluation of the father node taken as input
    */
   @tailrec
-  final protected def alphaBetaPruningSearch(board: Board, history: Seq[FullMove], depth: Int, currentPlayer: Color, maximizingPlayer: Color,
-                                             evaluationFunc: (Board, Color) => Double, alpha: Double, beta: Double,
-                                             allPossibleMoves: Seq[FullMove], bestMoveEval: Double): Double = {
+  final protected def alphaBetaPruningSearch(fatherNode: MinimaxNode, depth: Int, currentPlayer: Color, maximizingPlayer: Color,
+                                             evaluationFunc: (Board, Color) => Double, allPossibleMoves: Seq[FullMove],
+                                             alphaBeta: AlphaBeta, bestMoveEval: Double): Double = {
     if(allPossibleMoves.isEmpty) {
       // all nodes have been explored
       bestMoveEval
@@ -145,25 +126,39 @@ trait Minimax {
       currentPlayer match {
         case `maximizingPlayer` =>
           bestMoveEvalUpdated = math.max(bestMoveEvalUpdated,
-            minimaxGoesDeep(board, history, depth, currentPlayer, maximizingPlayer, evaluationFunc, alpha, beta, move))
+            minimaxGoesDeep(fatherNode, move, depth, currentPlayer, maximizingPlayer, evaluationFunc, alphaBeta))
         case _ =>
           bestMoveEvalUpdated = math.min(bestMoveEvalUpdated,
-            minimaxGoesDeep(board, history, depth, currentPlayer, maximizingPlayer, evaluationFunc, alpha, beta, move))
+            minimaxGoesDeep(fatherNode, move, depth, currentPlayer, maximizingPlayer, evaluationFunc, alphaBeta))
       }
       // 2° alpha-beta pruning step: updates alpha or beta valueS
-      val alphaOrBeta = currentPlayerValue(currentPlayer, maximizingPlayer, math.min(bestMoveEvalUpdated, beta), math.max(bestMoveEvalUpdated, alpha))
+      val alphaOrBeta = currentPlayerValue(currentPlayer, maximizingPlayer,
+        math.min(bestMoveEvalUpdated, alphaBeta.beta), math.max(bestMoveEvalUpdated, alphaBeta.alpha))
       // 3° alpha-beta pruning phase: prune or continue the evaluation
       currentPlayer match {
         case `maximizingPlayer` =>
-          if (alphaOrBeta >= beta) bestMoveEvalUpdated
-          else alphaBetaPruningSearch(board, history, depth, currentPlayer, maximizingPlayer, evaluationFunc, alphaOrBeta, beta,
-            allPossibleMoves.drop(1), bestMoveEvalUpdated)
+          if (alphaOrBeta >= alphaBeta.beta) bestMoveEvalUpdated
+          else alphaBetaPruningSearch(fatherNode, depth, currentPlayer, maximizingPlayer, evaluationFunc,
+            allPossibleMoves.drop(1), AlphaBeta(alphaOrBeta, alphaBeta.beta), bestMoveEvalUpdated)
         case _                  =>
-          if (alpha >= alphaOrBeta) bestMoveEvalUpdated
-          else alphaBetaPruningSearch(board, history, depth, currentPlayer, maximizingPlayer, evaluationFunc, alpha, alphaOrBeta,
-            allPossibleMoves.drop(1), bestMoveEvalUpdated)
+          if (alphaBeta.alpha >= alphaOrBeta) bestMoveEvalUpdated
+          else alphaBetaPruningSearch(fatherNode, depth, currentPlayer, maximizingPlayer, evaluationFunc,
+            allPossibleMoves.drop(1), AlphaBeta(alphaBeta.alpha, alphaOrBeta), bestMoveEvalUpdated)
       }
     }
   }
-
 }
+
+/**
+ * It contains the necessary elements of a minimax search node.
+ * @param board the board represents the current game situation
+ * @param history the moves history played on the board
+ */
+case class MinimaxNode(board: Board, history: Seq[FullMove])
+
+/**
+ * The alpha and beta values used in the minimax alpha-beta pruning search.
+ * @param alpha it is the current best move value calculated by the maximizing player
+ * @param beta it is the current worst move value calculated by the minimizing player
+ */
+case class AlphaBeta(alpha: Double, beta: Double)
