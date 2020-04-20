@@ -1,16 +1,17 @@
 package it.scalachess.ai.level
 
-import it.scalachess.ai.movesearch.{MinimaxNode, MinimaxWithQuiescence}
+import it.scalachess.ai.movesearch.MinimaxNode
 import it.scalachess.core.Color
 import it.scalachess.core.board.Board
 import it.scalachess.core.logic.moves.FullMove
 
 /**
- * The level two A.I.'s strategy is trying to play the move which capture the most important piece,
- * but before proceeding with a capture, it will consider all the possible consequences derived
- * by the opponent's next moves.
+ * The level two A.I.'s before play a move, it will consider all the possible consequences
+ * derived by the opponent's next moves, because it uses a minimax depth = 2.
  */
-class LevelTwo() extends LevelOne with MinimaxWithQuiescence {
+class LevelThree() extends LevelTwo {
+
+  override protected val minimaxDepth: Int = 2
 
   override def apply(board: Board, history: Seq[FullMove], aiPlayer: Color): FullMove = {
     verifyGameIsPlayable(board, history, aiPlayer)
