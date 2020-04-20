@@ -1,5 +1,6 @@
 package it.scalachess.ai.level
 
+import it.scalachess.ai.movesearch.Minimax
 import it.scalachess.core.Color
 import it.scalachess.core.board.Board
 import it.scalachess.core.logic.moves.FullMove
@@ -10,9 +11,9 @@ import it.scalachess.core.pieces.{Bishop, King, Knight, Pawn, PieceType, Queen, 
  */
 class LevelOne() extends LevelZero with Minimax {
 
-  override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): FullMove = {
-    verifyGameIsPlayable(board, aiPlayer, history)
-    moveWithMaxEval(minimax(board, history, aiPlayer, 1, evaluatePiecesInBoard))
+  override def apply(board: Board, history: Seq[FullMove], aiPlayer: Color): FullMove = {
+    verifyGameIsPlayable(board, history, aiPlayer)
+    moveWithMaxEval(minimax(board, history, aiPlayer, evaluateBoardByPieces))
   }
 
   /**
@@ -27,12 +28,12 @@ class LevelOne() extends LevelZero with Minimax {
   }
 
   /**
-   * Evaluates pieces in a board relying on a player's color.
-   * @param board the board on which execute the evaluation
+   * Evaluates board relying on pieces' type importance and the player's color.
+   * @param board the board to evaluate
    * @param aiPlayer the color of the AI player
    * @return the evaluation of the board
    */
-  final protected def evaluatePiecesInBoard(board: Board, aiPlayer: Color): Double =
+  final protected def evaluateBoardByPieces(board: Board, aiPlayer: Color): Double =
     board.pieces
       .map(piece =>
         piece._2.color match {
@@ -44,7 +45,7 @@ class LevelOne() extends LevelZero with Minimax {
 
   /**
    * Evaluates a piece relying on his type.
-   * @param pieceType the type of the piece to evaluate
+   * @param pieceType the piece type to evaluate
    * @return the evalutation of that piece type
    */
   final protected def evaluatePiece(pieceType: PieceType): Double =

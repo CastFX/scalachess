@@ -8,7 +8,7 @@ import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
 final case class LevelFourSpec() extends FlatSpec with Matchers with GivenWhenThen
   with WrongUsage with LevelZero with LevelOne with LevelTwo with LevelThree with LevelFour {
 
-  private val level = 4 // change with level 5 or 6 to see the difference in terms of computation times
+  private val level = 4 // change with level 5 or 6 to observe the increasing of computation times
   private val whiteAI = AI(level, White)
   private val blackAI = AI(level, Black)
 

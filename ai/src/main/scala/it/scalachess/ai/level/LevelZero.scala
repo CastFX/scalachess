@@ -12,8 +12,8 @@ import scala.util.Random
  */
 class LevelZero() extends Level {
 
-  override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): FullMove = {
-    verifyGameIsPlayable(board, aiPlayer, history)
+  override def apply(board: Board, history: Seq[FullMove], aiPlayer: Color): FullMove = {
+    verifyGameIsPlayable(board, history, aiPlayer)
     randomMove(new MoveGenerator(board, aiPlayer, history).allMoves())
   }
 

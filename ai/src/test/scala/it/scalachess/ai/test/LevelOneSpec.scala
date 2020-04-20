@@ -6,7 +6,7 @@ import it.scalachess.core.{Black, White}
 import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
 
 final case class LevelOneSpec() extends FlatSpec with Matchers with GivenWhenThen
-  with WrongUsage with LevelZero with LevelOne with LevelTwo with LevelThree with LevelFour {
+  with WrongUsage with LevelZero with LevelOne with LevelTwo {
 
   private val level = 1
   private val whiteAI = AI(level, White)

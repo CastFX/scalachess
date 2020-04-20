@@ -30,7 +30,7 @@ trait LevelTwo {
       )
 
       When("the white A.I. generates the move, and it's applied to the board")
-      val whiteAIMove = whiteAI.generateSmartMove(board, history)
+      val whiteAIMove = whiteAI.apply(board, history)
       board = board(whiteAIMove.validMove.boardChanges)
 
       Then("the board will still contains the black pawn which was exposed before")

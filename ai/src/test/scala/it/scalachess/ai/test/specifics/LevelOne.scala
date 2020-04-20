@@ -21,7 +21,7 @@ trait LevelOne {
       board = board(blackPawnMove.boardChanges)
 
       When("the white A.I. generates the move, and it's applied to the board")
-      val whiteAIMove = whiteAI.generateSmartMove(board, history)
+      val whiteAIMove = whiteAI.apply(board, history)
       board = board(whiteAIMove.validMove.boardChanges)
 
       Then("the board should contains the white piece instead of the black one (which has been captured)")
@@ -50,10 +50,9 @@ trait LevelOne {
       )
 
       When("the white A.I. generates the move, and it's applied to the board ")
-      val whiteAIMove = whiteAI.generateSmartMove(board, history)
+      val whiteAIMove = whiteAI.apply(board, history)
       board = board(whiteAIMove.validMove.boardChanges)
 
-      println(whiteAIMove)
       Then("the board will contains the white queen instead of the black rook (which has been captured)")
       board.pieceAtPosition(blackRookPos) should be(Some(whiteQueen))
     }
@@ -79,7 +78,7 @@ trait LevelOne {
       )
 
       When("the white A.I. generates the move, and it's applied to the board")
-      val whiteAIMove = whiteAI.generateSmartMove(board, history)
+      val whiteAIMove = whiteAI.apply(board, history)
       board = board(whiteAIMove.validMove.boardChanges)
 
       Then("the board will contains the white queen instead of the black pawn exposed (which has been captured)")
@@ -87,7 +86,7 @@ trait LevelOne {
 
       And("after that, on black turn, the white queen will be captured by the other black pawn")
       board.pieces.values.exists(_ == whiteQueen) should be (true)
-      val blackMove = blackAI.generateSmartMove(board, history)
+      val blackMove = blackAI.apply(board, history)
       board = board(blackMove.validMove.boardChanges)
       board.pieceAtPosition(blackPawnExposedPosition) should be(Some(blackPawn))
       board.pieces.values.exists(_ == whiteQueen) should be (false)

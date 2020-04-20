@@ -12,7 +12,7 @@ trait LevelFour {
     it should "generate as first move one where a knight is moved, because the position value is more convenient" in {
       val defaultBoard = Board.defaultBoard()
       val history = Seq() // the history doesn't matter in this test
-      val whiteMove = whiteAI.generateSmartMove(defaultBoard, history)
+      val whiteMove = whiteAI.apply(defaultBoard, history)
       whiteMove.validMove.pieceType should be(Knight)
     }
   }

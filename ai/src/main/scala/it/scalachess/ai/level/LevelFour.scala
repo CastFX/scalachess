@@ -6,18 +6,18 @@ import it.scalachess.core.logic.moves.FullMove
 import it.scalachess.core.pieces.{Bishop, King, Knight, Pawn, Piece, Queen, Rook}
 
 /**
- * The level Four AI plays TODO
+ * The level four A.I.'s uses a minimax depth = 2, moreover this A.I. has a pieces' position evaluation.
  */
 class LevelFour() extends LevelThree {
 
-  override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): FullMove = {
-    verifyGameIsPlayable(board, aiPlayer, history)
-    moveWithMaxEval(minimax(board, history, aiPlayer, minimaxDepth, evaluatePiecesAndTheirPosInBoard))
+  override def apply(board: Board, history: Seq[FullMove], aiPlayer: Color): FullMove = {
+    verifyGameIsPlayable(board, history, aiPlayer)
+    moveWithMaxEval(minimax(board, history, aiPlayer, evaluatePiecesAndTheirPosInBoard))
   }
 
   /**
-   * Evaluates pieces' in a board relying on the piece type and his position on board.
-   * @param board the board on which computes the evaluation
+   * Evaluates board relying on pieces' type importance, their position, and the player's color,
+   * @param board the board to evaluate
    * @param aiPlayer the color of the AI player
    * @return the evaluation of the board
    */
@@ -32,10 +32,10 @@ class LevelFour() extends LevelThree {
       .sum
 
   /**
-   * Evaluates a piece position relying on the piece type and his position on board.
+   * Evaluates a piece position relying on the piece type and color.
    * @param pos the position to evaluate
    * @param piece the piece to evaluate
-   * @return the Evaluation of the piece position
+   * @return the evaluation of the position
    */
   final protected def evaluatePiecePos(pos: Position, piece: Piece): Double = {
     def posValueByColor(color: Color, whiteValue: Double, blackValue: Double): Double = {

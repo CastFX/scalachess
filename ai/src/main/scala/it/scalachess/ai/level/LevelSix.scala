@@ -5,11 +5,11 @@ import it.scalachess.core.board.Board
 import it.scalachess.core.logic.moves.FullMove
 
 /**
- * The level five A.I.'s uses a minimax depth = 3, without quiescence search.
+ * The level six A.I.'s uses a minimax depth = 3, with quiescence search.
  */
-class LevelFive() extends LevelFour {
+class LevelSix() extends LevelFour {
 
-  override protected val quiescenceSearchActive = false
+  override protected val quiescenceSearchActive = true
   override protected val minimaxDepth: Int = 3
 
   override def apply(board: Board, history: Seq[FullMove], aiPlayer: Color): FullMove = {

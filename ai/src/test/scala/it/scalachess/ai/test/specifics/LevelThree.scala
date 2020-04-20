@@ -25,7 +25,7 @@ trait LevelThree {
       board = board(secondWhitePawnMove.boardChanges)
 
       When("the black A.I. generates the move")
-      val blackAIMove = blackAI.generateSmartMove(board, history)
+      val blackAIMove = blackAI.apply(board, history)
 
       Then("the move should be last Fool's mate move, and cause checkmate")
       blackAIMove.validMove should be(blackQueenMove)
@@ -54,7 +54,7 @@ trait LevelThree {
       board = board(sixthMoveBlackKnight.boardChanges)
 
       When("the white A.I. generates the move")
-      val whiteAIMove = whiteAI.generateSmartMove(board, history)
+      val whiteAIMove = whiteAI.apply(board, history)
       Then("the move should be last Scholar's mate move, and cause checkmate")
       whiteAIMove.validMove should be(seventhMoveWhiteQueen)
       whiteAIMove.resultsInCheckmate should be(true)

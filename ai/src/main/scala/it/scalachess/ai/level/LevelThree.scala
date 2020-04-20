@@ -5,15 +5,16 @@ import it.scalachess.core.board.Board
 import it.scalachess.core.logic.moves.FullMove
 
 /**
- * The level Three AI plays TODO
+ * The level two A.I.'s before play a move, it will consider all the possible consequences
+ * derived by the opponent's next moves, because it uses a minimax depth = 2.
  */
 class LevelThree() extends LevelTwo {
 
   override protected val minimaxDepth: Int = 2
 
-  override def apply(board: Board, aiPlayer: Color, history: Seq[FullMove]): FullMove = {
-    verifyGameIsPlayable(board, aiPlayer, history)
-    moveWithMaxEval(minimax(board, history, aiPlayer, minimaxDepth, evaluatePiecesInBoard))
+  override def apply(board: Board, history: Seq[FullMove], aiPlayer: Color): FullMove = {
+    verifyGameIsPlayable(board, history, aiPlayer)
+    moveWithMaxEval(minimax(board, history, aiPlayer, evaluateBoardByPieces))
   }
 
 }
