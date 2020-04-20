@@ -1,56 +1,26 @@
 package it.scalachess.core.parser
 
-import it.scalachess.core.{ Black, Color, White }
-import it.scalachess.core.board.Position
-import it.scalachess.core.logic.{ Draw, Result, Win, WinByForfeit }
-import it.scalachess.core.logic.moves.{
-  FullMove,
-  KingSide,
-  QueenSide,
-  ValidCastling,
-  ValidEnPassant,
-  ValidPromotion,
-  ValidSimpleMove
-}
+import it.scalachess.core.logic.moves.{ KingSide, QueenSide }
 import it.scalachess.core.parser.Parser.Parser
-import it.scalachess.core.pieces.{ Bishop, King, Knight, PieceType, Queen, Rook }
+import it.scalachess.core.pieces._
 import scalaz.{ Success, Validation }
 
 /**
- * Can be used to parse the move of a game into a string that sum up the game.
+ * Parser that parse an Algebraic Move into the string that represents it.
  */
-object GameSaverParser extends Parser[FullMove, String] {
+case class GameSaverParser() extends Parser[AlgebraicMove, String] with PGNFormatter[String] {
   val nothing: String = ""
-  override def parse(t: FullMove): Validation[String, String] = {
-    val check = if (t.resultsInCheckmate) "#" else if (t.resultsInCheck) "+" else nothing
-    t.validMove match {
-      case ValidCastling(_, _, _, _, _, QueenSide) => Success(s"0-0-0$check")
-      case ValidCastling(_, _, _, _, _, KingSide)  => Success(s"0-0$check")
-      case simple: ValidSimpleMove =>
+  override def parse(t: AlgebraicMove): Validation[String, String] =
+    t match {
+      case AlgebraicCastling(QueenSide, check, checkmate) => Success(s"0-0-0${checks(check, checkmate)}")
+      case AlgebraicCastling(KingSide, check, checkmate)  => Success(s"0-0${checks(check, checkmate)}")
+      case AlgebraicSimpleMove(endPos, pieceType, capture, check, checkmate, col, row, promote) =>
         Success(
-          s"${getPiece(simple.pieceType)}${simple.from.toString}${getCapture(simple.capture)}${simple.to.toString}$check")
-      case promotion: ValidPromotion =>
-        val promote = s"=${getPiece(promotion.promotesTo.pieceType)}"
-        Success(
-          s"${getPiece(promotion.pieceType)}${promotion.from.toString}${getCapture(promotion.capture)}${promotion.to.toString}$promote$check")
-      case enpassant: ValidEnPassant =>
-        Success(s"${getPiece(enpassant.pieceType)}${enpassant.from.toString}x${enpassant.to.toString}$check")
+          s"""${getPiece(pieceType)}${col
+            .getOrElse(nothing)}${row.getOrElse(nothing)}${getCapture(capture)}${endPos.toString}${promote.fold(
+            nothing)(pieceType => s"=${getPiece(pieceType)}")}${checks(check, checkmate)}"""
+        )
     }
-  }
-
-  /**
-   * Parse the input into a string representing the game
-   * @param seq the input to be parsed
-   * @return a representation of the game
-   */
-  def parseAndConvert(seq: Seq[FullMove], result: Option[Result]): String =
-    (for (group <- parseAll(seq).flatMap(_.toOption).grouped(2))
-      yield group.mkString(nothing, " ", "\n")).zipWithIndex
-      .map {
-        case (moves: String, index: Int) => s"${index + 1}.$moves"
-      }
-      .mkString
-      .concat(gameEnd(result))
 
   private def getPiece(piece: PieceType): String =
     piece match {
@@ -62,20 +32,15 @@ object GameSaverParser extends Parser[FullMove, String] {
       case _      => nothing
     }
 
-  private def gameEnd(result: Option[Result]): String =
-    result match {
-      case Some(Draw)                 => "1/2"
-      case Some(Win(player))          => winner(player)
-      case Some(WinByForfeit(player)) => winner(player)
-      case _                          => nothing
-    }
+  private def getCapture(capture: Boolean): String =
+    if (capture) "x" else nothing
 
-  private def winner(color: Color): String =
-    color match {
-      case White => "1-0"
-      case Black => "0-1"
-    }
-
-  private def getCapture(capture: Option[Position]): String =
-    if (capture.isDefined) "x" else nothing
+  private def checks(check: Boolean, checkmate: Boolean): String =
+    if (checkmate) "#" else if (check) "+" else nothing
 }
+
+/**
+ * A GameSaverParser that uses the NonAmbiguous mixin to add the
+ * possibility to convert a List of FullMoves into a string representing the game.
+ */
+object NonAmbiguousGameSaver extends GameSaverParser with NonAmbiguous

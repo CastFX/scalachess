@@ -29,4 +29,15 @@ object GameCreator extends OptionValues {
 
   def movesToGame(moves: Seq[String]): ChessGame =
     moves.foldLeft(ChessGame.standard())((game, move) => game(move).toOption.value)
+
+  val enpassantWithAmbiguityGame: (ChessGame, ChessGame) = {
+    val enpassantGame = movesToGame(Seq("d4", "a6", "f4", "b6", "d5", "a5", "f5", "e5"))
+    (enpassantGame("dxe6").toOption.value, enpassantGame("fxe6").toOption.value)
+  }
+
+  val sameColCaptureAmbiguityGame: (ChessGame, ChessGame) = {
+    val captureAmbiguityGame = movesToGame(
+      Seq("a4", "h5", "h4", "g5", "hxg5", "b5", "axb5", "f5", "Ra6", "f4", "Rh6", "f3"))
+    (captureAmbiguityGame("R6xh5").toOption.value, captureAmbiguityGame("R1xh5").toOption.value)
+  }
 }

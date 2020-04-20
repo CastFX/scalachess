@@ -6,14 +6,29 @@ import scalaz.{ Failure, Success, Validation }
 
 import scala.util.matching.Regex
 
+/**
+ *  Object used to parse an element of generic type A and return another of generic type B
+ */
 object Parser {
   abstract class Parser[A, B] {
+
+    /**
+     * Parse a generic A.
+     * @param t the A to be parsed
+     * @return Success(B) if the parse succeed and B is returned, otherwise a Failure
+     */
     def parse(t: A): Validation[String, B]
+
+    /**
+     * Parse a Sequence of A by using parse on every element.
+     * @param seq the sequence to be parsed
+     * @return a sequence of Success and Failure depending on parse result
+     */
     def parseAll(seq: Seq[A]): Seq[Validation[String, B]] = seq map parse
   }
 
   /**
-   * Can be used to parse a move that the player writes as input
+   * Parser that is able to parse a move that the player writes as input and return an AlgebraicMove
    */
   object AlgebraicParser extends Parser[String, AlgebraicMove] {
     private val promotablePieces = "[N,B,R,Q]"
@@ -31,7 +46,7 @@ object Parser {
     /**
      * Parse the given player input
      * @param t the input of the player
-     * @return an AlgebraicMove if the input can be parsed, None otherwise
+     * @return a Success(AlgebraicMove) if the input can be parsed, Failure otherwise
      */
     override def parse(t: String): Validation[String, AlgebraicMove] =
       t match {
