@@ -18,11 +18,11 @@ class LevelZero() extends Level {
   }
 
   /**
-   * Returns a random move from the input list.
-   * @param aiMoves moves list playable by the A.I.
+   * Returns a random move from the input seq.
+   * @param aiMoves moves seq playable by the A.I.
    * @return a random FullMove
    */
-  protected def randomMove(aiMoves: List[FullMove]): FullMove = {
+  protected def randomMove(aiMoves: Seq[FullMove]): FullMove = {
     aiMoves(Random.nextInt(aiMoves.size))
   }
 

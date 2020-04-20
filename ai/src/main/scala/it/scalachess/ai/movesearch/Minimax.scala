@@ -134,7 +134,7 @@ trait Minimax {
   @tailrec
   final protected def alphaBetaPruningSearch(board: Board, history: Seq[FullMove], depth: Int, currentPlayer: Color, maximizingPlayer: Color,
                                              evaluationFunc: (Board, Color) => Double, alpha: Double, beta: Double,
-                                             allPossibleMoves: List[FullMove], bestMoveEval: Double): Double = {
+                                             allPossibleMoves: Seq[FullMove], bestMoveEval: Double): Double = {
     if(allPossibleMoves.isEmpty) {
       // all nodes have been explored
       bestMoveEval

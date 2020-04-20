@@ -17,14 +17,14 @@ class LevelOne() extends LevelZero with Minimax {
   }
 
   /**
-   * Returns the move having the max evaluation from the input list.
+   * Returns the move having the max evaluation from the input seq.
    * If two or more moves have the same evaluation, the move is choosen randomly.
    * @param movesEvaluated the map containing the moves and their evaluation
    * @return a (random) move having the higher evaluation
    */
   final protected def moveWithMaxEval(movesEvaluated: Map[FullMove, Double]): FullMove = {
     val maxEvaluation = movesEvaluated.values.max
-    randomMove(movesEvaluated.filter(_._2 == maxEvaluation).keys.toList)
+    randomMove(movesEvaluated.filter(_._2 == maxEvaluation).keys.toSeq)
   }
 
   /**

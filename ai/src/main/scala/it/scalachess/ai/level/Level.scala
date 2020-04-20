@@ -28,6 +28,6 @@ trait Level extends ((Board, Seq[FullMove], Color) => FullMove) {
 }
 
 object Level {
-  val aiIsInCheckmateErrorMsg = "The A.I.'s possible moves list is empty (probably is it in checkmate?): wrong usage of the AI"
-  val opponentIsInCheckmateErrorMsg = "The opponent player's possible moves list is empty (probably is he/she in checkmate?): wrong usage of AI"
+  val aiIsInCheckmateErrorMsg = "The A.I.'s possible moves seq is empty (probably is it in checkmate?): wrong usage of the AI"
+  val opponentIsInCheckmateErrorMsg = "The opponent player's possible moves seq is empty (probably is he/she in checkmate?): wrong usage of AI"
 }
