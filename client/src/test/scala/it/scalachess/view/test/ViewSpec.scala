@@ -4,7 +4,8 @@ import it.scalachess.client.view.{ CLI, CliView, ViewFactory }
 import it.scalachess.core.board.Board
 import org.scalatest.{ FlatSpec, Inspectors, Matchers }
 import akka.actor.testkit.typed.scaladsl.{ ActorTestKit, LoggingTestKit }
-import it.scalachess.core.{ Draw, Result, White, Win, WinByForfeit }
+import it.scalachess.core.logic.{ Draw, Result, Win, WinByForfeit }
+import it.scalachess.core.White
 import org.slf4j.event.Level
 class ViewSpec extends FlatSpec with Matchers with Inspectors {
 

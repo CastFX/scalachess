@@ -8,7 +8,7 @@ import it.scalachess.util.NetworkUtils
 object ServerMain extends App {
 
   val privateAddress = NetworkUtils.privateIPAddress
-  val port           = if (args.length >= 1) args(0) else "0"
+  val port           = if (args.length >= 1) args(0) else "25555"
   val customConf = ConfigFactory
     .parseString(s"""akka.remote.artery.canonical.hostname =  $privateAddress
          |akka.remote.artery.canonical.port = $port

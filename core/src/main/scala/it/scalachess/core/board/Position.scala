@@ -93,4 +93,8 @@ object Position {
 
   def colToInt(col: Char): Int =
     col.toLower.toInt - 96
+
+  def colToChar(col: Int): Char =
+    (col + 96).toChar
+
 }

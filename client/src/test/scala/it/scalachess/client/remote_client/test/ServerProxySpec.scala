@@ -3,7 +3,8 @@ package it.scalachess.client.remote_client.test
 import akka.actor.testkit.typed.scaladsl.{ ActorTestKit, TestProbe }
 import it.scalachess.client.remote_client.ClientCommands.{ Create, Forfeit, InputMove, Join }
 import it.scalachess.client.remote_client.ServerProxy
-import it.scalachess.core.{ ChessGame, Color, White, Win }
+import it.scalachess.core.logic.Win
+import it.scalachess.core.{ ChessGame, Color, White }
 import it.scalachess.util.NetworkErrors.{ FailedMove, RoomFull, RoomNotFound }
 import it.scalachess.util.NetworkMessages._
 import org.scalatest._

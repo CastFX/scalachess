@@ -1,7 +1,7 @@
 package it.scalachess.client.view
 
-import it.scalachess.core.Result
 import it.scalachess.core.board.Board
+import it.scalachess.core.logic.Result
 
 object ViewCommands {
 

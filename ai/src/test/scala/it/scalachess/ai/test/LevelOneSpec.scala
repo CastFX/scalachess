@@ -1,31 +1,39 @@
 package it.scalachess.ai.test
 
 import it.scalachess.ai.AI
-import org.scalatest.{ FlatSpec, Inspectors, Matchers, OptionValues }
-import it.scalachess.core.{ Black, White }
-import it.scalachess.core.board.{ Board, Position }
-import it.scalachess.core.logic.moves.ValidSimpleMove
-import it.scalachess.core.pieces.{ Pawn, Queen }
+import it.scalachess.ai.test.specifics.{LevelFour, LevelOne, LevelThree, LevelTwo, LevelZero, WrongUsage}
+import it.scalachess.core.{Black, White}
+import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
 
-class LevelOneSpec extends FlatSpec with Matchers with Inspectors with OptionValues {
+final case class LevelOneSpec() extends FlatSpec with Matchers with GivenWhenThen
+  with WrongUsage with LevelZero with LevelOne with LevelTwo {
 
-  /*
-   * simulate a FOOL'S MATE
-   * */
-  "A level one chess A.I during a Fool's Mate" should "plays the move which capture king" in {
-    val firstWhitePawnMove  = ValidSimpleMove(Position(6, 2), Position(6, 3), Pawn, White, None)
-    val blackPawnMove       = ValidSimpleMove(Position(5, 7), Position(5, 6), Pawn, Black, None)
-    val secondWhitePawnMove = ValidSimpleMove(Position(7, 2), Position(7, 4), Pawn, White, None)
-    val blackQueenMove      = ValidSimpleMove(Position(4, 8), Position(8, 4), Queen, Black, None)
-    val whiteKingPosition   = Position(5, 1)
-    var board               = Board.defaultBoard()
-    val ai                  = AI(1, Black)
-    board = board(firstWhitePawnMove.boardChanges)
-    board = board(blackPawnMove.boardChanges)
-    board = board(secondWhitePawnMove.boardChanges)
-    // ai.generateSmartMove(board, Seq()) // note: at this point, this AI could generate the checkmate move: 1 possibility over 30 (moves generated)
-    board = board(blackQueenMove.boardChanges)
-    ai.generateSmartMove(board, Seq()).validMove.capture.value should equal(whiteKingPosition)
-  }
+  private val level = 1
+  private val whiteAI = AI(level, White)
+  private val blackAI = AI(level, Black)
+
+  // lv 0 tests
+  "The level one chess A.I." should behave like generateMove(whiteAI, blackAI)
+
+  // lv 1 tests
+  it should behave like generateSimpleCapture(whiteAI)
+  it should behave like generateTheMostValuedCapture(whiteAI)
+  it should behave like willBeTrickedOnTheVeryNextOpponentMove(whiteAI, blackAI)
+
+  // lv 2 tests
+  // this test will never succeed because this A.I. isn't smart enough
+  // it should behave like willNotBeTrickedOnTheNextEnemyMove(whiteAI)
+
+  // lv 3 tests
+  // since the A.I. generates a random move, it could pass the checkmate tests
+  // it should behave like generateLastFoolsMateMove(blackAI)
+  // it should behave like generateLastScholarsMateMove(whiteAI)
+
+  // lv 4 tests
+  // since the A.I. generates a random move, it could pass this test
+  // it should behave like generateKnightMoveAtTheStart(whiteAI)
+
+  // wrong usages tests
+  it should behave like chessAICantBeUsedDuringCheckmate(whiteAI, blackAI)
 
 }

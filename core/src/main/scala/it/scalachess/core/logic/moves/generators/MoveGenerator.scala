@@ -1,10 +1,9 @@
 package it.scalachess.core.logic.moves.generators
 
 import it.scalachess.core.Color
-import it.scalachess.core.board.{ Board, Position }
-import it.scalachess.core.logic.moves.generators.PieceGenerators.PieceWithMoveGenerator
+import it.scalachess.core.board.Board
+import it.scalachess.core.logic.moves.generators.PieceWithMoveGenerator.PieceMoveGeneretorExt
 import it.scalachess.core.logic.moves.{ FullMove, ValidMove }
-import it.scalachess.core.pieces.{ Bishop, King, Knight, Pawn, Piece, Queen, Rook }
 
 class MoveGenerator(board: Board, player: Color, history: Seq[FullMove]) {
 
@@ -12,7 +11,7 @@ class MoveGenerator(board: Board, player: Color, history: Seq[FullMove]) {
    * A list of valid moves, except the ones that leave the king in check.
    * @return a list of full moves.
    */
-  def allMoves(): List[FullMove] =
+  def allMoves(): Seq[FullMove] =
     validMovesWithoutCheck()
       .map { move =>
         val boardAfter = board.apply(move.boardChanges)
@@ -22,11 +21,11 @@ class MoveGenerator(board: Board, player: Color, history: Seq[FullMove]) {
       }
       .filter(move => !resultsInCheck(move.validMove, player))
 
-  private def validMovesWithoutCheck(): List[ValidMove] =
+  private def validMovesWithoutCheck(): Seq[ValidMove] =
     board.pieces
       .filter(_._2.color == player)
       .flatMap { case (pos, piece) => piece.validMoves(pos, board, history) }
-      .toList
+      .toSeq
 
   private def resultsInCheck(move: ValidMove, kingColor: Color): Boolean = {
     val afterBoard = board.apply(move.boardChanges)
@@ -48,20 +47,4 @@ class MoveGenerator(board: Board, player: Color, history: Seq[FullMove]) {
       .apply(move.boardChanges)
       .kingPos(kingColor)
       .isEmpty
-}
-
-object PieceGenerators {
-  implicit class PieceWithMoveGenerator(piece: Piece) {
-    def validMoves(from: Position, board: Board, history: Seq[FullMove]): List[ValidMove] = piece.pieceType match {
-      case Knight =>
-        KnightMoves(piece.color, board, from)
-      case Pawn =>
-        PawnMoves(piece.color, board, from) ::: PawnSpecialMoves(piece.color, board, from, history)
-      case Rook   => RookMoves(piece.color, board, from)
-      case Bishop => BishopMoves(piece.color, board, from)
-      case Queen  => QueenMoves(piece.color, board, from)
-      case King =>
-        KingMoves(piece.color, board, from) ::: KingSpecialMoves(piece.color, board, from, history)
-    }
-  }
 }

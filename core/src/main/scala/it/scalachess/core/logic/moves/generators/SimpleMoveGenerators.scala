@@ -1,12 +1,13 @@
-package it.scalachess.core.logic.moves
+package it.scalachess.core.logic.moves.generators
 
 import it.scalachess.core.Color
 import it.scalachess.core.board.{ Board, Position }
+import it.scalachess.core.logic.moves.ValidSimpleMove
 import it.scalachess.core.pieces.PieceType
 
 import scala.annotation.tailrec
 
-package object generators {
+object SimpleMoveGenerators {
 
   def simpleMove(pieceType: PieceType,
                  player: Color,

@@ -1,10 +1,12 @@
 package it.scalachess.client.local_client
 
 import it.scalachess.ai.AI
-import it.scalachess.client.view.{ CLI, View, ViewFactory }
+import it.scalachess.client.view.{CLI, View, ViewFactory}
 import it.scalachess.core._
+import it.scalachess.core.logic.{Ongoing, Result, WinByForfeit}
 import it.scalachess.core.logic.moves.FullMove
-import scalaz.{ Failure, Success }
+import it.scalachess.core.parser.NonAmbiguousGameSaver
+import scalaz.{Failure, Success}
 
 import scala.io.StdIn.readLine
 
@@ -38,7 +40,7 @@ object Client extends App {
     view.showBoard(game.board)
     do {
       view.showMessage(s"It's ${game.player} turn to move, enter the move: ")
-      val move = readLine()
+      val move = readLine().trim
       move match {
         case "/forfeit" =>
           game = game.end(WinByForfeit(game.player.other))
@@ -55,18 +57,20 @@ object Client extends App {
     } while (waitingForValidMove)
 
     optionAI match {
-      case Some(ai) =>
+      case Some(ai) if game.gameStatus.equals(Ongoing) =>
         view.showBoard(game.board)
         view.showMessage("WAIT AI TURN")
         val move: FullMove = ai.generateSmartMove(game.board, game.moveHistory)
-
         game = game(move)
       case _ => ()
     }
   }
 
   game.gameStatus match {
-    case r: Result => view.showResult(r)
+    case r: Result =>
+      val pgn = NonAmbiguousGameSaver.convertAndFormat(game.moveHistory, Some(r))
+      view.showMessage(s"PGN:\n$pgn")
+      view.showResult(r)
     case _         => ()
   }
 }
