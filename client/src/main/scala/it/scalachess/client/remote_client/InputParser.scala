@@ -41,7 +41,7 @@ object InputParser {
    * @return A ClientCommand of the input
    */
   def inputToCommand(input: String): ClientCommand =
-    input match {
+    input.trim match {
       case `create`                   => Create
       case join(id)                   => Join(id)
       case `forfeit`                  => Forfeit

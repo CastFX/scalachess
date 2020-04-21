@@ -2,7 +2,7 @@ package it.scalachess.core
 
 import it.scalachess.core.board.Board
 import it.scalachess.core.logic.moves.FullMove
-import it.scalachess.core.logic.MoveValidator
+import it.scalachess.core.logic.{ GameStatus, MoveValidator, Ongoing, Result }
 import it.scalachess.core.parser.Parser.AlgebraicParser
 import scalaz.{ Failure, Success, Validation }
 

@@ -1,8 +1,9 @@
 package it.scalachess.client.view
 
 import com.typesafe.scalalogging.Logger
-import it.scalachess.core.{ Draw, Result, White, Win, WinByForfeit }
+import it.scalachess.core.White
 import it.scalachess.core.board.Board
+import it.scalachess.core.logic.{ Draw, Result, Win, WinByForfeit }
 import it.scalachess.core.pieces.{ Bishop, King, Knight, Piece, Queen, Rook }
 
 import scala.collection.immutable.NumericRange
