@@ -1,20 +1,13 @@
 package it.scalachess.core.parser
 
 import it.scalachess.core.board.Board
-import it.scalachess.core.logic.moves.generators.PieceGenerators
-import it.scalachess.core.logic.moves.{
-  FullMove,
-  ValidCastling,
-  ValidEnPassant,
-  ValidMove,
-  ValidPromotion,
-  ValidSimpleMove
-}
+import it.scalachess.core.board.Position.colToChar
+import it.scalachess.core.logic.Result
+import it.scalachess.core.logic.moves.generators.PieceWithMoveGenerator.PieceMoveGeneretorExt
+import it.scalachess.core.logic.moves._
 import it.scalachess.core.parser.Parser.Parser
 import it.scalachess.core.pieces.Pawn
 import scalaz.Validation
-import it.scalachess.core.board.Position.colToChar
-import it.scalachess.core.logic.Result
 
 /**
  * Mixin for a parser and with a PGNFormatter.
@@ -59,8 +52,8 @@ trait NonAmbiguous extends Parser[AlgebraicMove, String] with PGNFormatter[Strin
       case simple: ValidSimpleMove =>
         validSimpleDisambiguation(move, simple)
       case promotion: ValidPromotion =>
-        import promotion._
         import move._
+        import promotion._
         AlgebraicSimpleMove(
           to,
           pieceType,
@@ -91,12 +84,11 @@ trait NonAmbiguous extends Parser[AlgebraicMove, String] with PGNFormatter[Strin
    * @return an AlgebraicSimpleMove without ambiguity
    */
   private def validSimpleDisambiguation(move: FullMove, simple: ValidSimpleMove): AlgebraicSimpleMove = {
-    import simple._
     import move._
+    import simple._
     val moves = boardAfter.pieces.flatMap {
       case (pos, piece) =>
-        PieceGenerators
-          .PieceWithMoveGenerator(piece)
+        piece
           .pieceSimpleValidMoves(pos, boardAfter)
           .filter(x => x.to == to && x.pieceType == pieceType && x.color == color)
     }
