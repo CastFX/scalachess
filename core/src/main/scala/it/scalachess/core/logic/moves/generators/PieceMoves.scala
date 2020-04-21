@@ -1,6 +1,7 @@
 package it.scalachess.core.logic.moves.generators
 
 import it.scalachess.core.board.{ Board, Position }
+import it.scalachess.core.logic.moves.generators.SimpleMoveGenerators._
 import it.scalachess.core.logic.moves.{ FullMove, ValidMove, ValidPromotion, ValidSimpleMove }
 import it.scalachess.core.pieces._
 import it.scalachess.core.{ Black, Color, White }
